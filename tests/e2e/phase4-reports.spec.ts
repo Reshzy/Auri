@@ -14,7 +14,9 @@ const hasLiveAuth =
 test.describe("Phase 4 reports (live Auth)", () => {
   test.skip(!hasLiveAuth, "Live Supabase Auth E2E credentials are not configured.");
 
-  test("create Aug 1–15 2026, edit, persist, copy, finalize, reopen", async ({ page }) => {
+  test("create Aug 1–15 2026, edit, persist, copy, finalize, reopen", async ({
+    page,
+  }) => {
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(process.env.E2E_USER_EMAIL!);
     await page.getByLabel(/password/i).fill(process.env.E2E_USER_PASSWORD!);
@@ -51,15 +53,20 @@ test.describe("Phase 4 reports (live Auth)", () => {
 
     await page.reload();
     await expect(page.getByLabel("AM arrival")).toHaveValue(/07:00/);
-    await expect(page.getByPlaceholder("Item 1")).toHaveValue(/Prepared official documents/);
+    await expect(page.getByPlaceholder("Item 1")).toHaveValue(
+      /Prepared official documents/,
+    );
 
     if ((await daySelect.count()) > 0) {
       await daySelect.selectOption("2026-08-04");
     }
     await page.getByRole("button", { name: /Copy previous workday/i }).click();
-    await expect(page.getByPlaceholder("Item 1")).toHaveValue(/Prepared official documents/, {
-      timeout: 15000,
-    });
+    await expect(page.getByPlaceholder("Item 1")).toHaveValue(
+      /Prepared official documents/,
+      {
+        timeout: 15000,
+      },
+    );
 
     await expect(page.getByText(/Readiness|Blocking|Ready/i).first()).toBeVisible();
 

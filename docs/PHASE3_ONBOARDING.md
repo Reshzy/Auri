@@ -24,4 +24,4 @@
 
 ## Out of scope
 
-Report periods, daily editor, presets, document generation (Phase 4+).
+Presets and document generation (Phase 5+). Report periods and the daily editor are implemented in Phase 4 (`docs/PHASE4_REPORTS.md`).

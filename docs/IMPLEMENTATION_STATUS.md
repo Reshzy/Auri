@@ -55,20 +55,20 @@ Last updated: 2026-08-11
 
 ## Quality gates (Phase 4)
 
-| Check                  | Result                                                            |
-| ---------------------- | ----------------------------------------------------------------- |
-| `pnpm format:check`    | (run at delivery)                                                 |
-| `pnpm lint`            | (run at delivery)                                                 |
-| `pnpm typecheck`       | Pass                                                              |
-| `pnpm test`            | Pass (unit + live Postgres integration when `DATABASE_URL` set)   |
-| `pnpm build`           | (run at delivery)                                                 |
-| `pnpm templates:audit` | (run at delivery)                                                 |
-| `pnpm auth:check`      | (run at delivery; live Auth E2E still skipped without public env) |
-| `pnpm db:check`        | (run at delivery)                                                 |
-| `pnpm db:smoke`        | (run at delivery)                                                 |
-| `pnpm reports:smoke`   | (run at delivery)                                                 |
-| `pnpm test:e2e`        | Skipped unless `E2E_USER_*` + Supabase public env configured      |
-| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env |
+| Check                  | Result                                                              |
+| ---------------------- | ------------------------------------------------------------------- |
+| `pnpm format:check`    | Pass                                                                |
+| `pnpm lint`            | Pass                                                                |
+| `pnpm typecheck`       | Pass                                                                |
+| `pnpm test`            | Pass (83 tests; includes live Postgres integration)                 |
+| `pnpm build`           | Pass                                                                |
+| `pnpm templates:audit` | Pass                                                                |
+| `pnpm auth:check`      | Pass (static; live Auth skipped — public env not detected by check) |
+| `pnpm db:check`        | Pass                                                                |
+| `pnpm db:smoke`        | Pass                                                                |
+| `pnpm reports:smoke`   | Pass (Aug 1–15 2026 classification)                                 |
+| `pnpm test:e2e`        | Skipped — no `E2E_USER_*` / usable hosted Auth credentials          |
+| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env   |
 
 ## Schema sources
 

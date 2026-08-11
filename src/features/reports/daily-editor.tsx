@@ -14,7 +14,11 @@ import { ReportStatusActions } from "@/features/reports/report-status-actions";
 import { ValidationSummary } from "@/features/reports/validation-summary";
 import { weekdayLabelForYmd } from "@/lib/dates/period";
 import type { DayClassification } from "@/lib/reports/classify";
-import { formatMinutesLabel, formatPeriodLabel, formatStatus } from "@/lib/reports/labels";
+import {
+  formatMinutesLabel,
+  formatPeriodLabel,
+  formatStatus,
+} from "@/lib/reports/labels";
 import { formatTotalHoursLabel } from "@/lib/reports/totals";
 import { cn } from "@/lib/utils";
 import type { ReportValidationResult } from "@/server/services/report-validation";
@@ -68,7 +72,8 @@ function entryToForm(entry: EditorEntry): DayForm {
     pmArrival: entry.pmArrival ?? "",
     pmDeparture: entry.pmDeparture ?? "",
     undertimeOverride:
-      entry.undertimeOverrideMinutes === null || entry.undertimeOverrideMinutes === undefined
+      entry.undertimeOverrideMinutes === null ||
+      entry.undertimeOverrideMinutes === undefined
         ? ""
         : String(entry.undertimeOverrideMinutes),
     accomplishments: entry.accomplishments.length > 0 ? [...entry.accomplishments] : [""],
@@ -146,12 +151,9 @@ export function DailyEditor({
     initialSelection(initialEntries, initialDay),
   );
 
-  const selected =
-    entries.find((e) => e.workDate === selectedDate) ?? entries[0] ?? null;
+  const selected = entries.find((e) => e.workDate === selectedDate) ?? entries[0] ?? null;
 
-  const initialLoad = selected
-    ? loadFormForEntry(userId, report.id, selected)
-    : null;
+  const initialLoad = selected ? loadFormForEntry(userId, report.id, selected) : null;
 
   const [form, setForm] = useState<DayForm>(
     () => initialLoad?.form ?? entryToForm(initialEntries[0]!),
@@ -171,9 +173,7 @@ export function DailyEditor({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [, startTransition] = useTransition();
 
-  const selectedIndex = selected
-    ? entries.findIndex((e) => e.id === selected.id)
-    : -1;
+  const selectedIndex = selected ? entries.findIndex((e) => e.id === selected.id) : -1;
 
   const totalsLabel = useMemo(
     () => formatTotalHoursLabel(entries.reduce((sum, e) => sum + e.workedMinutes, 0)),
@@ -280,7 +280,9 @@ export function DailyEditor({
       return;
     }
     const saved = result.entry as EditorEntry;
-    setEntries((prev) => prev.map((e) => (e.id === selected.id ? { ...e, ...saved } : e)));
+    setEntries((prev) =>
+      prev.map((e) => (e.id === selected.id ? { ...e, ...saved } : e)),
+    );
     setForm(entryToForm(saved));
     setSaveState("saved");
     setLastSavedAt(result.savedAt ?? null);
@@ -301,7 +303,9 @@ export function DailyEditor({
       return;
     }
     const saved = result.entry as EditorEntry;
-    setEntries((prev) => prev.map((e) => (e.id === selected.id ? { ...e, ...saved } : e)));
+    setEntries((prev) =>
+      prev.map((e) => (e.id === selected.id ? { ...e, ...saved } : e)),
+    );
     setForm(entryToForm(saved));
     setSaveState("saved");
     setConfirmClear(false);
@@ -338,7 +342,12 @@ export function DailyEditor({
             Status: {formatStatus(status)} · Total worked: {totalsLabel}
           </p>
         </div>
-        <SaveBadge state={saveState} lastSavedAt={lastSavedAt} onRetry={onRetry} error={saveError} />
+        <SaveBadge
+          state={saveState}
+          lastSavedAt={lastSavedAt}
+          onRetry={onRetry}
+          error={saveError}
+        />
       </header>
 
       <ReportStatusActions reportId={report.id} status={status} />
@@ -362,7 +371,8 @@ export function DailyEditor({
                   )}
                 >
                   <span>
-                    {entry.workDate.slice(8)} · {weekdayLabelForYmd(entry.workDate).slice(0, 3)}
+                    {entry.workDate.slice(8)} ·{" "}
+                    {weekdayLabelForYmd(entry.workDate).slice(0, 3)}
                   </span>
                   <span
                     className={cn(
@@ -497,7 +507,9 @@ export function DailyEditor({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="undertimeOverride">Manual undertime override (minutes)</Label>
+              <Label htmlFor="undertimeOverride">
+                Manual undertime override (minutes)
+              </Label>
               <Input
                 id="undertimeOverride"
                 inputMode="numeric"
@@ -515,7 +527,9 @@ export function DailyEditor({
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() => updateField("accomplishments", [...form.accomplishments, ""])}
+                  onClick={() =>
+                    updateField("accomplishments", [...form.accomplishments, ""])
+                  }
                 >
                   Add item
                 </Button>
@@ -605,7 +619,11 @@ export function DailyEditor({
                   Copy previous workday
                 </Button>
                 {!confirmClear ? (
-                  <Button type="button" variant="ghost" onClick={() => setConfirmClear(true)}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setConfirmClear(true)}
+                  >
                     Clear day
                   </Button>
                 ) : (
