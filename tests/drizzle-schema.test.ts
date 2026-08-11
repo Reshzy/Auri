@@ -63,4 +63,9 @@ describe("Drizzle migrations", () => {
     expect(sql).toContain("set_updated_at");
     expect(sql).toContain("profiles_active_schedule_id_fkey");
   });
+
+  it("adds snapshots_refreshed_at for draft snapshot refresh audit", () => {
+    expect(sql).toContain("snapshots_refreshed_at");
+    expect(schema.reportPeriods.snapshotsRefreshedAt.name).toBe("snapshots_refreshed_at");
+  });
 });

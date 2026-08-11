@@ -1,0 +1,1 @@
+ALTER TABLE "report_periods" ADD COLUMN "snapshots_refreshed_at" timestamp with time zone;

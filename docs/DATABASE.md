@@ -40,6 +40,7 @@ pnpm db:migrate    # apply committed drizzle/ migrations
 pnpm db:check      # static consistency checks
 pnpm db:studio     # Drizzle Studio
 pnpm db:smoke      # insert/select/delete disposable profile row
+pnpm reports:smoke # Phase 4 disposable report classification smoke
 ```
 
 Do **not** use destructive reset commands. Do **not** run `drizzle-kit push` against production.
@@ -78,13 +79,33 @@ No schema or migration-history conflict was observed. No destructive repair was 
 - Onboarding and settings mutations live in server-only DAL modules under `src/db/dal/` and server actions under `src/features/settings/actions.ts`.
 - Session user UUID comes from Supabase `getUser()` only. Client-supplied `user_id` / `owner_id` fields are rejected.
 - `profiles.active_schedule_id` is set only to a `work_schedules` row owned by the same user.
-- Snapshot builders (`src/db/dal/snapshots.ts`) copy current profile, active schedule, and active signatories into JSON suitable for later `report_periods` inserts. Phase 3 does not create reports.
+- Snapshot builders (`src/db/dal/snapshots.ts`) copy current profile, active schedule, and active signatories into JSON for `report_periods` inserts.
 - Template availability checks active `template_versions` rows and falls back to audited Phase 0 `templates/manifests` + `templates/source` for local onboarding when DB rows are not yet activated (Phase 6).
 
-## Testing Phase 3 locally
+## Phase 4 data-access notes
+
+- Report/daily DAL: `src/db/dal/reports.ts`, `src/db/dal/daily-entries.ts`.
+- Services: `ReportPeriodService`, `DailyEntryService`, validation in `src/server/services/`.
+- Additive column: `report_periods.snapshots_refreshed_at` (migration `drizzle/0001_*.sql`).
+- Report create inserts the period and all daily rows in one transaction; duplicate active ranges are returned idempotently.
+- Mutations always scope by authenticated user UUID + report id; finalized/archived reports reject edits.
+- Reopen sets related `report_exports.is_current = false` without deleting export rows.
+- See `docs/PHASE4_REPORTS.md` for time/undertime, autosave, and readiness rules.
+
+## Local verification commands
+
+```bash
+pnpm db:smoke        # disposable profile CRUD
+pnpm reports:smoke   # disposable Aug 2026 first-half classification smoke
+pnpm phase4:check    # alias of reports:smoke
+pnpm test            # unit + live integration (skips integration if no DATABASE_URL)
+pnpm test:e2e        # Playwright; skipped without Auth + E2E_USER_* credentials
+```
+
+## Testing Phase 3–4 locally
 
 1. Ensure `DATABASE_URL` / `DIRECT_URL` point at local `Auri` and hosted Supabase Auth public env is set.
 2. Sign in → incomplete profiles are redirected to `/onboarding`.
 3. Complete steps; refresh mid-flow to confirm resume.
-4. After completion, edit settings under `/app/settings/*`.
-5. Automated coverage: `pnpm test` (mocked unit/DAL tests). Live Auth E2E requires a real test account — do not invent credentials.
+4. After completion, create a report under `/app/reports/new` and edit days under `/app/reports/[id]/edit`.
+5. Automated coverage: `pnpm test` (unit + disposable Postgres integration). Live Auth browser E2E requires a real onboarded test account — do not invent credentials.

@@ -26,6 +26,10 @@ export const reportPeriods = pgTable(
     profileSnapshot: jsonb("profile_snapshot").notNull(),
     signatorySnapshot: jsonb("signatory_snapshot").notNull(),
     finalizedAt: timestamp("finalized_at", { withTimezone: true, mode: "string" }),
+    snapshotsRefreshedAt: timestamp("snapshots_refreshed_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .notNull()
       .defaultNow(),

@@ -65,6 +65,11 @@ function main() {
     "Drizzle migration should include active schedule FK / updated_at triggers",
   );
 
+  assert(
+    drizzleSql.includes("snapshots_refreshed_at"),
+    "Drizzle migration missing report_periods.snapshots_refreshed_at",
+  );
+
   const overlays = readDirSql(path.join(root, "supabase", "overlays"));
   assert(overlays.includes("handle_new_user"), "Overlay missing profile trigger");
   assert(overlays.includes("enable row level security"), "Overlay missing RLS");

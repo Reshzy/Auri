@@ -4,7 +4,7 @@ Last updated: 2026-08-11
 
 ## Current phase
 
-**Phase 3 complete (onboarding and settings).** Phase 4 has not started.
+**Phase 4 complete (report periods and daily editor).** Phase 5 has not started.
 
 ## Completed
 
@@ -35,24 +35,40 @@ Last updated: 2026-08-11
 - [x] Auth gates: `/onboarding` requires session; incomplete users blocked from `/app/*`; completed users leave onboarding
 - [x] Active schedule integrity when saving/selecting schedules
 - [x] Sample defaults from §7.2–7.4 as editable form defaults (not hard-coded constants)
-- [x] Snapshot builders for `profile_snapshot` / `schedule_snapshot` / `signatory_snapshot` (no report create)
+- [x] Snapshot builders for `profile_snapshot` / `schedule_snapshot` / `signatory_snapshot`
 
-## Quality gates (Phase 3)
+### Phase 4 — Report periods and daily editor
 
-| Check                  | Result                                                              |
-| ---------------------- | ------------------------------------------------------------------- |
-| `pnpm format:check`    | Pass                                                                |
-| `pnpm lint`            | Pass                                                                |
-| `pnpm typecheck`       | Pass                                                                |
-| `pnpm test`            | Pass (52 tests; mocked DAL/unit — not live integration)             |
-| `pnpm build`           | Pass                                                                |
-| `pnpm templates:audit` | Pass                                                                |
-| `pnpm auth:check`      | Pass (static; live Auth skipped — public env not detected by check) |
-| `pnpm db:check`        | Pass                                                                |
-| Local `db:inspect`     | Pass (Phase 2 verification)                                         |
-| Local `db:migrate`     | Pass (Phase 2 verification)                                         |
-| Local `db:smoke`       | Pass (Phase 2 verification)                                         |
-| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env   |
+- [x] First/second-half creation with transactional daily entries
+- [x] Schedule classification + off labels; Aug 1–15 2026 fixture
+- [x] Routes: `/app/reports`, `/new`, `/[reportId]`, `/[reportId]/edit`; dashboard current-period + recent
+- [x] Mobile-first day editor (no spreadsheet grid); ordered accomplishments; remarks; classification
+- [x] Time normalize (`700`/`7:00`/`07:00`); server worked/undertime minutes; manual override
+- [x] Autosave states + sessionStorage failed-draft recovery keyed by user/report/entry
+- [x] Copy previous workday; clear day with confirmation
+- [x] `ReportValidationService` readiness (errors/warnings/infos)
+- [x] Finalize / deliberate reopen; export `is_current` invalidated on reopen
+- [x] Draft **Refresh from current settings** + `snapshots_refreshed_at`
+- [x] DAL ownership scoping; finalized/archived mutation rejection
+- [x] `pnpm reports:smoke` / `phase4:check`; Playwright suite skipped without Auth credentials
+- [x] Docs: `docs/PHASE4_REPORTS.md`
+
+## Quality gates (Phase 4)
+
+| Check                  | Result                                                            |
+| ---------------------- | ----------------------------------------------------------------- |
+| `pnpm format:check`    | (run at delivery)                                                 |
+| `pnpm lint`            | (run at delivery)                                                 |
+| `pnpm typecheck`       | Pass                                                              |
+| `pnpm test`            | Pass (unit + live Postgres integration when `DATABASE_URL` set)   |
+| `pnpm build`           | (run at delivery)                                                 |
+| `pnpm templates:audit` | (run at delivery)                                                 |
+| `pnpm auth:check`      | (run at delivery; live Auth E2E still skipped without public env) |
+| `pnpm db:check`        | (run at delivery)                                                 |
+| `pnpm db:smoke`        | (run at delivery)                                                 |
+| `pnpm reports:smoke`   | (run at delivery)                                                 |
+| `pnpm test:e2e`        | Skipped unless `E2E_USER_*` + Supabase public env configured      |
+| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env |
 
 ## Schema sources
 
@@ -62,18 +78,23 @@ Last updated: 2026-08-11
 | Auth FK + profile trigger + RLS + Storage | `supabase/overlays/`          | Production Supabase only           |
 | Historical pre-Drizzle SQL                | `supabase/archive/`           | Reference only                     |
 
+Phase 4 additive migration: `drizzle/0001_*.sql` adds `report_periods.snapshots_refreshed_at`.
+
 ## Environment variables
 
 See `.env.example` and `docs/DATABASE.md`.
+
+Optional for Playwright live Auth: `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`.
 
 Never commit `.env.local` or real passwords/keys.
 
 ## Manual setup still required
 
-1. Confirm hosted Supabase Auth public keys + redirect URLs (needed for live onboarding E2E).
-2. For production: Drizzle migrate with `DIRECT_URL`, then apply `supabase/overlays/` in order.
+1. Confirm hosted Supabase Auth public keys + redirect URLs (needed for live Auth/onboarding/report E2E).
+2. For production: Drizzle migrate with `DIRECT_URL` (includes `0001` refresh column), then apply `supabase/overlays/` in order.
 3. Optional: configure Supabase service role for admin/live isolation checks.
-4. Phase 6 will activate runtime templates in `template_versions`; Phase 3 availability also accepts Phase 0 audited source+manifest pairs.
+4. Optional: set `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded test user only).
+5. Phase 6 will activate runtime templates in `template_versions`; readiness also accepts Phase 0 audited source+manifest pairs.
 
 ## Assumptions
 
@@ -81,10 +102,10 @@ Never commit `.env.local` or real passwords/keys.
 2. Hosted Supabase Auth remains the identity provider during local web development.
 3. `ensureProfile` / all mutations use only the verified Supabase user UUID.
 4. Direct Postgres bypasses Data API RLS; DAL ownership scoping is mandatory.
-5. Onboarding step resume is inferred from persisted domain state (no `onboarding_step` column in §8.1).
-6. Template availability for Phase 3 = active `template_versions` row **or** Phase 0 manifest+source present.
-7. Ready step offers period creation only as Phase 4 placeholder copy — no report creation.
+5. Accomplishments remain `daily_entries.accomplishments text[]` (no separate items table).
+6. `CUSTOM` period kind stays schema-supported but hidden from the main create UI.
+7. Phase 5 presets are not wired into the day editor.
 
 ## Next work
 
-1. Phase 4: report periods and daily editor (not started).
+1. Phase 5: accomplishment presets (CRUD, picker, shortcuts, use-count) — not started.

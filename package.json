@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "templates:audit": "tsx scripts/audit-templates.ts",
     "auth:check": "tsx scripts/check-phase2-auth.ts",
     "db:generate": "drizzle-kit generate",
@@ -20,6 +21,8 @@
     "db:studio": "drizzle-kit studio",
     "db:inspect": "tsx scripts/inspect-local-db.ts",
     "db:smoke": "tsx scripts/smoke-db.ts",
+    "reports:smoke": "tsx scripts/smoke-reports.ts",
+    "phase4:check": "tsx scripts/smoke-reports.ts",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm auth:check && pnpm db:check"
   },
   "dependencies": {
@@ -44,6 +47,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

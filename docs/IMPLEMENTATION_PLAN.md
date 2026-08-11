@@ -92,15 +92,18 @@ Plus targeted Playwright when a critical user flow changes.
 
 ## Phase 4 — Report periods and daily editor
 
-**Spec:** §7.5–7.8, §9.1–9.3, §4.5–4.6
+**Spec:** §7.5–7.8, §9.1–9.3, §4.5–4.6  
+**Status:** Complete — see `docs/PHASE4_REPORTS.md`
 
 - First/second-half creation with transactional daily rows
 - Schedule classification + off labels
 - Time normalize/validate; server-side worked/undertime minutes
 - Autosave, copy previous workday, validation summary
-- Finalize/reopen
+- Finalize/reopen; draft snapshot refresh (`snapshots_refreshed_at`)
+- Routes `/app/reports*`, dashboard current-period wiring
+- `pnpm reports:smoke` / `phase4:check`; Playwright skipped without Auth credentials
 
-**Exit:** Aug 1–15 2026 fixture + unit tests for time math.
+**Exit:** Aug 1–15 2026 fixture + unit tests for time math — met.
 
 ---
 

@@ -83,15 +83,14 @@ export function ReadyStepPanel() {
     <div className="space-y-4">
       <FormMessage error={state.error} success={state.success} />
       <p className="text-auri-ink-muted text-sm">
-        Your profile, schedule, and signatories are ready. Report period creation arrives
-        in Phase 4 — you can open the workspace now and create first- or second-half
-        reports when that flow ships.
+        Your profile, schedule, and signatories are ready. Enter the workspace to create a
+        first- or second-half report period and start daily entries.
       </p>
       <form action={formAction} className="space-y-3">
         <SubmitButton idleLabel="Enter workspace" pendingLabel="Finishing…" />
       </form>
       <p className="text-auri-ink-muted text-xs">
-        Create current period: available in Phase 4.
+        After onboarding, open Reports to create the current half-month period.
       </p>
     </div>
   );
