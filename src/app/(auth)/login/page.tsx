@@ -1,10 +1,22 @@
 import Link from "next/link";
 import { AuthCard } from "@/components/auth/auth-card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { LoginForm } from "@/features/auth/login-form";
+import { safeNextPath } from "@/lib/auth/paths";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ next?: string; error?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const nextPath = params.next ? safeNextPath(params.next) : undefined;
+  const callbackError =
+    params.error === "auth_callback"
+      ? "Unable to complete sign-in. Request a new link and try again."
+      : params.error === "config"
+        ? "Authentication is not configured. Add Supabase credentials to .env.local."
+        : undefined;
+
   return (
     <AuthCard
       title="Sign in"
@@ -21,37 +33,15 @@ export default function LoginPage() {
         </p>
       }
     >
-      <form className="space-y-4" action="/app">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="password">Password</Label>
-            <Link
-              href="/forgot-password"
-              className="text-auri-orange-700 text-xs font-medium hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-          />
-        </div>
-        <Button type="submit" className="w-full">
-          Continue
-        </Button>
-        <p className="text-auri-ink-muted text-xs">
-          Authentication wiring arrives in Phase 2. This shell validates the route and
-          layout only.
+      {callbackError ? (
+        <p
+          role="alert"
+          className="border-auri-danger/30 bg-auri-danger/5 text-auri-danger mb-4 rounded-xl border px-3 py-2 text-sm"
+        >
+          {callbackError}
         </p>
-      </form>
+      ) : null}
+      <LoginForm nextPath={nextPath} />
     </AuthCard>
   );
 }

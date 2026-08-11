@@ -1,0 +1,2 @@
+-- Phase 2 seed intentionally empty.
+-- Sample presets / demo data arrive in later phases.

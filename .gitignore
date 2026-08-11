@@ -1,6 +1,5 @@
 # dependencies
 /node_modules
-/auri-web/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -14,7 +13,6 @@
 
 # next.js
 /.next/
-/auri-web/.next/
 /out/
 
 # production

@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { AuthCard } from "@/components/auth/auth-card";
-import { ForgotPasswordForm } from "@/features/auth/forgot-password-form";
+import { ResetPasswordForm } from "@/features/auth/reset-password-form";
 
-export default function ForgotPasswordPage() {
+export default function ResetPasswordPage() {
   return (
     <AuthCard
-      title="Reset password"
-      description="Enter your email and we will send reset instructions if an account exists."
+      title="Choose a new password"
+      description="Set a new password for your Auri account."
       footer={
         <p>
-          Remembered it?{" "}
           <Link
             href="/login"
             className="text-auri-orange-700 font-medium hover:underline"
@@ -19,7 +18,7 @@ export default function ForgotPasswordPage() {
         </p>
       }
     >
-      <ForgotPasswordForm />
+      <ResetPasswordForm />
     </AuthCard>
   );
 }

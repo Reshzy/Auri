@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileText, LayoutDashboard, Sparkles } from "lucide-react";
 import { AuriMark } from "@/components/brand/auri-mark";
+import { SignOutButton } from "@/features/auth/sign-out-button";
 import { cn } from "@/lib/utils";
 
 const primaryNav = [
@@ -66,6 +67,9 @@ export function AppSidebar({ className }: AppSidebarProps) {
           </div>
         </div>
       </nav>
+      <div className="border-auri-border border-t px-3 py-3">
+        <SignOutButton />
+      </div>
     </aside>
   );
 }

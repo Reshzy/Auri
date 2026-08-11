@@ -58,7 +58,8 @@ Plus targeted Playwright when a critical user flow changes.
 
 ## Phase 2 — Supabase foundation and authentication
 
-**Spec:** §8, §6.4, §11.1, §12.2
+**Spec:** §8, §6.4, §11.1, §12.2  
+**Status:** Complete (code) — apply migrations + configure Auth URLs with real credentials for live isolation/session verification
 
 - Supabase config + migrations for all §8.1 tables
 - RLS + storage policies for `templates` and `generated-reports`
