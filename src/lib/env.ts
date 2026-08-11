@@ -15,7 +15,19 @@ const serviceRoleSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: nonEmpty,
 });
 
+const databaseUrlSchema = nonEmpty
+  .url()
+  .refine(
+    (value) => value.startsWith("postgres://") || value.startsWith("postgresql://"),
+    "DATABASE_URL must be a postgres connection string",
+  );
+
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
+
+export type DatabaseConnectionOptions = {
+  prepare: boolean;
+  ssl: false | "require";
+};
 
 function readPublicEnvInput() {
   return {
@@ -44,16 +56,20 @@ export function hasSupabaseServiceRole(): boolean {
   );
 }
 
+export function hasDatabaseUrl(): boolean {
+  return databaseUrlSchema.safeParse(process.env.DATABASE_URL).success;
+}
+
+export function hasDirectUrl(): boolean {
+  return databaseUrlSchema.safeParse(process.env.DIRECT_URL).success;
+}
+
 export function getPublicEnv(): PublicEnv {
   const parsed = publicEnvSchema.safeParse(readPublicEnvInput());
   if (!parsed.success) {
     throw new Error(
       "Missing or invalid Supabase public environment variables. Copy .env.example to .env.local and fill NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL, and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.",
     );
-  }
-
-  if (parsed.data.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.startsWith("eyJ")) {
-    // JWT-shaped publishable/anon keys are fine; service-role must never use NEXT_PUBLIC_.
   }
 
   return parsed.data;
@@ -83,4 +99,51 @@ export function getServiceRoleKey(): string {
   return parsed.data.SUPABASE_SERVICE_ROLE_KEY;
 }
 
-export { publicEnvSchema, serviceRoleSchema };
+export function getDatabaseUrl(): string {
+  const parsed = databaseUrlSchema.safeParse(process.env.DATABASE_URL);
+  if (!parsed.success) {
+    throw new Error(
+      "Missing or invalid DATABASE_URL. Set a postgres connection string in .env.local (see .env.example).",
+    );
+  }
+  return parsed.data;
+}
+
+export function getDirectUrl(): string {
+  const parsed = databaseUrlSchema.safeParse(process.env.DIRECT_URL);
+  if (!parsed.success) {
+    throw new Error(
+      "Missing or invalid DIRECT_URL. Set a postgres connection string for migrations in .env.local (see .env.example).",
+    );
+  }
+  return parsed.data;
+}
+
+export function isLocalDatabaseHost(connectionString: string): boolean {
+  try {
+    const url = new URL(connectionString);
+    return (
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "::1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Local Postgres: prepare on, SSL off.
+ * Remote (Supabase pooler / Vercel): prepare off, SSL required.
+ */
+export function getDatabaseConnectionOptions(
+  connectionString: string,
+): DatabaseConnectionOptions {
+  const local = isLocalDatabaseHost(connectionString);
+  return {
+    prepare: local,
+    ssl: local ? false : "require",
+  };
+}
+
+export { publicEnvSchema, serviceRoleSchema, databaseUrlSchema };

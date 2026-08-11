@@ -1,9 +1,14 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { config } from "dotenv";
 import { hasSupabasePublicConfig, hasSupabaseServiceRole } from "../src/lib/env";
 
+config({ path: ".env.local" });
+config();
+
 const root = path.resolve(__dirname, "..");
-const migrationsDir = path.join(root, "supabase", "migrations");
+const overlaysDir = path.join(root, "supabase", "overlays");
+const drizzleDir = path.join(root, "drizzle");
 
 function assert(condition: boolean, message: string) {
   if (!condition) {
@@ -11,20 +16,24 @@ function assert(condition: boolean, message: string) {
   }
 }
 
+function readSqlDir(dir: string): string {
+  return readdirSync(dir)
+    .filter((name) => name.endsWith(".sql"))
+    .sort()
+    .map((name) => readFileSync(path.join(dir, name), "utf8"))
+    .join("\n");
+}
+
 function main() {
   assert(
     existsSync(path.join(root, "supabase", "config.toml")),
     "Missing supabase/config.toml",
   );
-  assert(existsSync(migrationsDir), "Missing supabase/migrations");
+  assert(existsSync(overlaysDir), "Missing supabase/overlays");
+  assert(existsSync(drizzleDir), "Missing drizzle/ migrations");
 
-  const migrations = readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
-  assert(migrations.length >= 4, "Expected at least four Phase 2 migrations");
-
-  const sql = migrations
-    .sort()
-    .map((name) => readFileSync(path.join(migrationsDir, name), "utf8"))
-    .join("\n");
+  const drizzleSql = readSqlDir(drizzleDir);
+  const overlaySql = readSqlDir(overlaysDir);
 
   for (const table of [
     "profiles",
@@ -36,14 +45,17 @@ function main() {
     "template_versions",
     "report_exports",
   ]) {
-    assert(sql.includes(`create table public.${table}`), `Missing table ${table}`);
     assert(
-      sql.includes(`alter table public.${table} enable row level security`),
+      drizzleSql.toLowerCase().includes(`create table "${table}"`),
+      `Missing Drizzle table ${table}`,
+    );
+    assert(
+      overlaySql.includes(`alter table public.${table} enable row level security`),
       `Missing RLS enable for ${table}`,
     );
   }
 
-  assert(sql.includes("handle_new_user"), "Missing profile bootstrap trigger");
+  assert(overlaySql.includes("handle_new_user"), "Missing profile bootstrap trigger");
   assert(existsSync(path.join(root, "proxy.ts")), "Missing root proxy.ts");
   assert(
     existsSync(path.join(root, "src", "lib", "supabase", "client.ts")),
@@ -57,11 +69,15 @@ function main() {
     existsSync(path.join(root, "src", "lib", "supabase", "admin.ts")),
     "Missing admin Supabase client",
   );
+  assert(
+    existsSync(path.join(root, "src", "db", "dal", "profiles.ts")),
+    "Missing ensureProfile DAL",
+  );
 
   const publicConfigured = hasSupabasePublicConfig();
   const serviceConfigured = hasSupabaseServiceRole();
 
-  console.log("Phase 2 static auth/database checks: PASS");
+  console.log("Phase 2 static auth checks: PASS");
   console.log(
     publicConfigured
       ? "Supabase public env: configured"
@@ -75,7 +91,7 @@ function main() {
 
   if (!publicConfigured) {
     console.log(
-      "Manual setup still required: copy .env.example → .env.local, apply migrations, configure Auth redirect URLs.",
+      "Manual setup still required: copy .env.example → .env.local, configure Auth redirect URLs, and set DATABASE_URL for Drizzle.",
     );
   }
 }

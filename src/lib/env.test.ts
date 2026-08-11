@@ -1,9 +1,15 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  getDatabaseConnectionOptions,
+  getDatabaseUrl,
+  getDirectUrl,
   getPublicEnv,
   getServiceRoleKey,
+  hasDatabaseUrl,
+  hasDirectUrl,
   hasSupabasePublicConfig,
   hasSupabaseServiceRole,
+  isLocalDatabaseHost,
   publicEnvSchema,
   serviceRoleSchema,
 } from "@/lib/env";
@@ -14,6 +20,8 @@ const KEYS = [
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY",
+  "DATABASE_URL",
+  "DIRECT_URL",
   "AURI_TEMPLATE_BUCKET",
   "AURI_GENERATED_BUCKET",
   "AURI_DEFAULT_TIMEZONE",
@@ -98,5 +106,35 @@ describe("env validation", () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY = "same-secret";
 
     expect(() => getServiceRoleKey()).toThrow(/exposed via NEXT_PUBLIC_/);
+  });
+
+  it("validates database connection URLs", () => {
+    clearEnv();
+    expect(hasDatabaseUrl()).toBe(false);
+    expect(hasDirectUrl()).toBe(false);
+    expect(() => getDatabaseUrl()).toThrow(/DATABASE_URL/);
+
+    process.env.DATABASE_URL = "postgresql://postgres:secret@localhost:5432/Auri";
+    process.env.DIRECT_URL = "postgresql://postgres:secret@localhost:5432/Auri";
+    expect(hasDatabaseUrl()).toBe(true);
+    expect(hasDirectUrl()).toBe(true);
+    expect(getDirectUrl()).toContain("localhost:5432/Auri");
+  });
+
+  it("selects local versus remote connection options", () => {
+    const local = "postgresql://postgres:x@localhost:5432/Auri";
+    const remote =
+      "postgresql://postgres:x@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres";
+
+    expect(isLocalDatabaseHost(local)).toBe(true);
+    expect(getDatabaseConnectionOptions(local)).toEqual({
+      prepare: true,
+      ssl: false,
+    });
+    expect(isLocalDatabaseHost(remote)).toBe(false);
+    expect(getDatabaseConnectionOptions(remote)).toEqual({
+      prepare: false,
+      ssl: "require",
+    });
   });
 });

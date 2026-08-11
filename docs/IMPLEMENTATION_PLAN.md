@@ -59,15 +59,15 @@ Plus targeted Playwright when a critical user flow changes.
 ## Phase 2 — Supabase foundation and authentication
 
 **Spec:** §8, §6.4, §11.1, §12.2  
-**Status:** Complete (code) — apply migrations + configure Auth URLs with real credentials for live isolation/session verification
+**Status:** Revised complete (code) — Drizzle owns portable schema; Supabase Auth/Storage overlays for production; fix local Postgres password then `db:migrate` / `db:smoke`
 
-- Supabase config + migrations for all §8.1 tables
-- RLS + storage policies for `templates` and `generated-reports`
-- Generated DB types
-- SSR clients: browser / server / proxy / admin
-- Email/password auth + callback + protected `/app` routes
+- Hosted Supabase Auth + SSR clients / Proxy / protected `/app`
+- Drizzle schema + `drizzle/` migrations for all §8.1 tables (local Postgres + Supabase Postgres)
+- Production overlays: auth.users FK, profile trigger, RLS, Storage (`supabase/overlays/`)
+- Server DAL + idempotent `ensureProfile` for local profile provisioning
+- See `docs/DATABASE.md`
 
-**Exit:** Multi-user isolation tests pass; no service key in client.
+**Exit:** Multi-user isolation tests pass; no service key in client; DAL scopes by session UUID.
 
 ---
 

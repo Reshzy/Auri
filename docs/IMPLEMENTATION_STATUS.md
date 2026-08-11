@@ -4,7 +4,7 @@ Last updated: 2026-08-11
 
 ## Current phase
 
-**Phase 2 complete (code).** Live Supabase credentials were not present in this environment; apply migrations and configure Auth redirects before treating acceptance criteria as fully verified in a running project.
+**Phase 2 revised (Drizzle + local PostgreSQL architecture).** Auth UI/Proxy preserved. Live local migrate/smoke skipped: `DATABASE_URL` is present but PostgreSQL rejected the password for user `postgres` (credentials not invented or logged).
 
 **Phase 3 has not started.**
 
@@ -12,115 +12,74 @@ Last updated: 2026-08-11
 
 ### Phase 0 — Repository and template audit
 
-- [x] Read `AURI_CURSOR_MASTER_SPEC.md`
-- [x] Inspect repository (greenfield: spec + two Office templates)
-- [x] Place source templates under `templates/source/` (byte-identical copies)
-- [x] Record SHA-256 hashes
-- [x] Write `docs/TEMPLATE_AUDIT.md`
-- [x] Write `docs/IMPLEMENTATION_PLAN.md` (phase map to §16)
-- [x] Create manifest schema drafts under `templates/manifests/`
-- [x] Document runtime derivation plan
-- [x] Add `scripts/audit-templates.ts` + `pnpm templates:audit`
+- [x] Source templates, audit docs, manifests, `pnpm templates:audit`
 
 ### Phase 1 — Next.js and design foundation
 
-- [x] Next.js App Router + TypeScript + pnpm lockfile
-- [x] Tailwind v4 + Auri color/type tokens
-- [x] Lint / format / typecheck / test / build scripts (`pnpm check`)
-- [x] Marketing, auth, and application shells with responsive navigation
-- [x] Accessible UI primitives (button, input, label) + brand mark
-- [x] GSAP hero aurora isolated in a Client Component
-- [x] Reduced-motion CSS + `prefersReducedMotion()` helper
-- [x] Route placeholders for required v1 navigation surfaces
+- [x] App Router shells, tokens, tooling, motion, route placeholders
 
-### Phase 2 — Supabase foundation and authentication
+### Phase 2 — Supabase Auth + Drizzle data layer
 
-- [x] `@supabase/supabase-js`, `@supabase/ssr`, `zod`, `server-only`
-- [x] Env validation (`src/lib/env.ts`) + safe `.env.example` (no real secrets)
-- [x] Browser / server / proxy / admin Supabase clients
-- [x] Root `proxy.ts` session refresh + `/app/*` protection + auth-entry redirects
-- [x] Sign-up, sign-in, forgot-password, reset-password, callback, sign-out
-- [x] Migrations for all eight §8.1 tables + indexes/constraints
-- [x] `handle_new_user` profile trigger
-- [x] RLS on every user-owned table + template read-only for authenticated
-- [x] Private `templates` and `generated-reports` storage buckets/policies
-- [x] Hand-authored `database.types.ts` aligned to migrations
-- [x] Automated tests + `pnpm auth:check`
-- [x] Removed leftover `auri-web/` ignore/exclude references
+- [x] Hosted Supabase Auth clients, Proxy, sign-up/in/out, forgot/reset, callback
+- [x] Protected `/app/*` + auth-entry redirects
+- [x] Drizzle ORM + `postgres` driver; `src/db/schema` canonical for eight §8 tables
+- [x] Committed `drizzle/` migrations (portable Postgres)
+- [x] Supabase-only SQL moved to `supabase/overlays/` (auth FK, trigger, RLS, storage)
+- [x] Pre-Drizzle core SQL archived under `supabase/archive/`
+- [x] Server-only DAL: `requireAuthenticatedUser`, `ensureProfile`, ownership guards
+- [x] App layout calls `getAppUser()` when Supabase public env is configured
+- [x] Env validation for `DATABASE_URL` / `DIRECT_URL` + local vs remote SSL/`prepare`
+- [x] Scripts: `db:generate`, `db:migrate`, `db:check`, `db:studio`, `db:inspect`, `db:smoke`
+- [x] Docs: `docs/DATABASE.md`
+- [x] Slim `database.types.ts` (no duplicate table types)
 
-## Quality gates (Phase 2)
+## Quality gates (Phase 2 revision)
 
-| Check                  | Result                                |
-| ---------------------- | ------------------------------------- |
-| `pnpm format:check`    | Pass                                  |
-| `pnpm lint`            | Pass                                  |
-| `pnpm typecheck`       | Pass                                  |
-| `pnpm test`            | Pass (20 tests)                       |
-| `pnpm build`           | Pass                                  |
-| `pnpm templates:audit` | Pass                                  |
-| `pnpm auth:check`      | Pass (live credential checks skipped) |
+| Check                  | Result                                                  |
+| ---------------------- | ------------------------------------------------------- |
+| `pnpm format:check`    | Pass                                                    |
+| `pnpm lint`            | Pass                                                    |
+| `pnpm typecheck`       | Pass                                                    |
+| `pnpm test`            | Pass (30 tests)                                         |
+| `pnpm build`           | Pass                                                    |
+| `pnpm templates:audit` | Pass                                                    |
+| `pnpm auth:check`      | Pass (public Supabase configured; service role missing) |
+| `pnpm db:check`        | Pass                                                    |
+| Local `db:inspect`     | Failed: password authentication for `postgres`          |
+| Local `db:migrate`     | Skipped (credential failure; DB not reset)              |
+| Local `db:smoke`       | Skipped (credential failure; DB not reset)              |
 
-## Migrations
+## Schema sources
 
-| File                                                     | Purpose                                                        |
-| -------------------------------------------------------- | -------------------------------------------------------------- |
-| `supabase/migrations/20260811000001_core_schema.sql`     | Eight core tables, constraints, indexes, `updated_at` triggers |
-| `supabase/migrations/20260811000002_profile_trigger.sql` | `on_auth_user_created` → insert `profiles`                     |
-| `supabase/migrations/20260811000003_rls_policies.sql`    | Enable RLS + least-privilege ownership policies                |
-| `supabase/migrations/20260811000004_storage_buckets.sql` | Private buckets + generated-report path policies               |
-
-### RLS summary
-
-- **Owner tables** (`profiles`, `work_schedules`, `signatories`, `accomplishment_presets`, `report_periods`, `daily_entries`, `report_exports`): authenticated users only access rows where `auth.uid()` matches owner id/`user_id`.
-- **profiles**: select/update own row; inserts via security-definer trigger only.
-- **report_periods**: delete only when `status = 'draft'`; updates only when current status is `draft` or `ready`.
-- **daily_entries**: writes gated by parent report editability.
-- **template_versions**: authenticated `select` only; writes require service role.
-- **storage `generated-reports`**: object path first folder must equal `auth.uid()`.
-- **storage `templates`**: no authenticated policies (server/admin via service role).
+| Layer                                     | Location                      | Environments                       |
+| ----------------------------------------- | ----------------------------- | ---------------------------------- |
+| Portable app schema                       | `src/db/schema/` → `drizzle/` | Local Postgres + Supabase Postgres |
+| Auth FK + profile trigger + RLS + Storage | `supabase/overlays/`          | Production Supabase only           |
+| Historical pre-Drizzle SQL                | `supabase/archive/`           | Reference only                     |
 
 ## Environment variables
 
-See `.env.example`:
+See `.env.example` and `docs/DATABASE.md`.
 
-- `NEXT_PUBLIC_SITE_URL`
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (server only)
-- `AURI_TEMPLATE_BUCKET` (default `templates`)
-- `AURI_GENERATED_BUCKET` (default `generated-reports`)
-- `AURI_DEFAULT_TIMEZONE` (default `Asia/Manila`)
+Never commit `.env.local` or real passwords/keys.
 
-Never commit `.env.local` or real keys.
+## Manual setup still required
 
-## Manual Supabase setup still required
-
-1. Create a Supabase project (or run `pnpm exec supabase start` with Docker).
-2. Copy URL, publishable key, and service-role key into `.env.local`.
-3. Apply migrations: `pnpm exec supabase db push` (linked project) or run SQL in the dashboard.
-4. Auth → URL configuration: site URL = `NEXT_PUBLIC_SITE_URL`; allow redirects to `/auth/callback`.
-5. Confirm email confirmation / recovery templates point at the callback URL.
-6. Live verification with two users: isolation (A cannot read B), session refresh, protected redirects.
-
-## Blockers / notes
-
-- LibreOffice is not installed locally, so Phase 0 PDF/page-spill visual render was skipped. Structural OOXML audit is complete; visual gate deferred (Phase 6/7).
-- Runtime templates are intentionally not generated yet (Phase 6/7). Manifests remain `active: false`.
-- Canonical app lives at the repository root (`src/app/`). The unused `auri-web/` directory is gone; tooling no longer references it.
-- Bootstrap DOCX/XLSX copies remain at the repository root and match `templates/source/` hashes.
-- Live multi-user isolation and session persistence checks need real Supabase credentials (not available during this implementation run).
-
-## Next work
-
-1. Operator: apply Phase 2 migrations + configure Auth URLs with real credentials.
-2. Phase 3: onboarding and settings (not started).
+1. Fix local `DATABASE_URL` / `DIRECT_URL` password for `localhost:5432/Auri`.
+2. `pnpm db:inspect` → `pnpm db:migrate` → `pnpm db:smoke`.
+3. Confirm hosted Supabase Auth redirect URLs.
+4. For production: Drizzle migrate with `DIRECT_URL`, then apply `supabase/overlays/` in order.
 
 ## Assumptions
 
-1. Canonical immutable sources are `templates/source/*`; root copies are convenience duplicates until cleanup.
-2. Right-side DTR name/period/signature already mirror via formulas (`I6`, `L8`, `A53`, `I53`); day time/undertime cells still need dual writes.
-3. Source DOCX has 15 day rows; runtime must expand to 16 — deferred to template/export phases.
-4. After sign-up with an immediate session, users go to `/app` (onboarding UI remains a Phase 3 shell).
-5. `/reset-password` is added for recovery completion even though §4.3 lists only `/forgot-password`.
-6. `database.types.ts` is hand-authored from migrations; regenerate with `supabase gen types` after linking a project if desired.
-7. Package name is `auri` (lowercase) to satisfy npm naming rules.
+1. Drizzle owns portable schema; overlays never run against ordinary local Postgres.
+2. Hosted Supabase Auth remains the identity provider during local web development.
+3. `ensureProfile` uses only the verified Supabase user UUID.
+4. Direct Postgres bypasses Data API RLS; DAL ownership scoping is mandatory.
+5. Template audit discrepancies and source DOCX/XLSX remain untouched.
+6. Phase 3 onboarding/settings not started.
+
+## Next work
+
+1. Operator: correct local Postgres password and run migrate/smoke.
+2. Phase 3: onboarding and settings (not started).

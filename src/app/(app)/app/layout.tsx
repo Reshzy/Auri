@@ -1,11 +1,22 @@
+import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileAppNav } from "@/components/layout/mobile-app-nav";
+import { getAppUser } from "@/db/dal/get-app-user";
+import { hasSupabasePublicConfig } from "@/lib/env";
 
-export default function ApplicationLayout({
+export default async function ApplicationLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  if (hasSupabasePublicConfig()) {
+    try {
+      await getAppUser();
+    } catch {
+      redirect("/login");
+    }
+  }
+
   return (
     <div className="min-h-screen md:flex">
       <AppSidebar className="hidden md:flex" />
