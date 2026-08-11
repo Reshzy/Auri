@@ -35,6 +35,7 @@ describe.skipIf(!runLive)("Phase 4 report integration (live Postgres)", () => {
     const db = getDb();
     await db.insert(profiles).values({
       id: userId,
+      clerkUserId: `clerk_test_${userId}`,
       employeeName: `user-${userId.slice(0, 8)}`,
       organizationName: "Municipality",
       officeName: "Office",

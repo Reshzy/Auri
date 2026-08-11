@@ -43,6 +43,7 @@ describe.skipIf(!runLive)("Phase 5 presets integration (live Postgres)", () => {
     const db = getDb();
     await db.insert(profiles).values({
       id: userId,
+      clerkUserId: `clerk_preset_${userId}`,
       employeeName: `preset-${userId.slice(0, 8)}`,
       organizationName: "Municipality",
       officeName: "Office",

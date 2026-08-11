@@ -1,5 +1,6 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { assertOwnerMatchesSession } from "@/db/dal/ownership";
@@ -17,28 +18,35 @@ function assertUserId(userId: string): void {
   }
 }
 
+function assertClerkUserId(clerkUserId: string): void {
+  if (!clerkUserId.trim()) {
+    throw new Error("Invalid Clerk user id.");
+  }
+}
+
 /**
- * Idempotent local/production profile bootstrap for a verified Supabase user UUID.
- * Safe to call repeatedly. Does not trust client-supplied ownership fields.
+ * Idempotent profile bootstrap for a verified Clerk user id.
+ * Allocates a stable UUID primary key for tenant FKs on first sight.
  */
-export async function ensureProfile(userId: string) {
-  assertUserId(userId);
+export async function ensureProfileForClerkUser(clerkUserId: string) {
+  assertClerkUserId(clerkUserId);
   const db = getDb();
 
   const existing = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.id, userId))
+    .where(eq(profiles.clerkUserId, clerkUserId))
     .limit(1);
 
   if (existing[0]) {
     return existing[0];
   }
 
+  const id = randomUUID();
   const inserted = await db
     .insert(profiles)
-    .values({ id: userId })
-    .onConflictDoNothing({ target: profiles.id })
+    .values({ id, clerkUserId })
+    .onConflictDoNothing({ target: profiles.clerkUserId })
     .returning();
 
   if (inserted[0]) {
@@ -48,7 +56,7 @@ export async function ensureProfile(userId: string) {
   const afterConflict = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.id, userId))
+    .where(eq(profiles.clerkUserId, clerkUserId))
     .limit(1);
 
   if (!afterConflict[0]) {
@@ -56,6 +64,19 @@ export async function ensureProfile(userId: string) {
   }
 
   return afterConflict[0];
+}
+
+/**
+ * Load the caller's profile by UUID. Throws if the row is missing
+ * (profile must already exist via ensureProfileForClerkUser).
+ */
+export async function ensureProfile(userId: string) {
+  assertUserId(userId);
+  const profile = await getOwnProfile(userId);
+  if (!profile) {
+    throw new Error("Profile not found for authenticated user.");
+  }
+  return profile;
 }
 
 /** Load the caller's own profile. Rejects any alternate owner id. */

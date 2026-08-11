@@ -4,18 +4,18 @@ import { ensureProfile } from "@/db/dal/profiles";
 import { listOwnSignatories } from "@/db/dal/signatories";
 import { SignatoriesForm } from "@/features/settings/signatories-form";
 import { SAMPLE_SIGNATORY_DEFAULTS } from "@/lib/onboarding/defaults";
-import { hasDatabaseUrl, hasSupabasePublicConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
 
 export default async function SignatoriesSettingsPage() {
-  if (!hasSupabasePublicConfig() || !hasDatabaseUrl()) {
-    redirect("/login?error=config");
+  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+    redirect("/sign-in?error=config");
   }
 
   let user;
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   await ensureProfile(user.id);

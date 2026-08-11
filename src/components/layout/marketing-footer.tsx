@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { AuriMark } from "@/components/brand/auri-mark";
+import { Button } from "@/components/ui/button";
 
 export function MarketingFooter() {
   return (
@@ -11,13 +15,24 @@ export function MarketingFooter() {
             Work, without the paperwork.
           </p>
         </div>
-        <div className="text-auri-ink-muted flex gap-4 text-sm">
-          <Link href="/login" className="hover:text-auri-ink">
-            Sign in
-          </Link>
-          <Link href="/signup" className="hover:text-auri-ink">
-            Create account
-          </Link>
+        <div className="text-auri-ink-muted flex items-center gap-4 text-sm">
+          <Show when="signed-out">
+            <SignInButton mode="redirect">
+              <button type="button" className="hover:text-auri-ink">
+                Sign in
+              </button>
+            </SignInButton>
+            <SignUpButton mode="redirect">
+              <button type="button" className="hover:text-auri-ink">
+                Create account
+              </button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/app">Open app</Link>
+            </Button>
+          </Show>
         </div>
       </div>
     </footer>

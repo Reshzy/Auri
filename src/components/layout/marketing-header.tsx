@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { AuriMark } from "@/components/brand/auri-mark";
 import { Button } from "@/components/ui/button";
 
@@ -26,12 +29,22 @@ export function MarketingHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link href="/login">Sign in</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/signup">Get started</Link>
-          </Button>
+          <Show when="signed-out">
+            <SignInButton mode="redirect">
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                Sign in
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="redirect">
+              <Button size="sm">Get started</Button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Link href="/app">Open app</Link>
+            </Button>
+            <UserButton />
+          </Show>
         </div>
       </div>
     </header>

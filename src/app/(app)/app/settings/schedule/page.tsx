@@ -8,18 +8,18 @@ import {
   createCompressedWeekdayRules,
 } from "@/lib/onboarding/defaults";
 import type { WeekdayRules } from "@/lib/validation/onboarding";
-import { hasDatabaseUrl, hasSupabasePublicConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
 
 export default async function ScheduleSettingsPage() {
-  if (!hasSupabasePublicConfig() || !hasDatabaseUrl()) {
-    redirect("/login?error=config");
+  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+    redirect("/sign-in?error=config");
   }
 
   let user;
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   await ensureProfile(user.id);

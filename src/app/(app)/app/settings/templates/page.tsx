@@ -2,17 +2,17 @@ import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { getTemplateAvailability } from "@/db/dal/templates";
 import { TemplatesAvailabilityPanel } from "@/features/settings/templates-panel";
-import { hasDatabaseUrl, hasSupabasePublicConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
 
 export default async function TemplatesSettingsPage() {
-  if (!hasSupabasePublicConfig() || !hasDatabaseUrl()) {
-    redirect("/login?error=config");
+  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+    redirect("/sign-in?error=config");
   }
 
   try {
     await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const templates = await getTemplateAvailability();

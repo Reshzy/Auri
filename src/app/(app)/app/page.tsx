@@ -34,7 +34,7 @@ export default async function AppOverviewPage() {
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const todayYmd = todayYmdManila();

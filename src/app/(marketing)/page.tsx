@@ -24,7 +24,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link href="/signup">Create your report</Link>
+                <Link href="/sign-up">Create your report</Link>
               </Button>
               <Button asChild variant="secondary" size="lg">
                 <Link href="/#how-it-works">See how it works</Link>

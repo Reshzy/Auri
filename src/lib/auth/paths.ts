@@ -15,13 +15,17 @@ export function requiresAuthentication(pathname: string): boolean {
 
 /**
  * Auth entry pages that signed-in users should leave.
- * `/reset-password` stays reachable so recovery sessions can set a new password.
- * `/auth/callback` must stay reachable for PKCE exchange.
  * `/onboarding` is not an auth entry — incomplete users must remain there.
  */
 export function isAuthEntryPath(pathname: string): boolean {
   return (
-    pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password"
+    pathname === "/sign-in" ||
+    pathname.startsWith("/sign-in/") ||
+    pathname === "/sign-up" ||
+    pathname.startsWith("/sign-up/") ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    pathname === "/forgot-password"
   );
 }
 

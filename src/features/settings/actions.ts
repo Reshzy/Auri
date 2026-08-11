@@ -64,7 +64,7 @@ export async function saveProfileAction(
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const parsed = profileSchema.safeParse({
@@ -108,7 +108,7 @@ export async function saveScheduleAction(
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   let weekdayRulesRaw: unknown = {};
@@ -168,7 +168,7 @@ export async function saveSignatoriesAction(
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const slots = [0, 1, 2, 3].map((slot) => ({
@@ -218,7 +218,7 @@ export async function continueTemplatesAction(
   try {
     await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const templates = await getTemplateAvailability();
@@ -249,7 +249,7 @@ export async function completeOnboardingAction(
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   try {

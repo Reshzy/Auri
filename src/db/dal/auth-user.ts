@@ -1,29 +1,40 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { ensureProfileForClerkUser } from "@/db/dal/profiles";
+import { hasDatabaseUrl } from "@/lib/env";
 
 export type AuthenticatedUser = {
   id: string;
+  clerkUserId: string;
   email: string | null;
 };
 
 /**
- * Resolves the signed-in user from the Supabase cookie session.
+ * Resolves the signed-in Clerk user and maps them to a profiles UUID.
  * Never accepts a user id from forms, query strings, or request bodies.
  */
 export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
+  const { isAuthenticated, userId: clerkUserId } = await auth();
 
-  if (error || !user) {
+  if (!isAuthenticated || !clerkUserId) {
     throw new Error("AUTH_REQUIRED");
   }
 
+  if (!hasDatabaseUrl()) {
+    throw new Error("AUTH_REQUIRED");
+  }
+
+  const profile = await ensureProfileForClerkUser(clerkUserId);
+  const user = await currentUser();
+  const email =
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses[0]?.emailAddress ??
+    null;
+
   return {
-    id: user.id,
-    email: user.email ?? null,
+    id: profile.id,
+    clerkUserId,
+    email,
   };
 }

@@ -22,7 +22,7 @@ export default async function ReportDetailPage({
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const { reportId } = await params;

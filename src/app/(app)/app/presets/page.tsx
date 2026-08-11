@@ -19,7 +19,7 @@ export default async function PresetsPage() {
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const rows = await PresetService.listActive(user.id);

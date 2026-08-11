@@ -3,18 +3,18 @@ import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { ensureProfile, getOwnProfile } from "@/db/dal/profiles";
 import { ProfileForm } from "@/features/settings/profile-form";
 import { SAMPLE_PROFILE_DEFAULTS } from "@/lib/onboarding/defaults";
-import { hasDatabaseUrl, hasSupabasePublicConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
 
 export default async function ProfileSettingsPage() {
-  if (!hasSupabasePublicConfig() || !hasDatabaseUrl()) {
-    redirect("/login?error=config");
+  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+    redirect("/sign-in?error=config");
   }
 
   let user;
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const profile = (await getOwnProfile(user.id)) ?? (await ensureProfile(user.id));

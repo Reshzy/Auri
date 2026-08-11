@@ -23,6 +23,7 @@ describe("Drizzle schema", () => {
 
   it("keeps profiles.id as a portable uuid primary key", () => {
     expect(schema.profiles.id.name).toBe("id");
+    expect(schema.profiles.clerkUserId.name).toBe("clerk_user_id");
     expect(schema.profiles.employeeName.name).toBe("employee_name");
     expect(schema.profiles.timezone.name).toBe("timezone");
   });
@@ -67,5 +68,9 @@ describe("Drizzle migrations", () => {
   it("adds snapshots_refreshed_at for draft snapshot refresh audit", () => {
     expect(sql).toContain("snapshots_refreshed_at");
     expect(schema.reportPeriods.snapshotsRefreshedAt.name).toBe("snapshots_refreshed_at");
+  });
+
+  it("adds clerk_user_id for Clerk identity mapping", () => {
+    expect(sql).toContain("clerk_user_id");
   });
 });

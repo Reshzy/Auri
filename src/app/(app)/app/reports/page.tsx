@@ -20,7 +20,7 @@ export default async function ReportsPage() {
   try {
     user = await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 
   const items = await ReportPeriodService.list(user.id);

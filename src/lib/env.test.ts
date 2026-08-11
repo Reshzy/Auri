@@ -1,25 +1,22 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  getClerkSecretKey,
   getDatabaseConnectionOptions,
   getDatabaseUrl,
   getDirectUrl,
   getPublicEnv,
-  getServiceRoleKey,
+  hasClerkConfig,
   hasDatabaseUrl,
   hasDirectUrl,
-  hasSupabasePublicConfig,
-  hasSupabaseServiceRole,
   isLocalDatabaseHost,
   publicEnvSchema,
-  serviceRoleSchema,
+  clerkSecretSchema,
 } from "@/lib/env";
 
 const KEYS = [
   "NEXT_PUBLIC_SITE_URL",
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY",
+  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+  "CLERK_SECRET_KEY",
   "DATABASE_URL",
   "DIRECT_URL",
   "AURI_TEMPLATE_BUCKET",
@@ -58,54 +55,39 @@ describe("env validation", () => {
     restoreEnv();
   });
 
-  it("rejects incomplete public config", () => {
+  it("rejects incomplete Clerk config", () => {
     clearEnv();
-    expect(hasSupabasePublicConfig()).toBe(false);
-    expect(() => getPublicEnv()).toThrow(/Missing or invalid Supabase public/);
+    expect(hasClerkConfig()).toBe(false);
+    expect(() => getPublicEnv()).toThrow(/Missing or invalid public/);
   });
 
   it("accepts a complete public config", () => {
     clearEnv();
     process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "publishable-test-key";
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_example";
 
-    expect(hasSupabasePublicConfig()).toBe(true);
     const env = getPublicEnv();
     expect(env.AURI_TEMPLATE_BUCKET).toBe("templates");
     expect(env.AURI_GENERATED_BUCKET).toBe("generated-reports");
     expect(env.AURI_DEFAULT_TIMEZONE).toBe("Asia/Manila");
   });
 
-  it("keeps the service role key off the public schema", () => {
+  it("requires both publishable and secret keys for hasClerkConfig", () => {
+    clearEnv();
+    process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_example";
+    expect(hasClerkConfig()).toBe(false);
+
+    process.env.CLERK_SECRET_KEY = "sk_test_example";
+    expect(hasClerkConfig()).toBe(true);
+    expect(getClerkSecretKey()).toBe("sk_test_example");
+  });
+
+  it("keeps the Clerk secret key off the public schema", () => {
     const shape = publicEnvSchema.shape;
-    expect("SUPABASE_SERVICE_ROLE_KEY" in shape).toBe(false);
-    expect("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" in shape).toBe(true);
-    expect(serviceRoleSchema.shape.SUPABASE_SERVICE_ROLE_KEY).toBeTruthy();
-  });
-
-  it("requires a distinct service-role key for admin use", () => {
-    clearEnv();
-    process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "publishable-test-key";
-
-    expect(hasSupabaseServiceRole()).toBe(false);
-    expect(() => getServiceRoleKey()).toThrow(/SUPABASE_SERVICE_ROLE_KEY/);
-
-    process.env.SUPABASE_SERVICE_ROLE_KEY = "service-role-test-key";
-    expect(hasSupabaseServiceRole()).toBe(true);
-    expect(getServiceRoleKey()).toBe("service-role-test-key");
-  });
-
-  it("refuses a service-role key mirrored as the publishable key", () => {
-    clearEnv();
-    process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "same-secret";
-    process.env.SUPABASE_SERVICE_ROLE_KEY = "same-secret";
-
-    expect(() => getServiceRoleKey()).toThrow(/exposed via NEXT_PUBLIC_/);
+    expect("CLERK_SECRET_KEY" in shape).toBe(false);
+    expect("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" in shape).toBe(true);
+    expect(clerkSecretSchema.shape.CLERK_SECRET_KEY).toBeTruthy();
   });
 
   it("validates database connection URLs", () => {

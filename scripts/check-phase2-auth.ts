@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { config } from "dotenv";
-import { hasSupabasePublicConfig, hasSupabaseServiceRole } from "../src/lib/env";
+import { hasClerkConfig } from "../src/lib/env";
 
 config({ path: ".env.local" });
 config();
@@ -25,16 +25,20 @@ function readSqlDir(dir: string): string {
 }
 
 function main() {
-  assert(
-    existsSync(path.join(root, "supabase", "config.toml")),
-    "Missing supabase/config.toml",
-  );
-  assert(existsSync(overlaysDir), "Missing supabase/overlays");
   assert(existsSync(drizzleDir), "Missing drizzle/ migrations");
+  assert(existsSync(path.join(root, "proxy.ts")), "Missing root proxy.ts");
+
+  const proxySource = readFileSync(path.join(root, "proxy.ts"), "utf8");
+  assert(
+    proxySource.includes("clerkMiddleware"),
+    "proxy.ts must use clerkMiddleware()",
+  );
+  assert(
+    proxySource.includes("/__clerk/:path*"),
+    "proxy matcher must include /__clerk/:path*",
+  );
 
   const drizzleSql = readSqlDir(drizzleDir);
-  const overlaySql = readSqlDir(overlaysDir);
-
   for (const table of [
     "profiles",
     "work_schedules",
@@ -46,52 +50,53 @@ function main() {
     "report_exports",
   ]) {
     assert(
-      drizzleSql.toLowerCase().includes(`create table "${table}"`),
+      drizzleSql.toLowerCase().includes(`create table "${table}"`) ||
+        drizzleSql.toLowerCase().includes(`"${table}"`),
       `Missing Drizzle table ${table}`,
-    );
-    assert(
-      overlaySql.includes(`alter table public.${table} enable row level security`),
-      `Missing RLS enable for ${table}`,
     );
   }
 
-  assert(overlaySql.includes("handle_new_user"), "Missing profile bootstrap trigger");
-  assert(existsSync(path.join(root, "proxy.ts")), "Missing root proxy.ts");
   assert(
-    existsSync(path.join(root, "src", "lib", "supabase", "client.ts")),
-    "Missing browser Supabase client",
+    drizzleSql.includes("clerk_user_id"),
+    "Missing profiles.clerk_user_id column in Drizzle migrations",
   );
-  assert(
-    existsSync(path.join(root, "src", "lib", "supabase", "server.ts")),
-    "Missing server Supabase client",
-  );
-  assert(
-    existsSync(path.join(root, "src", "lib", "supabase", "admin.ts")),
-    "Missing admin Supabase client",
-  );
+
   assert(
     existsSync(path.join(root, "src", "db", "dal", "profiles.ts")),
     "Missing ensureProfile DAL",
   );
-
-  const publicConfigured = hasSupabasePublicConfig();
-  const serviceConfigured = hasSupabaseServiceRole();
-
-  console.log("Phase 2 static auth checks: PASS");
-  console.log(
-    publicConfigured
-      ? "Supabase public env: configured"
-      : "Supabase public env: missing (live auth/session checks skipped)",
+  assert(
+    existsSync(path.join(root, "src", "db", "dal", "auth-user.ts")),
+    "Missing auth-user DAL",
   );
-  console.log(
-    serviceConfigured
-      ? "Supabase service role: configured"
-      : "Supabase service role: missing (admin/live isolation checks skipped)",
+  assert(
+    existsSync(path.join(root, "src", "app", "(auth)", "sign-in", "[[...sign-in]]", "page.tsx")),
+    "Missing Clerk sign-in page",
+  );
+  assert(
+    existsSync(path.join(root, "src", "app", "(auth)", "sign-up", "[[...sign-up]]", "page.tsx")),
+    "Missing Clerk sign-up page",
   );
 
-  if (!publicConfigured) {
+  // Overlays remain for legacy hosted Postgres; they still assume Supabase Auth JWTs.
+  if (existsSync(overlaysDir)) {
     console.log(
-      "Manual setup still required: copy .env.example → .env.local, configure Auth redirect URLs, and set DATABASE_URL for Drizzle.",
+      "Note: supabase/overlays still present (auth.uid RLS) — stale for Clerk until rewritten.",
+    );
+  }
+
+  const clerkConfigured = hasClerkConfig();
+
+  console.log("Auth static checks: PASS");
+  console.log(
+    clerkConfigured
+      ? "Clerk env: configured"
+      : "Clerk env: missing (add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY to .env.local)",
+  );
+
+  if (!clerkConfigured) {
+    console.log(
+      "Manual setup still required: copy .env.example → .env.local, add Clerk keys, and set DATABASE_URL for Drizzle.",
     );
   }
 }

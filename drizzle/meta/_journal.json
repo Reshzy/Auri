@@ -15,6 +15,13 @@
       "when": 1786431061693,
       "tag": "0001_worried_sunset_bain",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786435217632,
+      "tag": "0002_groovy_starhawk",
+      "breakpoints": true
     }
   ]
 }

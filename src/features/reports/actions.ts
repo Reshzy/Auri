@@ -75,7 +75,7 @@ async function requireUser() {
   try {
     return await requireAuthenticatedUser();
   } catch {
-    redirect("/login");
+    redirect("/sign-in");
   }
 }
 

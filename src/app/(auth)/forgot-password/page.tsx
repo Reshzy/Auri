@@ -1,25 +1,5 @@
-import Link from "next/link";
-import { AuthCard } from "@/components/auth/auth-card";
-import { ForgotPasswordForm } from "@/features/auth/forgot-password-form";
+import { redirect } from "next/navigation";
 
 export default function ForgotPasswordPage() {
-  return (
-    <AuthCard
-      title="Reset password"
-      description="Enter your email and we will send reset instructions if an account exists."
-      footer={
-        <p>
-          Remembered it?{" "}
-          <Link
-            href="/login"
-            className="text-auri-orange-700 font-medium hover:underline"
-          >
-            Back to sign in
-          </Link>
-        </p>
-      }
-    >
-      <ForgotPasswordForm />
-    </AuthCard>
-  );
+  redirect("/sign-in");
 }

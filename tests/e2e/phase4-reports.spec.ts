@@ -2,22 +2,22 @@ import { test, expect } from "@playwright/test";
 
 /**
  * Authenticated Phase 4 browser E2E.
- * Skipped unless hosted Supabase Auth public env + E2E_USER_* credentials are present.
+ * Skipped unless Clerk public env + E2E_USER_* credentials are present.
  * Do not treat mocked unit/integration tests as a substitute for this suite.
  */
 const hasLiveAuth =
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-  Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) &&
+  Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
+  Boolean(process.env.CLERK_SECRET_KEY) &&
   Boolean(process.env.E2E_USER_EMAIL) &&
   Boolean(process.env.E2E_USER_PASSWORD);
 
 test.describe("Phase 4 reports (live Auth)", () => {
-  test.skip(!hasLiveAuth, "Live Supabase Auth E2E credentials are not configured.");
+  test.skip(!hasLiveAuth, "Live Clerk Auth E2E credentials are not configured.");
 
   test("create Aug 1–15 2026, edit, persist, copy, finalize, reopen", async ({
     page,
   }) => {
-    await page.goto("/login");
+    await page.goto("/sign-in");
     await page.getByLabel(/email/i).fill(process.env.E2E_USER_EMAIL!);
     await page.getByLabel(/password/i).fill(process.env.E2E_USER_PASSWORD!);
     await page.getByRole("button", { name: /sign in/i }).click();

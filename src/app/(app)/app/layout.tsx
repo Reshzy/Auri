@@ -4,7 +4,7 @@ import { MobileAppNav } from "@/components/layout/mobile-app-nav";
 import { ensureProfile } from "@/db/dal/profiles";
 import { getAppUser } from "@/db/dal/get-app-user";
 import { isOnboardingComplete } from "@/lib/onboarding/progress";
-import { hasDatabaseUrl, hasSupabasePublicConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export default async function ApplicationLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  if (hasSupabasePublicConfig()) {
+  if (hasClerkConfig()) {
     try {
       const user = await getAppUser();
       if (hasDatabaseUrl()) {
@@ -23,7 +23,7 @@ export default async function ApplicationLayout({
         }
       }
     } catch {
-      redirect("/login");
+      redirect("/sign-in");
     }
   }
 

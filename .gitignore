@@ -50,3 +50,6 @@ next-env.d.ts
 *.generated.docx
 *.generated.xlsx
 *.generated.zip
+
+# clerk configuration (can include secrets)
+/.clerk/

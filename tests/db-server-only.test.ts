@@ -18,20 +18,18 @@ describe("server-only database boundary", () => {
       "src/db/dal/daily-entries.ts",
       "src/server/services/report-period-service.ts",
       "src/server/services/daily-entry-service.ts",
-      "src/lib/supabase/admin.ts",
     ]) {
       const source = readFileSync(path.resolve(__dirname, "..", relative), "utf8");
       expect(source).toMatch(/import ["']server-only["']/);
     }
   });
 
-  it("keeps the browser Supabase client free of DATABASE_URL and service role", () => {
+  it("keeps Clerk auth-user free of client-supplied ownership", () => {
     const source = readFileSync(
-      path.resolve(__dirname, "../src/lib/supabase/client.ts"),
+      path.resolve(__dirname, "../src/db/dal/auth-user.ts"),
       "utf8",
     );
-    expect(source).not.toMatch(/DATABASE_URL/);
-    expect(source).not.toMatch(/SERVICE_ROLE/);
-    expect(source).not.toMatch(/server-only/);
+    expect(source).toMatch(/@clerk\/nextjs\/server/);
+    expect(source).not.toMatch(/supabase/i);
   });
 });

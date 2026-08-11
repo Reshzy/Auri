@@ -20,15 +20,15 @@ describe("auth path helpers", () => {
     expect(isOnboardingPath("/onboarding")).toBe(true);
     expect(requiresAuthentication("/onboarding")).toBe(true);
     expect(requiresAuthentication("/app")).toBe(true);
-    expect(requiresAuthentication("/signup")).toBe(false);
+    expect(requiresAuthentication("/sign-up")).toBe(false);
   });
 
   it("marks auth entry pages that signed-in users should leave", () => {
+    expect(isAuthEntryPath("/sign-in")).toBe(true);
+    expect(isAuthEntryPath("/sign-up")).toBe(true);
     expect(isAuthEntryPath("/login")).toBe(true);
     expect(isAuthEntryPath("/signup")).toBe(true);
     expect(isAuthEntryPath("/forgot-password")).toBe(true);
-    expect(isAuthEntryPath("/reset-password")).toBe(false);
-    expect(isAuthEntryPath("/auth/callback")).toBe(false);
     expect(isAuthEntryPath("/onboarding")).toBe(false);
   });
 
@@ -36,6 +36,6 @@ describe("auth path helpers", () => {
     expect(safeNextPath("/app/reports")).toBe("/app/reports");
     expect(safeNextPath("//evil.example")).toBe("/app");
     expect(safeNextPath("https://evil.example")).toBe("/app");
-    expect(safeNextPath(null, "/login")).toBe("/login");
+    expect(safeNextPath(null, "/sign-in")).toBe("/sign-in");
   });
 });

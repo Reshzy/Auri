@@ -26,7 +26,11 @@ async function main() {
   const id = randomUUID();
 
   try {
-    await db.insert(profiles).values({ id, employeeName: "smoke-test" });
+    await db.insert(profiles).values({
+      id,
+      clerkUserId: `clerk_smoke_${id}`,
+      employeeName: "smoke-test",
+    });
     const rows = await db.select().from(profiles).where(eq(profiles.id, id)).limit(1);
     if (!rows[0] || rows[0].employeeName !== "smoke-test") {
       throw new Error("Smoke insert/select failed");

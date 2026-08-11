@@ -33,12 +33,12 @@ describe("auth path helpers (Phase 3)", () => {
     expect(isOnboardingPath("/onboarding")).toBe(true);
     expect(requiresAuthentication("/onboarding")).toBe(true);
     expect(requiresAuthentication("/app/settings/profile")).toBe(true);
-    expect(requiresAuthentication("/login")).toBe(false);
+    expect(requiresAuthentication("/sign-in")).toBe(false);
   });
 
   it("does not treat onboarding as an auth-entry bounce target", () => {
     expect(isAuthEntryPath("/onboarding")).toBe(false);
-    expect(isAuthEntryPath("/login")).toBe(true);
+    expect(isAuthEntryPath("/sign-in")).toBe(true);
   });
 
   it("keeps next-path sanitization", () => {
