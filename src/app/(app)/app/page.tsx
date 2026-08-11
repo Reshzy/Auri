@@ -55,6 +55,15 @@ export default async function AppOverviewPage() {
         </p>
       </section>
 
+      <section className="flex flex-wrap gap-3">
+        <Button asChild variant="secondary" size="sm">
+          <Link href="/app/presets">Manage accomplishment presets</Link>
+        </Button>
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/app/reports">All reports</Link>
+        </Button>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2">
         <div className="border-auri-border bg-auri-surface rounded-3xl border p-6">
           <h3 className="text-auri-ink text-lg font-semibold">Current period</h3>

@@ -41,6 +41,7 @@ pnpm db:check      # static consistency checks
 pnpm db:studio     # Drizzle Studio
 pnpm db:smoke      # insert/select/delete disposable profile row
 pnpm reports:smoke # Phase 4 disposable report classification smoke
+pnpm presets:smoke # Phase 5 disposable preset CRUD/apply smoke
 ```
 
 Do **not** use destructive reset commands. Do **not** run `drizzle-kit push` against production.
@@ -92,20 +93,33 @@ No schema or migration-history conflict was observed. No destructive repair was 
 - Reopen sets related `report_exports.is_current = false` without deleting export rows.
 - See `docs/PHASE4_REPORTS.md` for time/undertime, autosave, and readiness rules.
 
+## Phase 5 data-access notes
+
+- Preset DAL: `src/db/dal/presets.ts` (CRUD, soft deactivate, starter seed, transactional apply).
+- Service: `PresetService` in `src/server/services/preset-service.ts`.
+- Table `accomplishment_presets` already exists in core schema (no Phase 5 migration).
+- Apply path locks the daily entry (`FOR UPDATE`), updates `accomplishments text[]`, and increments `use_count` / `last_used_at` only for inserted presets — all in one transaction.
+- Shortcut uniqueness is per-user via partial unique index; app stores lowercase canonical shortcuts for case-insensitive conflicts.
+- Deletion in the UI is deactivation (`is_active = false`) to preserve usage history.
+- See `docs/PHASE5_PRESETS.md` for validation, starters, picker, and duplicate rules.
+
 ## Local verification commands
 
 ```bash
 pnpm db:smoke        # disposable profile CRUD
 pnpm reports:smoke   # disposable Aug 2026 first-half classification smoke
 pnpm phase4:check    # alias of reports:smoke
+pnpm presets:smoke   # disposable preset seed/apply/duplicate smoke
+pnpm phase5:check    # alias of presets:smoke
 pnpm test            # unit + live integration (skips integration if no DATABASE_URL)
 pnpm test:e2e        # Playwright; skipped without Auth + E2E_USER_* credentials
 ```
 
-## Testing Phase 3–4 locally
+## Testing Phase 3–5 locally
 
 1. Ensure `DATABASE_URL` / `DIRECT_URL` point at local `Auri` and hosted Supabase Auth public env is set.
 2. Sign in → incomplete profiles are redirected to `/onboarding`.
 3. Complete steps; refresh mid-flow to confirm resume.
 4. After completion, create a report under `/app/reports/new` and edit days under `/app/reports/[id]/edit`.
-5. Automated coverage: `pnpm test` (unit + disposable Postgres integration). Live Auth browser E2E requires a real onboarded test account — do not invent credentials.
+5. Manage presets at `/app/presets` (starter seed + CRUD) and apply them from the day editor picker.
+6. Automated coverage: `pnpm test` (unit + disposable Postgres integration). Live Auth browser E2E requires a real onboarded test account — do not invent credentials.

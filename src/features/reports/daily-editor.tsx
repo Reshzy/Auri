@@ -5,6 +5,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { applyPresetsToDailyEntryAction } from "@/features/presets/actions";
+import { PresetPicker } from "@/features/presets/preset-picker";
+import type { PresetListItem } from "@/features/presets/types";
 import {
   clearDailyEntryAction,
   copyPreviousWorkdayAction,
@@ -12,6 +15,7 @@ import {
 } from "@/features/reports/actions";
 import { ReportStatusActions } from "@/features/reports/report-status-actions";
 import { ValidationSummary } from "@/features/reports/validation-summary";
+import { pgTimeToHhmm } from "@/lib/reports/pg-time";
 import { weekdayLabelForYmd } from "@/lib/dates/period";
 import type { DayClassification } from "@/lib/reports/classify";
 import {
@@ -130,23 +134,64 @@ function loadFormForEntry(
   return { form: entryToForm(entry), restoredFailed: false };
 }
 
+function mapSavedEntry(
+  saved: Record<string, unknown>,
+  fallback: EditorEntry,
+): EditorEntry {
+  return {
+    id: String(saved.id ?? fallback.id),
+    workDate: String(saved.workDate ?? fallback.workDate),
+    classification:
+      (saved.classification as DayClassification) ?? fallback.classification,
+    classificationLabel:
+      (saved.classificationLabel as string | null | undefined) ??
+      fallback.classificationLabel,
+    amArrival: pgTimeToHhmm((saved.amArrival as string | null) ?? fallback.amArrival),
+    amDeparture: pgTimeToHhmm(
+      (saved.amDeparture as string | null) ?? fallback.amDeparture,
+    ),
+    pmArrival: pgTimeToHhmm((saved.pmArrival as string | null) ?? fallback.pmArrival),
+    pmDeparture: pgTimeToHhmm(
+      (saved.pmDeparture as string | null) ?? fallback.pmDeparture,
+    ),
+    workedMinutes: Number(saved.workedMinutes ?? fallback.workedMinutes),
+    calculatedUndertimeMinutes: Number(
+      saved.calculatedUndertimeMinutes ?? fallback.calculatedUndertimeMinutes,
+    ),
+    undertimeOverrideMinutes:
+      saved.undertimeOverrideMinutes === undefined
+        ? fallback.undertimeOverrideMinutes
+        : (saved.undertimeOverrideMinutes as number | null),
+    accomplishments: Array.isArray(saved.accomplishments)
+      ? (saved.accomplishments as string[])
+      : fallback.accomplishments,
+    remarks: (saved.remarks as string | null | undefined) ?? fallback.remarks,
+    isComplete: Boolean(saved.isComplete ?? fallback.isComplete),
+  };
+}
+
 export function DailyEditor({
   userId,
   report,
   initialEntries,
   initialDay,
   initialValidation,
+  initialPresets = [],
 }: {
   userId: string;
   report: EditorReport;
   initialEntries: EditorEntry[];
   initialDay?: string;
   initialValidation: ReportValidationResult;
+  initialPresets?: PresetListItem[];
 }) {
   const readOnly = report.status === "finalized" || report.status === "archived";
   const [entries, setEntries] = useState(initialEntries);
   const [validation, setValidation] = useState(initialValidation);
   const [status, setStatus] = useState(report.status);
+  const [presets, setPresets] = useState(initialPresets);
+  const [presetMessage, setPresetMessage] = useState<string | null>(null);
+  const [applyingPresets, setApplyingPresets] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() =>
     initialSelection(initialEntries, initialDay),
   );
@@ -233,14 +278,93 @@ export function DailyEditor({
       return;
     }
 
-    const saved = result.entry as EditorEntry;
-    setEntries((prev) => prev.map((e) => (e.id === entryId ? { ...e, ...saved } : e)));
-    setForm(entryToForm({ ...saved, accomplishments: saved.accomplishments ?? [] }));
+    const current = entries.find((e) => e.id === entryId);
+    if (!current) return;
+    const saved = mapSavedEntry(result.entry as Record<string, unknown>, current);
+    setEntries((prev) => prev.map((e) => (e.id === entryId ? saved : e)));
+    setForm(entryToForm(saved));
     setSaveState("saved");
     setLastSavedAt(result.savedAt ?? null);
     if (result.reportStatus) setStatus(result.reportStatus);
-    if (result.validation) setValidation(result.validation);
+    if (result.validation) setValidation(result.validation as ReportValidationResult);
     clearPendingStorage(userId, report.id, entryId);
+  }
+
+  async function onApplyPresets(presetIds: string[]) {
+    if (!selected || readOnly || presetIds.length === 0) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    // Flush local edits first so server merge sees the latest accomplishments.
+    if (saveState === "unsaved" || saveState === "failed" || saveState === "saving") {
+      await saveForm(selected.id, form);
+      // If flush still failed, do not apply against a stale server row.
+      const pending = readPending(userId, report.id, selected.id);
+      if (pending) {
+        setPresetMessage("Save your day changes before applying presets.");
+        return;
+      }
+    }
+
+    setApplyingPresets(true);
+    setPresetMessage(null);
+    setSaveState("saving");
+    const revision = ++revisionRef.current;
+    const result = await applyPresetsToDailyEntryAction({
+      reportId: report.id,
+      entryId: selected.id,
+      presetIds,
+      revision,
+    });
+
+    if (revision !== revisionRef.current) {
+      setApplyingPresets(false);
+      return;
+    }
+
+    if (!result.ok || !result.entry) {
+      setSaveState("failed");
+      setSaveError(result.error ?? "Could not apply presets.");
+      setPresetMessage(result.error ?? "Could not apply presets.");
+      writePending(userId, report.id, selected.id, form);
+      setApplyingPresets(false);
+      return;
+    }
+
+    const saved = mapSavedEntry(result.entry as Record<string, unknown>, selected);
+    setEntries((prev) => prev.map((e) => (e.id === selected.id ? saved : e)));
+    setForm(entryToForm(saved));
+    setSaveState("saved");
+    setLastSavedAt(result.savedAt ?? null);
+    if (result.reportStatus) setStatus(result.reportStatus);
+    if (result.validation) setValidation(result.validation as ReportValidationResult);
+    clearPendingStorage(userId, report.id, selected.id);
+
+    if (result.presetsUsage?.length) {
+      setPresets((prev) =>
+        prev.map((preset) => {
+          const usage = result.presetsUsage!.find((u) => u.id === preset.id);
+          if (!usage) return preset;
+          return {
+            ...preset,
+            useCount: usage.useCount,
+            lastUsedAt: usage.lastUsedAt,
+          };
+        }),
+      );
+    }
+
+    const applied = result.appliedPresetIds?.length ?? 0;
+    const skipped = result.skippedDuplicatePresetIds?.length ?? 0;
+    if (applied === 0 && skipped > 0) {
+      setPresetMessage("Those presets were already on this day; nothing new was added.");
+    } else if (skipped > 0) {
+      setPresetMessage(
+        `Applied ${applied}; skipped ${skipped} duplicate${skipped === 1 ? "" : "s"}.`,
+      );
+    } else {
+      setPresetMessage(`Applied ${applied} preset${applied === 1 ? "" : "s"}.`);
+    }
+    setApplyingPresets(false);
   }
 
   function queueSave(next: DayForm, entryId: string) {
@@ -279,14 +403,12 @@ export function DailyEditor({
       setSaveError(result.error ?? "Copy failed.");
       return;
     }
-    const saved = result.entry as EditorEntry;
-    setEntries((prev) =>
-      prev.map((e) => (e.id === selected.id ? { ...e, ...saved } : e)),
-    );
+    const saved = mapSavedEntry(result.entry as Record<string, unknown>, selected);
+    setEntries((prev) => prev.map((e) => (e.id === selected.id ? saved : e)));
     setForm(entryToForm(saved));
     setSaveState("saved");
     setLastSavedAt(result.savedAt ?? null);
-    if (result.validation) setValidation(result.validation);
+    if (result.validation) setValidation(result.validation as ReportValidationResult);
     clearPendingStorage(userId, report.id, selected.id);
   }
 
@@ -302,14 +424,12 @@ export function DailyEditor({
       setSaveError(result.error ?? "Clear failed.");
       return;
     }
-    const saved = result.entry as EditorEntry;
-    setEntries((prev) =>
-      prev.map((e) => (e.id === selected.id ? { ...e, ...saved } : e)),
-    );
+    const saved = mapSavedEntry(result.entry as Record<string, unknown>, selected);
+    setEntries((prev) => prev.map((e) => (e.id === selected.id ? saved : e)));
     setForm(entryToForm(saved));
     setSaveState("saved");
     setConfirmClear(false);
-    if (result.validation) setValidation(result.validation);
+    if (result.validation) setValidation(result.validation as ReportValidationResult);
     clearPendingStorage(userId, report.id, selected.id);
   }
 
@@ -519,6 +639,15 @@ export function DailyEditor({
                 onBlur={() => void saveForm(selected.id, form)}
               />
             </div>
+
+            {!readOnly ? (
+              <PresetPicker
+                presets={presets}
+                applying={applyingPresets}
+                onApply={onApplyPresets}
+                message={presetMessage}
+              />
+            ) : null}
 
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">

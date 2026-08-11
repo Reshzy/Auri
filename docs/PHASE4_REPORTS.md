@@ -12,9 +12,13 @@ Implemented:
 - Copy previous workday, clear day, validation/readiness
 - Finalize and deliberate reopen (export `is_current` invalidated)
 
+Related Phase 5 (see `docs/PHASE5_PRESETS.md`):
+
+- Accomplishment preset CRUD / picker is wired into the daily editor
+- Apply is server-authoritative and respects the same finalized/archived guards
+
 Not started (later phases):
 
-- Accomplishment preset CRUD / picker (Phase 5)
 - DOCX/XLSX generation, previews, ZIP, export history (Phases 6–8)
 
 ## Report creation transaction

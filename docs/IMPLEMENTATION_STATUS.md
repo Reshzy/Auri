@@ -4,7 +4,7 @@ Last updated: 2026-08-11
 
 ## Current phase
 
-**Phase 4 complete (report periods and daily editor).** Phase 5 has not started.
+**Phase 5 complete (accomplishment presets).** Phase 6 has not started.
 
 ## Completed
 
@@ -53,22 +53,36 @@ Last updated: 2026-08-11
 - [x] `pnpm reports:smoke` / `phase4:check`; Playwright suite skipped without Auth credentials
 - [x] Docs: `docs/PHASE4_REPORTS.md`
 
-## Quality gates (Phase 4)
+### Phase 5 — Accomplishment presets
 
-| Check                  | Result                                                              |
-| ---------------------- | ------------------------------------------------------------------- |
-| `pnpm format:check`    | Pass                                                                |
-| `pnpm lint`            | Pass                                                                |
-| `pnpm typecheck`       | Pass                                                                |
-| `pnpm test`            | Pass (83 tests; includes live Postgres integration)                 |
-| `pnpm build`           | Pass                                                                |
-| `pnpm templates:audit` | Pass                                                                |
-| `pnpm auth:check`      | Pass (static; live Auth skipped — public env not detected by check) |
-| `pnpm db:check`        | Pass                                                                |
-| `pnpm db:smoke`        | Pass                                                                |
-| `pnpm reports:smoke`   | Pass (Aug 1–15 2026 classification)                                 |
-| `pnpm test:e2e`        | Skipped — no `E2E_USER_*` / usable hosted Auth credentials          |
-| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env   |
+- [x] Shared `presetSchema` + normalize/order/search/merge helpers
+- [x] Server-only presets DAL + `PresetService` + server actions
+- [x] `/app/presets` CRUD, search, deactivate-with-confirm, empty/loading/error states
+- [x] Idempotent starter-preset seeding (explicit empty-state action)
+- [x] Daily-editor searchable multi-select picker + shortcut match (picker-scoped keyboard)
+- [x] Server-authoritative apply with duplicate prevention, selection order, use_count / last_used_at
+- [x] Dashboard quick action to manage presets
+- [x] Soft delete via `is_active = false` (no normal hard delete)
+- [x] `pnpm presets:smoke` / `phase5:check`; Playwright skipped without Auth credentials
+- [x] Docs: `docs/PHASE5_PRESETS.md`
+
+## Quality gates (Phase 5)
+
+| Check                  | Result                                                             |
+| ---------------------- | ------------------------------------------------------------------ |
+| `pnpm format:check`    | Pass                                                               |
+| `pnpm lint`            | Pass                                                               |
+| `pnpm typecheck`       | Pass                                                               |
+| `pnpm test`            | Pass (112 tests; includes live Postgres Phase 4 + Phase 5)         |
+| `pnpm build`           | Pass                                                               |
+| `pnpm templates:audit` | Pass                                                               |
+| `pnpm auth:check`      | Pass (static; service role optional/skipped)                       |
+| `pnpm db:check`        | Pass                                                               |
+| `pnpm db:smoke`        | Pass                                                               |
+| `pnpm reports:smoke`   | Pass                                                               |
+| `pnpm presets:smoke`   | Pass                                                               |
+| `pnpm test:e2e`        | Skipped — no usable `E2E_USER_*` / live Auth credentials           |
+| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env  |
 
 ## Schema sources
 
@@ -78,7 +92,8 @@ Last updated: 2026-08-11
 | Auth FK + profile trigger + RLS + Storage | `supabase/overlays/`          | Production Supabase only           |
 | Historical pre-Drizzle SQL                | `supabase/archive/`           | Reference only                     |
 
-Phase 4 additive migration: `drizzle/0001_*.sql` adds `report_periods.snapshots_refreshed_at`.
+Phase 4 additive migration: `drizzle/0001_*.sql` adds `report_periods.snapshots_refreshed_at`.  
+Phase 5: no new migration (`accomplishment_presets` already in core schema).
 
 ## Environment variables
 
@@ -90,7 +105,7 @@ Never commit `.env.local` or real passwords/keys.
 
 ## Manual setup still required
 
-1. Confirm hosted Supabase Auth public keys + redirect URLs (needed for live Auth/onboarding/report E2E).
+1. Confirm hosted Supabase Auth public keys + redirect URLs (needed for live Auth/onboarding/report/preset E2E).
 2. For production: Drizzle migrate with `DIRECT_URL` (includes `0001` refresh column), then apply `supabase/overlays/` in order.
 3. Optional: configure Supabase service role for admin/live isolation checks.
 4. Optional: set `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded test user only).
@@ -102,10 +117,11 @@ Never commit `.env.local` or real passwords/keys.
 2. Hosted Supabase Auth remains the identity provider during local web development.
 3. `ensureProfile` / all mutations use only the verified Supabase user UUID.
 4. Direct Postgres bypasses Data API RLS; DAL ownership scoping is mandatory.
-5. Accomplishments remain `daily_entries.accomplishments text[]` (no separate items table).
+5. Accomplishments remain `daily_entries.accomplishments text[]` (no separate items table; no preset IDs stored in the array).
 6. `CUSTOM` period kind stays schema-supported but hidden from the main create UI.
-7. Phase 5 presets are not wired into the day editor.
+7. Shortcut uniqueness is case-insensitive via lowercase canonical storage against the existing partial unique index.
+8. Starter presets are added only through an explicit user action when the list is empty.
 
 ## Next work
 
-1. Phase 5: accomplishment presets (CRUD, picker, shortcuts, use-count) — not started.
+1. Phase 6: DOCX runtime template and export — not started.

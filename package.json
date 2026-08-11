@@ -23,6 +23,8 @@
     "db:smoke": "tsx scripts/smoke-db.ts",
     "reports:smoke": "tsx scripts/smoke-reports.ts",
     "phase4:check": "tsx scripts/smoke-reports.ts",
+    "presets:smoke": "tsx scripts/smoke-presets.ts",
+    "phase5:check": "tsx scripts/smoke-presets.ts",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm auth:check && pnpm db:check"
   },
   "dependencies": {

@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
+import type { PresetListItem } from "@/features/presets/types";
 import { DailyEditor, type EditorEntry } from "@/features/reports/daily-editor";
 import { hasDatabaseUrl } from "@/lib/env";
 import type { DayClassification } from "@/lib/reports/classify";
 import { pgTimeToHhmm } from "@/lib/reports/pg-time";
+import { PresetService } from "@/server/services/preset-service";
 import { ReportPeriodService } from "@/server/services/report-period-service";
 
 export default async function ReportEditPage({
@@ -39,6 +41,17 @@ export default async function ReportEditPage({
     loaded.report,
     loaded.entries,
   );
+  const presetRows = await PresetService.listActive(user.id);
+  const initialPresets: PresetListItem[] = presetRows.map((row) => ({
+    id: row.id,
+    label: row.label,
+    content: row.content,
+    category: row.category,
+    shortcut: row.shortcut,
+    useCount: row.useCount,
+    lastUsedAt: row.lastUsedAt,
+    createdAt: row.createdAt,
+  }));
 
   const entries: EditorEntry[] = loaded.entries.map((entry) => ({
     id: entry.id,
@@ -72,6 +85,7 @@ export default async function ReportEditPage({
         initialEntries={entries}
         initialDay={day}
         initialValidation={validation}
+        initialPresets={initialPresets}
       />
     </div>
   );

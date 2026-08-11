@@ -111,11 +111,13 @@ Plus targeted Playwright when a critical user flow changes.
 
 **Spec:** §16 Phase 5, §7.9
 
-- CRUD, search/combobox, shortcuts, use-count ordering
-- Multi-select into day entry; reorder/remove
-- Seed suggested presets from sample report language
+- [x] CRUD, search/combobox, shortcuts, use-count ordering
+- [x] Multi-select into day entry; reorder/remove
+- [x] Seed suggested presets from sample report language
+- [x] Server-authoritative apply + duplicate prevention + soft deactivate
+- [x] `pnpm presets:smoke` / `phase5:check`; docs `PHASE5_PRESETS.md`
 
-**Exit:** Preset application preserves order and editability.
+**Exit:** Preset application preserves order and editability — met.
 
 ---
 
