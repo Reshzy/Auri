@@ -47,9 +47,13 @@ next-env.d.ts
 /tmp/
 /generated/
 /tests/artifacts/
+/fixtures/docx/generated/
+/fixtures/xlsx/generated/
 *.generated.docx
 *.generated.xlsx
 *.generated.zip
+*.generated.pdf
+*.pdf
 
 # clerk configuration (can include secrets)
 /.clerk/

@@ -9,3 +9,6 @@ templates/runtime
 *.docx
 *.xlsx
 AURI_CURSOR_MASTER_SPEC.md
+
+.agents
+

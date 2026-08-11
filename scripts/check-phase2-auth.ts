@@ -29,10 +29,7 @@ function main() {
   assert(existsSync(path.join(root, "proxy.ts")), "Missing root proxy.ts");
 
   const proxySource = readFileSync(path.join(root, "proxy.ts"), "utf8");
-  assert(
-    proxySource.includes("clerkMiddleware"),
-    "proxy.ts must use clerkMiddleware()",
-  );
+  assert(proxySource.includes("clerkMiddleware"), "proxy.ts must use clerkMiddleware()");
   assert(
     proxySource.includes("/__clerk/:path*"),
     "proxy matcher must include /__clerk/:path*",
@@ -70,11 +67,15 @@ function main() {
     "Missing auth-user DAL",
   );
   assert(
-    existsSync(path.join(root, "src", "app", "(auth)", "sign-in", "[[...sign-in]]", "page.tsx")),
+    existsSync(
+      path.join(root, "src", "app", "(auth)", "sign-in", "[[...sign-in]]", "page.tsx"),
+    ),
     "Missing Clerk sign-in page",
   );
   assert(
-    existsSync(path.join(root, "src", "app", "(auth)", "sign-up", "[[...sign-up]]", "page.tsx")),
+    existsSync(
+      path.join(root, "src", "app", "(auth)", "sign-up", "[[...sign-up]]", "page.tsx"),
+    ),
     "Missing Clerk sign-up page",
   );
 

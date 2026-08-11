@@ -251,15 +251,22 @@ Keep source untouched. Derive runtime template in Phase 6 via `scripts/prepare-a
 
 ### 4.2 XLSX → `dtr-csc-form-48-v1.xlsx`
 
-Recommended approach for Phase 7:
+Phase 7 derived `templates/runtime/dtr-csc-form-48-v1.xlsx` from the audited source without modifying the source bytes:
 
 1. Byte-copy source XLSX to runtime file.
 2. Clear sample employee/period values in owned input cells (`A6`, `D8`) while preserving styles and mirror formulas.
-3. Leave day numbers, merges, formulas, drawings, VML, print setup untouched.
-4. Do **not** recreate the workbook with a spreadsheet writer.
-5. Record `runtimeSha256` in `templates/manifests/dtr-csc-form-48-v1.json`.
+3. Clear stale cached formula values on `I6` / `L8` / `A53` / `I53`.
+4. Blank shared-string sample identity/period entries without reordering indices.
+5. Leave day numbers, merges, formulas, drawings, VML, print setup untouched.
+6. Record `runtimeSha256` and full cell-map contract in `templates/manifests/dtr-csc-form-48-v1.json`.
 
-Until Phase 6/7 generate runtime files, `templates/runtime/` remains empty by design and manifests mark `active: false` with empty `runtimeSha256`.
+See `docs/PHASE7_XLSX_EXPORT.md`. Local visual/LibreOffice page-count gate remains **blocked/pending** when `soffice` is unavailable; structural ZIP/XML validation is green.
+
+## 4.3 Phase 6 DOCX status
+
+Phase 6 derived `templates/runtime/accomplishment-report-v1.docx` from the audited source without modifying the source bytes. Manifest now records `runtimeSha256`, `maxRows: 16`, and the full required token list. See `docs/PHASE6_DOCX_EXPORT.md`.
+
+Local visual/LibreOffice page-count gate remains **blocked/pending** when `soffice` is unavailable; structural ZIP/XML validation is green.
 
 ## 5. Manifest schema
 

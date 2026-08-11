@@ -56,18 +56,18 @@ Plus targeted Playwright when a critical user flow changes.
 
 ---
 
-## Phase 2 — Supabase foundation and authentication
+## Phase 2 — Clerk authentication and Drizzle data layer
 
 **Spec:** §8, §6.4, §11.1, §12.2  
-**Status:** Revised complete (code) — Drizzle owns portable schema; Supabase Auth/Storage overlays for production; fix local Postgres password then `db:migrate` / `db:smoke`
+**Status:** Complete — Clerk is the identity provider; Drizzle owns portable schema; Supabase Postgres + private Storage
 
-- Hosted Supabase Auth + SSR clients / Proxy / protected `/app`
-- Drizzle schema + `drizzle/` migrations for all §8.1 tables (local Postgres + Supabase Postgres)
-- Production overlays: auth.users FK, profile trigger, RLS, Storage (`supabase/overlays/`)
-- Server DAL + idempotent `ensureProfile` for local profile provisioning
+- Clerk Auth + `clerkMiddleware` Proxy / protected `/app` + `/onboarding`
+- Drizzle schema + `drizzle/` migrations for all §8.1 tables including `profiles.clerk_user_id`
+- Storage overlays under `supabase/overlays/` (Auth FK/`auth.uid()` RLS overlays are stale for Clerk — do not apply as-is)
+- Server DAL + idempotent `ensureProfileForClerkUser` mapping Clerk `user_…` → internal UUID
 - See `docs/DATABASE.md`
 
-**Exit:** Multi-user isolation tests pass; no service key in client; DAL scopes by session UUID.
+**Exit:** Multi-user isolation tests pass; no service key in client; DAL scopes by session profile UUID.
 
 ---
 
@@ -123,15 +123,16 @@ Plus targeted Playwright when a critical user flow changes.
 
 ## Phase 6 — DOCX runtime template and export
 
-**Spec:** §3.1, §10.4, audit runtime plan
+**Spec:** §3.1, §10.4, audit runtime plan  
+**Status:** Complete — see `docs/PHASE6_DOCX_EXPORT.md`
 
-- `prepare-accomplishment-template.ts` → one-page 16-row tagged DOCX
-- Manifest hash activation
-- Mapper + structural validators
-- Private template upload path
-- DOCX export endpoint
+- `pnpm docx:prepare` → one-page 16-row tagged DOCX + manifest
+- Manifest hash activation via `pnpm templates:upload:docx`
+- `ReportMappingService` / `TemplateService` / `DocxExportService` + structural validators
+- Clerk-protected `POST /api/reports/{reportId}/exports` (docx-only; no generated-report persistence)
+- Visual fixture gate blocked/pending without LibreOffice
 
-**Exit:** No unresolved tags; one report copy; opens without repair.
+**Exit:** No unresolved tags; one report copy; structural validation green; Clerk ownership preserved.
 
 ---
 
@@ -139,11 +140,12 @@ Plus targeted Playwright when a critical user flow changes.
 
 **Spec:** §3.2, §10.5
 
-- JSZip + XML DOM byte-preserving patcher
-- Dual-copy writer; preserve formulas/merges/drawings/VML/print
-- Structural validators + export endpoint
+- [x] JSZip + XML DOM byte-preserving patcher
+- [x] Dual-copy writer; preserve formulas/merges/drawings/VML/print
+- [x] Structural validators + export endpoint (`docx` or `xlsx`)
+- [x] Docs: `docs/PHASE7_XLSX_EXPORT.md`
 
-**Exit:** Left/right match; `F45`/`N45` formulas remain; one legal landscape page.
+**Exit:** Left/right match; `F45`/`N45` formulas remain; structural package green. Visual one-page/repair gate pending without LibreOffice/Excel.
 
 ---
 

@@ -151,12 +151,8 @@
           "name": "accomplishment_presets_user_id_profiles_id_fk",
           "tableFrom": "accomplishment_presets",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -329,12 +325,8 @@
           "name": "daily_entries_report_period_id_report_periods_id_fk",
           "tableFrom": "daily_entries",
           "tableTo": "report_periods",
-          "columnsFrom": [
-            "report_period_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["report_period_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -342,12 +334,8 @@
           "name": "daily_entries_user_id_profiles_id_fk",
           "tableFrom": "daily_entries",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -357,10 +345,7 @@
         "daily_entries_unique_date_per_report": {
           "name": "daily_entries_unique_date_per_report",
           "nullsNotDistinct": false,
-          "columns": [
-            "report_period_id",
-            "work_date"
-          ]
+          "columns": ["report_period_id", "work_date"]
         }
       },
       "policies": {},
@@ -479,9 +464,7 @@
         "profiles_clerk_user_id_unique": {
           "name": "profiles_clerk_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clerk_user_id"
-          ]
+          "columns": ["clerk_user_id"]
         }
       },
       "policies": {},
@@ -611,12 +594,8 @@
           "name": "report_exports_user_id_profiles_id_fk",
           "tableFrom": "report_exports",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -624,12 +603,8 @@
           "name": "report_exports_report_period_id_report_periods_id_fk",
           "tableFrom": "report_exports",
           "tableTo": "report_periods",
-          "columnsFrom": [
-            "report_period_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["report_period_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -637,12 +612,8 @@
           "name": "report_exports_template_version_id_template_versions_id_fk",
           "tableFrom": "report_exports",
           "tableTo": "template_versions",
-          "columnsFrom": [
-            "template_version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["template_version_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -792,12 +763,8 @@
           "name": "report_periods_user_id_profiles_id_fk",
           "tableFrom": "report_periods",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -934,12 +901,8 @@
           "name": "signatories_user_id_profiles_id_fk",
           "tableFrom": "signatories",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1049,10 +1012,7 @@
         "template_versions_key_version_unique": {
           "name": "template_versions_key_version_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "template_key",
-            "version"
-          ]
+          "columns": ["template_key", "version"]
         }
       },
       "policies": {},
@@ -1157,12 +1117,8 @@
           "name": "work_schedules_user_id_profiles_id_fk",
           "tableFrom": "work_schedules",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

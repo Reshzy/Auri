@@ -110,8 +110,8 @@ These choices are approved defaults for v1 unless the user explicitly changes th
 | Framework                    | Next.js App Router with TypeScript                           |
 | Styling                      | Tailwind CSS with accessible headless primitives             |
 | Animation                    | GSAP, used selectively                                       |
-| Database                     | Supabase Postgres                                            |
-| Authentication               | Supabase Auth                                                |
+| Database                     | Supabase Postgres (or local PostgreSQL in development)       |
+| Authentication               | Clerk                                                        |
 | File storage                 | Private Supabase Storage buckets                             |
 | Hosting                      | Vercel                                                       |
 | Source control               | GitHub                                                       |
@@ -1006,7 +1006,8 @@ Use Supabase SQL migrations as the canonical schema. Generate TypeScript databas
 
 | Column                    | Type        | Notes                               |
 | ------------------------- | ----------- | ----------------------------------- |
-| `id`                      | uuid PK     | Equals `auth.users.id`              |
+| `id`                      | uuid PK     | Internal owner UUID (not a Clerk ID)|
+| `clerk_user_id`           | text UNIQUE | Clerk `user_…` identity             |
 | `employee_name`           | text        | Required after onboarding           |
 | `employee_title`          | text        | Nullable                            |
 | `organization_name`       | text        | Nullable                            |
@@ -1147,42 +1148,13 @@ When a report is created, copy the active profile, schedule, and signatories int
 
 Offer an explicit `Refresh report from current settings` action on draft reports. This action shows a confirmation and records the refresh timestamp.
 
-### 8.4 RLS contract
+### 8.4 Authorization and RLS
 
-Enable RLS for all user-owned tables.
+**Canonical ownership model:** Clerk verifies the session. `requireAuthenticatedUser()` maps the Clerk `user_…` id to `profiles.id` (UUID) via `profiles.clerk_user_id`. All tenant foreign keys use that internal UUID. Never write a Clerk string id into a UUID ownership column. Never accept `user_id` / owner ids from the browser.
 
-Base policy pattern:
+Application PostgreSQL access uses authenticated server-side Drizzle. **Explicit DAL ownership scoping is mandatory.** Production RLS overlays that assume Supabase Auth `auth.uid()` are stale under Clerk unless the project intentionally configures compatible Clerk JWT claims and rewritten policies. Treat any remaining `auth.uid()` SQL as defense-in-depth drafts only — not as the primary authorization boundary.
 
-```sql
-alter table public.report_periods enable row level security;
-
-create policy "Users can read their reports"
-on public.report_periods
-for select
-to authenticated
-using ((select auth.uid()) = user_id);
-
-create policy "Users can create their reports"
-on public.report_periods
-for insert
-to authenticated
-with check ((select auth.uid()) = user_id);
-
-create policy "Users can update their reports"
-on public.report_periods
-for update
-to authenticated
-using ((select auth.uid()) = user_id)
-with check ((select auth.uid()) = user_id);
-
-create policy "Users can delete their draft reports"
-on public.report_periods
-for delete
-to authenticated
-using ((select auth.uid()) = user_id and status = 'draft');
-```
-
-Apply equivalent ownership policies to profiles, schedules, signatories, presets, daily entries, and exports. `template_versions` is readable by authenticated users but writable only by a trusted administrative process.
+Do not expose user tables or private files through an unauthenticated Supabase Data API. Supabase service-role access may exist only in trusted server/setup code and must never be treated as user authorization.
 
 ### 8.5 Storage buckets
 
@@ -1466,16 +1438,16 @@ If report data changes after generation, mark prior exports `Outdated` instead o
 
 ### 11.1 Authentication
 
-MVP supports:
+MVP uses **Clerk** as the canonical identity provider:
 
-- email and password sign-up;
-- email and password sign-in;
-- password reset; and
-- secure sign-out.
+- email and password (and other Clerk-supported factors) via Clerk-hosted UI;
+- secure sign-out through Clerk;
+- server session verification via Clerk server APIs (`auth()` / `currentUser()`);
+- first authenticated server call ensures a `profiles` row for the Clerk user.
 
-Google OAuth is optional after the password flow is complete.
+Google OAuth and other social providers may be enabled in the Clerk dashboard without changing the Auri ownership model.
 
-Use generic auth errors where account enumeration is a concern. Redirect authenticated users away from login/signup and unauthenticated users away from `/app`.
+Redirect authenticated users away from login/signup and unauthenticated users away from `/app` / `/onboarding`.
 
 ### 11.2 Onboarding steps
 
@@ -1515,11 +1487,12 @@ Client validation improves feedback; server validation is authoritative.
 
 Every report/export endpoint must:
 
-- require a valid session;
-- fetch by report/export ID and current user ID;
-- rely on RLS as a second boundary;
+- require a verified Clerk session;
+- resolve the caller to `profiles.id` (UUID) via `clerk_user_id`;
+- fetch by report/export ID and that internal owner UUID;
+- treat DAL ownership checks as mandatory (RLS is optional defense in depth only when Clerk-compatible);
 - reject archived/deleted resources appropriately;
-- never accept `user_id` from request JSON; and
+- never accept `user_id` / Clerk id / profile id from request JSON; and
 - never generate a file from a report the caller cannot read.
 
 ### 12.3 File safety
@@ -2166,8 +2139,8 @@ Use current official documentation when APIs have changed since this file was wr
 - Next.js Route Handlers: https://nextjs.org/docs/app/getting-started/route-handlers
 - Next.js runtimes: https://nextjs.org/docs/app/api-reference/edge
 - Tailwind CSS with Next.js: https://tailwindcss.com/docs/installation/framework-guides/nextjs
-- Supabase Auth with Next.js: https://supabase.com/docs/guides/auth/quickstarts/nextjs
-- Supabase SSR: https://supabase.com/docs/guides/auth/server-side
+- Clerk with Next.js: https://clerk.com/docs/nextjs/getting-started/quickstart
+- Supabase Storage: https://supabase.com/docs/guides/storage
 - Supabase Row Level Security: https://supabase.com/docs/guides/database/postgres/row-level-security
 - Vercel Node.js runtime: https://vercel.com/docs/functions/runtimes/node-js
 - GSAP with React: https://gsap.com/resources/React/

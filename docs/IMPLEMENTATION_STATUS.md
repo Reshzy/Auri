@@ -4,7 +4,7 @@ Last updated: 2026-08-11
 
 ## Current phase
 
-**Phase 5 complete (accomplishment presets).** Phase 6 has not started.
+**Phase 7 complete (XLSX DTR runtime template and export).** Phase 8 has not started.
 
 ## Completed
 
@@ -16,84 +16,76 @@ Last updated: 2026-08-11
 
 - [x] App Router shells, tokens, tooling, motion, route placeholders
 
-### Phase 2 — Supabase Auth + Drizzle data layer
+### Phase 2 — Clerk Auth + Drizzle data layer
 
-- [x] Hosted Supabase Auth clients, Proxy, sign-up/in/out, forgot/reset, callback
-- [x] Protected `/app/*` + auth-entry redirects
+- [x] Clerk Auth (`@clerk/nextjs`), Proxy (`clerkMiddleware`), sign-up/in/out
+- [x] Protected `/app/*` + `/onboarding` + auth-entry redirects
 - [x] Drizzle ORM + `postgres` driver; `src/db/schema` canonical for eight §8 tables
-- [x] Committed `drizzle/` migrations (portable Postgres)
-- [x] Supabase-only SQL moved to `supabase/overlays/`
-- [x] Server-only DAL: `requireAuthenticatedUser`, `ensureProfile`, ownership guards
+- [x] Committed `drizzle/` migrations (portable Postgres) including `profiles.clerk_user_id`
+- [x] Supabase Storage overlays under `supabase/overlays/` (Auth FK/RLS overlays stale for Clerk)
+- [x] Server-only DAL: `requireAuthenticatedUser` (Clerk → profile UUID), ownership guards
 - [x] Local `db:inspect` → `db:migrate` → `db:check` → `db:smoke` verified
 
 ### Phase 3 — Onboarding and settings
 
 - [x] Resumable `/onboarding` wizard (welcome → profile → schedule → signatories → templates → ready)
 - [x] Settings: `/app/settings/profile`, `schedule`, `signatories`, `templates`
-- [x] Zod schemas: `profileSchema`, `weekdayRuleSchema`/`weekdayRulesSchema`, `workScheduleSchema`, `signatorySchema`
-- [x] Server-only DAL: profiles update/complete, schedules, signatories, template availability, snapshot builders
-- [x] Auth gates: `/onboarding` requires session; incomplete users blocked from `/app/*`; completed users leave onboarding
-- [x] Active schedule integrity when saving/selecting schedules
-- [x] Sample defaults from §7.2–7.4 as editable form defaults (not hard-coded constants)
-- [x] Snapshot builders for `profile_snapshot` / `schedule_snapshot` / `signatory_snapshot`
+- [x] Zod schemas + server-only DAL + auth gates + snapshot builders
 
 ### Phase 4 — Report periods and daily editor
 
-- [x] First/second-half creation with transactional daily entries
-- [x] Schedule classification + off labels; Aug 1–15 2026 fixture
-- [x] Routes: `/app/reports`, `/new`, `/[reportId]`, `/[reportId]/edit`; dashboard current-period + recent
-- [x] Mobile-first day editor (no spreadsheet grid); ordered accomplishments; remarks; classification
-- [x] Time normalize (`700`/`7:00`/`07:00`); server worked/undertime minutes; manual override
-- [x] Autosave states + sessionStorage failed-draft recovery keyed by user/report/entry
-- [x] Copy previous workday; clear day with confirmation
-- [x] `ReportValidationService` readiness (errors/warnings/infos)
-- [x] Finalize / deliberate reopen; export `is_current` invalidated on reopen
-- [x] Draft **Refresh from current settings** + `snapshots_refreshed_at`
-- [x] DAL ownership scoping; finalized/archived mutation rejection
-- [x] `pnpm reports:smoke` / `phase4:check`; Playwright suite skipped without Auth credentials
+- [x] Report CRUD, daily editor, validation, finalize/reopen, `pnpm reports:smoke`
 - [x] Docs: `docs/PHASE4_REPORTS.md`
 
 ### Phase 5 — Accomplishment presets
 
-- [x] Shared `presetSchema` + normalize/order/search/merge helpers
-- [x] Server-only presets DAL + `PresetService` + server actions
-- [x] `/app/presets` CRUD, search, deactivate-with-confirm, empty/loading/error states
-- [x] Idempotent starter-preset seeding (explicit empty-state action)
-- [x] Daily-editor searchable multi-select picker + shortcut match (picker-scoped keyboard)
-- [x] Server-authoritative apply with duplicate prevention, selection order, use_count / last_used_at
-- [x] Dashboard quick action to manage presets
-- [x] Soft delete via `is_active = false` (no normal hard delete)
-- [x] `pnpm presets:smoke` / `phase5:check`; Playwright skipped without Auth credentials
+- [x] Presets CRUD/apply/seed, `pnpm presets:smoke`
 - [x] Docs: `docs/PHASE5_PRESETS.md`
 
-## Quality gates (Phase 5)
+### Phase 6 — DOCX runtime template and export
 
-| Check                  | Result                                                             |
-| ---------------------- | ------------------------------------------------------------------ |
-| `pnpm format:check`    | Pass                                                               |
-| `pnpm lint`            | Pass                                                               |
-| `pnpm typecheck`       | Pass                                                               |
-| `pnpm test`            | Pass (112 tests; includes live Postgres Phase 4 + Phase 5)         |
-| `pnpm build`           | Pass                                                               |
-| `pnpm templates:audit` | Pass                                                               |
-| `pnpm auth:check`      | Pass (static; service role optional/skipped)                       |
-| `pnpm db:check`        | Pass                                                               |
-| `pnpm db:smoke`        | Pass                                                               |
-| `pnpm reports:smoke`   | Pass                                                               |
-| `pnpm presets:smoke`   | Pass                                                               |
-| `pnpm test:e2e`        | Skipped — no usable `E2E_USER_*` / live Auth credentials           |
-| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env  |
+- [x] Runtime DOCX + `DocxExportService` + Clerk-protected DOCX export
+- [x] Docs: `docs/PHASE6_DOCX_EXPORT.md`
+- [x] Visual LibreOffice gate: blocked/pending when `soffice` unavailable
+
+### Phase 7 — XLSX DTR export
+
+- [x] Scrubbed runtime `dtr-csc-form-48-v1.xlsx` + manifest (`pnpm xlsx:prepare` / `xlsx:audit`)
+- [x] Source SHA-256 immutability gate; OOXML batch patcher (`jszip` + `@xmldom/xmldom`)
+- [x] Central cell-map constants; dual-copy writer; DTR formatters; structural validators
+- [x] `XlsxExportService` + `TemplateService.loadDtrTemplateBytes`
+- [x] Trusted `pnpm templates:upload:xlsx` (Storage when configured; local DB activation fallback)
+- [x] Export route supports exclusive `docx` **or** `xlsx` (no zip / mixed / Phase 8 persistence)
+- [x] Unit + integration fixtures; docs: `docs/PHASE7_XLSX_EXPORT.md`
+- [x] Visual LibreOffice gate: blocked/pending when `soffice` unavailable
+
+## Quality gates (Phase 7)
+
+| Check                             | Result                                                                                 |
+| --------------------------------- | -------------------------------------------------------------------------------------- |
+| `pnpm format:check`               | Fail — pre-existing only: `src/app/(auth)/sign-in/[[...sign-in]]/page.tsx` (untouched) |
+| `pnpm lint`                       | Pass (0 errors; pre-existing `.agents` template warning only)                          |
+| `pnpm typecheck`                  | Pass                                                                                   |
+| `pnpm test`                       | Pass (165 tests)                                                                       |
+| `pnpm build`                      | Pass                                                                                   |
+| `pnpm templates:audit`            | Pass                                                                                   |
+| `pnpm docx:audit` / `docx:smoke`  | Pass                                                                                   |
+| `pnpm xlsx:prepare` / audit/smoke | Pass (deterministic runtime SHA `a08195c6…eba6`)                                       |
+| `pnpm templates:upload:xlsx`      | Pass — local DB activation; Storage skipped without service role                       |
+| `pnpm auth/db/reports/presets`    | Pass (`auth:check`, `db:check`, `db:smoke`, `reports:smoke`, `presets:smoke`)          |
+| `pnpm test:e2e`                   | Skipped — Clerk `E2E_USER_*` not configured for an onboarded test account              |
+| Visual LibreOffice (DOCX + XLSX)  | Blocked/pending — `soffice` not installed on this machine                              |
+| Live Supabase Storage upload      | Pending — service-role credentials unavailable                                         |
 
 ## Schema sources
 
-| Layer                                     | Location                      | Environments                       |
-| ----------------------------------------- | ----------------------------- | ---------------------------------- |
-| Portable app schema                       | `src/db/schema/` → `drizzle/` | Local Postgres + Supabase Postgres |
-| Auth FK + profile trigger + RLS + Storage | `supabase/overlays/`          | Production Supabase only           |
-| Historical pre-Drizzle SQL                | `supabase/archive/`           | Reference only                     |
+| Layer                               | Location                      | Environments                            |
+| ----------------------------------- | ----------------------------- | --------------------------------------- |
+| Portable app schema                 | `src/db/schema/` → `drizzle/` | Local Postgres + Supabase Postgres      |
+| Storage buckets (Clerk-aware notes) | `supabase/overlays/`          | Production Supabase; see overlay README |
+| Historical pre-Drizzle SQL          | `supabase/archive/`           | Reference only                          |
 
-Phase 4 additive migration: `drizzle/0001_*.sql` adds `report_periods.snapshots_refreshed_at`.  
-Phase 5: no new migration (`accomplishment_presets` already in core schema).
+Phase 5–7: no new migrations (`template_versions` already supports `dtr` / `xlsx`).
 
 ## Environment variables
 
@@ -105,23 +97,19 @@ Never commit `.env.local` or real passwords/keys.
 
 ## Manual setup still required
 
-1. Confirm hosted Supabase Auth public keys + redirect URLs (needed for live Auth/onboarding/report/preset E2E).
-2. For production: Drizzle migrate with `DIRECT_URL` (includes `0001` refresh column), then apply `supabase/overlays/` in order.
-3. Optional: configure Supabase service role for admin/live isolation checks.
-4. Optional: set `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded test user only).
-5. Phase 6 will activate runtime templates in `template_versions`; readiness also accepts Phase 0 audited source+manifest pairs.
+1. Confirm Clerk publishable + secret keys and redirect URLs.
+2. Production: Drizzle migrate with `DIRECT_URL`; do **not** apply Auth FK / `auth.uid()` RLS overlays as-is under Clerk.
+3. Optional: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for `pnpm templates:upload:docx` / `templates:upload:xlsx`.
+4. Optional: `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded Clerk test user only).
 
 ## Assumptions
 
-1. Drizzle owns portable schema; overlays never run against ordinary local Postgres.
-2. Hosted Supabase Auth remains the identity provider during local web development.
-3. `ensureProfile` / all mutations use only the verified Supabase user UUID.
-4. Direct Postgres bypasses Data API RLS; DAL ownership scoping is mandatory.
-5. Accomplishments remain `daily_entries.accomplishments text[]` (no separate items table; no preset IDs stored in the array).
-6. `CUSTOM` period kind stays schema-supported but hidden from the main create UI.
-7. Shortcut uniqueness is case-insensitive via lowercase canonical storage against the existing partial unique index.
-8. Starter presets are added only through an explicit user action when the list is empty.
+1. Clerk is the canonical identity provider; Supabase provides Postgres + private Storage.
+2. DAL ownership scoping is mandatory; `auth.uid()` policies are not the primary boundary.
+3. Phase 6/7 return DOCX/XLSX buffers without persisting generated-report Storage history (Phase 8).
+4. DTR period label uses audited `AUGUST 1-15`; DOCX keeps `August 1-15, 2026`.
+5. Zero undertime leaves daily hour/minute cells blank while preserving `F45`/`N45`.
 
 ## Next work
 
-1. Phase 6: DOCX runtime template and export — not started.
+1. Phase 8: preview, generation review, ZIP package, generated-report Storage, `report_exports` history — not started.
