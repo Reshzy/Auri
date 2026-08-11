@@ -1,0 +1,13 @@
+{
+  "id": "accomplishment-report-v1",
+  "type": "docx",
+  "version": 1,
+  "sourceFile": "ACCOMPLISHMENT - RODGE.docx",
+  "runtimeFile": "accomplishment-report-v1.docx",
+  "sourceSha256": "d1381a91daf69d13a8a3d836be722dc4fa05544def667b194dce959361e091c5",
+  "runtimeSha256": "",
+  "pageSize": "legal",
+  "orientation": "landscape",
+  "active": false,
+  "notes": "Runtime file not prepared yet. Phase 6 must derive a single-copy 16-row Docxtemplater template from the source and set runtimeSha256 before activation."
+}

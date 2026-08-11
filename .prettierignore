@@ -1,0 +1,10 @@
+.next
+node_modules
+auri-web
+pnpm-lock.yaml
+coverage
+templates/source
+templates/runtime
+*.docx
+*.xlsx
+AURI_CURSOR_MASTER_SPEC.md

@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+:root {
+  --auri-orange-50: #fff7ed;
+  --auri-orange-100: #ffedd5;
+  --auri-orange-300: #fdba74;
+  --auri-orange-500: #f97316;
+  --auri-orange-600: #ea580c;
+  --auri-orange-700: #c2410c;
+
+  --auri-ink: #17130f;
+  --auri-ink-muted: #6f6258;
+  --auri-paper: #fffaf5;
+  --auri-surface: #ffffff;
+  --auri-border: #eadfd5;
+  --auri-success: #15803d;
+  --auri-warning: #b45309;
+  --auri-danger: #b91c1c;
+
+  --background: var(--auri-paper);
+  --foreground: var(--auri-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-auri-orange-50: var(--auri-orange-50);
+  --color-auri-orange-100: var(--auri-orange-100);
+  --color-auri-orange-300: var(--auri-orange-300);
+  --color-auri-orange-500: var(--auri-orange-500);
+  --color-auri-orange-600: var(--auri-orange-600);
+  --color-auri-orange-700: var(--auri-orange-700);
+  --color-auri-ink: var(--auri-ink);
+  --color-auri-ink-muted: var(--auri-ink-muted);
+  --color-auri-paper: var(--auri-paper);
+  --color-auri-surface: var(--auri-surface);
+  --color-auri-border: var(--auri-border);
+  --color-auri-success: var(--auri-success);
+  --color-auri-warning: var(--auri-warning);
+  --color-auri-danger: var(--auri-danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--auri-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgb(249 115 22 / 0.16), transparent 55%),
+      radial-gradient(900px 500px at 90% 0%, rgb(253 186 116 / 0.22), transparent 50%),
+      linear-gradient(180deg, var(--auri-paper) 0%, #fff7ed 100%);
+    color: var(--foreground);
+    font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+    min-height: 100vh;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--auri-orange-600);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .motion-safe-fade-in {
+    animation: auri-fade-in 480ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-safe-fade-in {
+      animation: none;
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes auri-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
