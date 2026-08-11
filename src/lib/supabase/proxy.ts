@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isAuthEntryPath, isProtectedPath, safeNextPath } from "@/lib/auth/paths";
+import { isAuthEntryPath, requiresAuthentication, safeNextPath } from "@/lib/auth/paths";
 import { hasSupabasePublicConfig } from "@/lib/env";
 
 export async function updateSession(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (!hasSupabasePublicConfig()) {
-    if (isProtectedPath(pathname)) {
+    if (requiresAuthentication(pathname)) {
       const loginUrl = request.nextUrl.clone();
       loginUrl.pathname = "/login";
       loginUrl.searchParams.set("next", pathname);
@@ -50,7 +50,7 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const isAuthenticated = Boolean(data?.claims?.sub);
 
-  if (isProtectedPath(pathname) && !isAuthenticated) {
+  if (requiresAuthentication(pathname) && !isAuthenticated) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);

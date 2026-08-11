@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isAuthEntryPath, isProtectedPath, safeNextPath } from "@/lib/auth/paths";
+import {
+  isAuthEntryPath,
+  isOnboardingPath,
+  isProtectedPath,
+  requiresAuthentication,
+  safeNextPath,
+} from "@/lib/auth/paths";
 
 describe("auth path helpers", () => {
   it("marks /app routes as protected", () => {
@@ -8,6 +14,13 @@ describe("auth path helpers", () => {
     expect(isProtectedPath("/app/settings/profile")).toBe(true);
     expect(isProtectedPath("/login")).toBe(false);
     expect(isProtectedPath("/")).toBe(false);
+  });
+
+  it("requires authentication for onboarding", () => {
+    expect(isOnboardingPath("/onboarding")).toBe(true);
+    expect(requiresAuthentication("/onboarding")).toBe(true);
+    expect(requiresAuthentication("/app")).toBe(true);
+    expect(requiresAuthentication("/signup")).toBe(false);
   });
 
   it("marks auth entry pages that signed-in users should leave", () => {

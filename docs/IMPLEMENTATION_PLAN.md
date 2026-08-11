@@ -73,12 +73,18 @@ Plus targeted Playwright when a critical user flow changes.
 
 ## Phase 3 — Onboarding and settings
 
-**Spec:** §7.2–7.4, §11.2, §4.2 settings routes
+**Spec:** §7.2–7.4, §11.2, §4.2 settings routes  
+**Status:** Complete
 
-- Resumable onboarding steps
-- Profile/office, compressed schedule builder, 4 signatories
-- Template availability check
-- Snapshot builders for report creation
+| Deliverable           | Plan                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------- |
+| Resumable onboarding  | `/onboarding` six-step wizard; progress inferred from profile/schedule/signatories/templates |
+| Profile/office        | Onboarding + `/app/settings/profile`                                                         |
+| Schedule builder      | Compressed + standard presets; seven-day Zod validation; active schedule FK integrity        |
+| Four signatories      | Onboarding + `/app/settings/signatories`                                                     |
+| Template availability | DB active rows and/or Phase 0 manifest+source check                                          |
+| Snapshot builders     | Server-only builders for report snapshots (used by Phase 4; no report create in Phase 3)     |
+| Settings pages        | Profile, schedule, signatories, templates under `/app/settings/*`                            |
 
 **Exit:** Sample employee/office/schedule/signatories enterable without code changes.
 

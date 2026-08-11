@@ -4,9 +4,7 @@ Last updated: 2026-08-11
 
 ## Current phase
 
-**Phase 2 revised (Drizzle + local PostgreSQL architecture).** Auth UI/Proxy preserved. Live local migrate/smoke skipped: `DATABASE_URL` is present but PostgreSQL rejected the password for user `postgres` (credentials not invented or logged).
-
-**Phase 3 has not started.**
+**Phase 3 complete (onboarding and settings).** Phase 4 has not started.
 
 ## Completed
 
@@ -24,30 +22,37 @@ Last updated: 2026-08-11
 - [x] Protected `/app/*` + auth-entry redirects
 - [x] Drizzle ORM + `postgres` driver; `src/db/schema` canonical for eight §8 tables
 - [x] Committed `drizzle/` migrations (portable Postgres)
-- [x] Supabase-only SQL moved to `supabase/overlays/` (auth FK, trigger, RLS, storage)
-- [x] Pre-Drizzle core SQL archived under `supabase/archive/`
+- [x] Supabase-only SQL moved to `supabase/overlays/`
 - [x] Server-only DAL: `requireAuthenticatedUser`, `ensureProfile`, ownership guards
-- [x] App layout calls `getAppUser()` when Supabase public env is configured
-- [x] Env validation for `DATABASE_URL` / `DIRECT_URL` + local vs remote SSL/`prepare`
-- [x] Scripts: `db:generate`, `db:migrate`, `db:check`, `db:studio`, `db:inspect`, `db:smoke`
-- [x] Docs: `docs/DATABASE.md`
-- [x] Slim `database.types.ts` (no duplicate table types)
+- [x] Local `db:inspect` → `db:migrate` → `db:check` → `db:smoke` verified
 
-## Quality gates (Phase 2 revision)
+### Phase 3 — Onboarding and settings
 
-| Check                  | Result                                                  |
-| ---------------------- | ------------------------------------------------------- |
-| `pnpm format:check`    | Pass                                                    |
-| `pnpm lint`            | Pass                                                    |
-| `pnpm typecheck`       | Pass                                                    |
-| `pnpm test`            | Pass (30 tests)                                         |
-| `pnpm build`           | Pass                                                    |
-| `pnpm templates:audit` | Pass                                                    |
-| `pnpm auth:check`      | Pass (public Supabase configured; service role missing) |
-| `pnpm db:check`        | Pass                                                    |
-| Local `db:inspect`     | Failed: password authentication for `postgres`          |
-| Local `db:migrate`     | Skipped (credential failure; DB not reset)              |
-| Local `db:smoke`       | Skipped (credential failure; DB not reset)              |
+- [x] Resumable `/onboarding` wizard (welcome → profile → schedule → signatories → templates → ready)
+- [x] Settings: `/app/settings/profile`, `schedule`, `signatories`, `templates`
+- [x] Zod schemas: `profileSchema`, `weekdayRuleSchema`/`weekdayRulesSchema`, `workScheduleSchema`, `signatorySchema`
+- [x] Server-only DAL: profiles update/complete, schedules, signatories, template availability, snapshot builders
+- [x] Auth gates: `/onboarding` requires session; incomplete users blocked from `/app/*`; completed users leave onboarding
+- [x] Active schedule integrity when saving/selecting schedules
+- [x] Sample defaults from §7.2–7.4 as editable form defaults (not hard-coded constants)
+- [x] Snapshot builders for `profile_snapshot` / `schedule_snapshot` / `signatory_snapshot` (no report create)
+
+## Quality gates (Phase 3)
+
+| Check                  | Result                                                              |
+| ---------------------- | ------------------------------------------------------------------- |
+| `pnpm format:check`    | Pass                                                                |
+| `pnpm lint`            | Pass                                                                |
+| `pnpm typecheck`       | Pass                                                                |
+| `pnpm test`            | Pass (52 tests; mocked DAL/unit — not live integration)             |
+| `pnpm build`           | Pass                                                                |
+| `pnpm templates:audit` | Pass                                                                |
+| `pnpm auth:check`      | Pass (static; live Auth skipped — public env not detected by check) |
+| `pnpm db:check`        | Pass                                                                |
+| Local `db:inspect`     | Pass (Phase 2 verification)                                         |
+| Local `db:migrate`     | Pass (Phase 2 verification)                                         |
+| Local `db:smoke`       | Pass (Phase 2 verification)                                         |
+| Live Auth E2E          | Skipped — no usable hosted Supabase Auth test account in this env   |
 
 ## Schema sources
 
@@ -65,21 +70,21 @@ Never commit `.env.local` or real passwords/keys.
 
 ## Manual setup still required
 
-1. Fix local `DATABASE_URL` / `DIRECT_URL` password for `localhost:5432/Auri`.
-2. `pnpm db:inspect` → `pnpm db:migrate` → `pnpm db:smoke`.
-3. Confirm hosted Supabase Auth redirect URLs.
-4. For production: Drizzle migrate with `DIRECT_URL`, then apply `supabase/overlays/` in order.
+1. Confirm hosted Supabase Auth public keys + redirect URLs (needed for live onboarding E2E).
+2. For production: Drizzle migrate with `DIRECT_URL`, then apply `supabase/overlays/` in order.
+3. Optional: configure Supabase service role for admin/live isolation checks.
+4. Phase 6 will activate runtime templates in `template_versions`; Phase 3 availability also accepts Phase 0 audited source+manifest pairs.
 
 ## Assumptions
 
 1. Drizzle owns portable schema; overlays never run against ordinary local Postgres.
 2. Hosted Supabase Auth remains the identity provider during local web development.
-3. `ensureProfile` uses only the verified Supabase user UUID.
+3. `ensureProfile` / all mutations use only the verified Supabase user UUID.
 4. Direct Postgres bypasses Data API RLS; DAL ownership scoping is mandatory.
-5. Template audit discrepancies and source DOCX/XLSX remain untouched.
-6. Phase 3 onboarding/settings not started.
+5. Onboarding step resume is inferred from persisted domain state (no `onboarding_step` column in §8.1).
+6. Template availability for Phase 3 = active `template_versions` row **or** Phase 0 manifest+source present.
+7. Ready step offers period creation only as Phase 4 placeholder copy — no report creation.
 
 ## Next work
 
-1. Operator: correct local Postgres password and run migrate/smoke.
-2. Phase 3: onboarding and settings (not started).
+1. Phase 4: report periods and daily editor (not started).

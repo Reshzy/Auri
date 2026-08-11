@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileAppNav } from "@/components/layout/mobile-app-nav";
+import { ensureProfile } from "@/db/dal/profiles";
 import { getAppUser } from "@/db/dal/get-app-user";
-import { hasSupabasePublicConfig } from "@/lib/env";
+import { isOnboardingComplete } from "@/lib/onboarding/progress";
+import { hasDatabaseUrl, hasSupabasePublicConfig } from "@/lib/env";
+
+export const dynamic = "force-dynamic";
 
 export default async function ApplicationLayout({
   children,
@@ -11,7 +15,13 @@ export default async function ApplicationLayout({
 }>) {
   if (hasSupabasePublicConfig()) {
     try {
-      await getAppUser();
+      const user = await getAppUser();
+      if (hasDatabaseUrl()) {
+        const profile = await ensureProfile(user.id);
+        if (!isOnboardingComplete(profile.onboardingCompletedAt)) {
+          redirect("/onboarding");
+        }
+      }
     } catch {
       redirect("/login");
     }

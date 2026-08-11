@@ -2,7 +2,9 @@ import "server-only";
 
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
+import { assertOwnerMatchesSession } from "@/db/dal/ownership";
 import { profiles } from "@/db/schema";
+import type { ProfileInput } from "@/lib/validation/onboarding";
 
 export { assertOwnerMatchesSession } from "@/db/dal/ownership";
 
@@ -62,4 +64,63 @@ export async function getOwnProfile(userId: string) {
   const db = getDb();
   const rows = await db.select().from(profiles).where(eq(profiles.id, userId)).limit(1);
   return rows[0] ?? null;
+}
+
+/** Update profile fields for the authenticated user only. */
+export async function updateOwnProfile(
+  userId: string,
+  input: ProfileInput,
+  clientSuppliedOwnerId?: unknown,
+) {
+  assertUserId(userId);
+  assertOwnerMatchesSession(userId, clientSuppliedOwnerId);
+  await ensureProfile(userId);
+  const db = getDb();
+  const now = new Date().toISOString();
+
+  const updated = await db
+    .update(profiles)
+    .set({
+      employeeName: input.employeeName,
+      employeeTitle: input.employeeTitle,
+      organizationName: input.organizationName,
+      officeName: input.officeName,
+      departmentName: input.departmentName,
+      timezone: input.timezone,
+      locale: input.locale,
+      updatedAt: now,
+    })
+    .where(eq(profiles.id, userId))
+    .returning();
+
+  if (!updated[0]) {
+    throw new Error("Failed to update profile.");
+  }
+  return updated[0];
+}
+
+/** Mark onboarding complete for the session user. Idempotent. */
+export async function completeOwnOnboarding(
+  userId: string,
+  clientSuppliedOwnerId?: unknown,
+) {
+  assertUserId(userId);
+  assertOwnerMatchesSession(userId, clientSuppliedOwnerId);
+  const profile = await ensureProfile(userId);
+  if (profile.onboardingCompletedAt) {
+    return profile;
+  }
+
+  const db = getDb();
+  const now = new Date().toISOString();
+  const updated = await db
+    .update(profiles)
+    .set({ onboardingCompletedAt: now, updatedAt: now })
+    .where(eq(profiles.id, userId))
+    .returning();
+
+  if (!updated[0]) {
+    throw new Error("Failed to complete onboarding.");
+  }
+  return updated[0];
 }

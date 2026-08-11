@@ -61,3 +61,30 @@ Do **not** use destructive reset commands. Do **not** run `drizzle-kit push` aga
 - Drizzle uses a privileged Postgres connection that can bypass RLS.
 - Every user-owned query/mutation must filter by the session UUID in the DAL.
 - Production RLS still blocks accidental exposure through the Supabase Data API or misconfigured clients.
+
+## Local verification (2026-08-11)
+
+Verified against existing database `Auri` on `localhost:5432` (credentials never logged):
+
+1. `pnpm db:inspect` — public tables: `accomplishment_presets`, `daily_entries`, `profiles`, `report_exports`, `report_periods`, `signatories`, `template_versions`, `work_schedules`; Drizzle migrations table present.
+2. `pnpm db:migrate` — committed `drizzle/` migrations applied successfully (no push/reset).
+3. `pnpm db:check` — static assertions pass; local policy `prepare=true`, `ssl=false`.
+4. `pnpm db:smoke` — disposable profile CRUD passed; smoke row deleted.
+
+No schema or migration-history conflict was observed. No destructive repair was performed.
+
+## Phase 3 data-access notes
+
+- Onboarding and settings mutations live in server-only DAL modules under `src/db/dal/` and server actions under `src/features/settings/actions.ts`.
+- Session user UUID comes from Supabase `getUser()` only. Client-supplied `user_id` / `owner_id` fields are rejected.
+- `profiles.active_schedule_id` is set only to a `work_schedules` row owned by the same user.
+- Snapshot builders (`src/db/dal/snapshots.ts`) copy current profile, active schedule, and active signatories into JSON suitable for later `report_periods` inserts. Phase 3 does not create reports.
+- Template availability checks active `template_versions` rows and falls back to audited Phase 0 `templates/manifests` + `templates/source` for local onboarding when DB rows are not yet activated (Phase 6).
+
+## Testing Phase 3 locally
+
+1. Ensure `DATABASE_URL` / `DIRECT_URL` point at local `Auri` and hosted Supabase Auth public env is set.
+2. Sign in → incomplete profiles are redirected to `/onboarding`.
+3. Complete steps; refresh mid-flow to confirm resume.
+4. After completion, edit settings under `/app/settings/*`.
+5. Automated coverage: `pnpm test` (mocked unit/DAL tests). Live Auth E2E requires a real test account — do not invent credentials.

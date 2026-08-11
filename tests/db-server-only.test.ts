@@ -9,6 +9,11 @@ describe("server-only database boundary", () => {
       "src/db/dal/auth-user.ts",
       "src/db/dal/profiles.ts",
       "src/db/dal/get-app-user.ts",
+      "src/db/dal/schedules.ts",
+      "src/db/dal/signatories.ts",
+      "src/db/dal/templates.ts",
+      "src/db/dal/snapshots.ts",
+      "src/db/dal/onboarding-state.ts",
       "src/lib/supabase/admin.ts",
     ]) {
       const source = readFileSync(path.resolve(__dirname, "..", relative), "utf8");

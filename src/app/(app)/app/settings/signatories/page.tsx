@@ -1,11 +1,53 @@
-import { PagePlaceholder } from "@/components/layout/page-placeholder";
+import { redirect } from "next/navigation";
+import { requireAuthenticatedUser } from "@/db/dal/auth-user";
+import { ensureProfile } from "@/db/dal/profiles";
+import { listOwnSignatories } from "@/db/dal/signatories";
+import { SignatoriesForm } from "@/features/settings/signatories-form";
+import { SAMPLE_SIGNATORY_DEFAULTS } from "@/lib/onboarding/defaults";
+import { hasDatabaseUrl, hasSupabasePublicConfig } from "@/lib/env";
 
-export default function SignatoriesSettingsPage() {
+export default async function SignatoriesSettingsPage() {
+  if (!hasSupabasePublicConfig() || !hasDatabaseUrl()) {
+    redirect("/login?error=config");
+  }
+
+  let user;
+  try {
+    user = await requireAuthenticatedUser();
+  } catch {
+    redirect("/login");
+  }
+
+  await ensureProfile(user.id);
+  const rows = await listOwnSignatories(user.id);
+  const values =
+    rows.length === 4
+      ? rows.map((row) => ({
+          slot: row.slot,
+          displayName: row.displayName,
+          title: row.title,
+          isActive: row.isActive,
+          effectiveFrom: row.effectiveFrom,
+          effectiveTo: row.effectiveTo,
+        }))
+      : SAMPLE_SIGNATORY_DEFAULTS.map((row) => ({
+          slot: row.slot,
+          displayName: row.displayName,
+          title: row.title,
+          isActive: true,
+          effectiveFrom: null as string | null,
+          effectiveTo: null as string | null,
+        }));
+
   return (
-    <PagePlaceholder
-      title="Signatories"
-      description="Four ordered signatory slots for report footers."
-      phaseNote="Signatory editing arrives in Phase 3."
-    />
+    <div className="mx-auto max-w-xl space-y-6">
+      <div>
+        <h2 className="text-auri-ink text-2xl font-semibold">Signatories</h2>
+        <p className="text-auri-ink-muted mt-1 text-sm">
+          Four ordered slots: employee signature owner and three verifiers.
+        </p>
+      </div>
+      <SignatoriesForm values={values} />
+    </div>
   );
 }
