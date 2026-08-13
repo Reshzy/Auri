@@ -65,7 +65,7 @@ Reuse requires owner, report, format, source revision, template provenance, gene
 
 Concurrent generation uses PostgreSQL `pg_advisory_xact_lock(hashtext('auri-export:{userId}:{reportId}'))` inside the reuse/insert transaction (not a session-level lock, which is unsafe with the postgres.js pool).
 
-User-scoped rate limit: at most **12 new `report_exports` rows per user per 60 seconds**. Idempotent reuse does not need Redis.
+User-scoped rate limit: at most **12 new `report_exports` rows per user per 60 seconds**. Verified reuse is checked before this limit and does not consume it. Idempotent reuse does not need Redis.
 
 ## Private Storage
 
@@ -132,7 +132,7 @@ Explicit delete: `DELETE /api/exports/{exportId}` → `204`. ZIP delete does not
 
 | Check                       | Result                                                             |
 | --------------------------- | ------------------------------------------------------------------ |
-| Local Postgres + `0003`     | Blocked — `localhost:5432` `ECONNREFUSED`; migration not applied   |
+| Local Postgres + `0003`     | Applied to local `Auri` on `localhost:5432`                        |
 | Live `generated-reports`    | Pending without `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`       |
 | Clerk Playwright E2E        | Pending without onboarded `E2E_USER_*`                             |
 | LibreOffice / Office visual | Pending — `soffice` unavailable (Phase 6/7 visual gates unchanged) |

@@ -204,8 +204,6 @@ export class ExportOrchestrationService {
       zip: computeFormatSourceRevision("zip", payload, hashes),
     };
 
-    await assertUserExportRateLimit(input.ownerId);
-
     const results: ExportResultItem[] = [];
     const members: {
       docx?: { row: ReportExportRow; buffer: Buffer; templateSha256: string };
@@ -345,6 +343,8 @@ export class ExportOrchestrationService {
         }
       }
 
+      await assertUserExportRateLimit(input.ownerId);
+
       const row = await ExportPersistenceService.persistGeneratedFile(
         {
           id,
@@ -439,6 +439,8 @@ export class ExportOrchestrationService {
           return { row: again, status: "reused" as const };
         }
       }
+
+      await assertUserExportRateLimit(input.ownerId);
 
       const row = await ExportPersistenceService.persistGeneratedFile(
         {

@@ -71,26 +71,28 @@ Last updated: 2026-08-13
 
 ## Quality gates (Phase 8)
 
-| Check                               | Result                                                                                                                              |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm format:check`                 | Pass                                                                                                                                |
-| `pnpm lint`                         | Pass (0 errors; pre-existing `.agents` Clerk template warning only)                                                                 |
-| `pnpm typecheck`                    | Pass                                                                                                                                |
-| `pnpm test`                         | Unit/mocked: 178 passed. Live Postgres suites: blocked — `localhost:5432` `ECONNREFUSED` (`postgresql-x64-18` Stopped). Not a pass. |
-| `pnpm build`                        | Pass                                                                                                                                |
-| `pnpm templates:audit`              | Pass                                                                                                                                |
-| `pnpm docx:audit` / `docx:smoke`    | Pass                                                                                                                                |
-| `pnpm xlsx:audit` / `xlsx:smoke`    | Pass (deterministic runtime SHA `a08195c6…eba6`)                                                                                    |
-| `pnpm auth:check`                   | Pass (static)                                                                                                                       |
-| `pnpm db:check`                     | Pass (static; asserts `bundle_manifest`)                                                                                            |
-| `pnpm db:migrate`                   | Blocked — local Postgres not running. Additive `0003_mighty_chamber` is generated, not applied.                                     |
-| `pnpm db:smoke` / reports / presets | Blocked — same Postgres outage. Not re-run as live passes.                                                                          |
-| `pnpm exports:smoke`                | Pass (ZIP/revision/path unit checks; no live Storage)                                                                               |
-| `pnpm storage:check:generated`      | Skipped — `SUPABASE_SERVICE_ROLE_KEY` unavailable                                                                                   |
-| `pnpm exports:storage:smoke`        | Skipped — same                                                                                                                      |
-| `pnpm test:e2e`                     | Skipped — Clerk `E2E_USER_*` not configured (4 tests skipped, including Phase 8)                                                    |
-| Visual LibreOffice (DOCX + XLSX)    | Blocked/pending — `soffice` not installed on this machine                                                                           |
-| Live Supabase Storage upload        | Pending — service-role credentials unavailable                                                                                      |
+| Check                            | Result                                                                                          |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `pnpm format:check`              | Pass                                                                                            |
+| `pnpm lint`                      | Pass (0 errors; pre-existing `.agents` Clerk template warning only)                             |
+| `pnpm typecheck`                 | Pass                                                                                            |
+| `pnpm test`                      | Pass — 194 tests (32 files). Includes 3 live Phase 8 Postgres+memory-Storage persistence tests. |
+| `pnpm build`                     | Pass                                                                                            |
+| `pnpm templates:audit`           | Pass                                                                                            |
+| `pnpm docx:audit` / `docx:smoke` | Pass                                                                                            |
+| `pnpm xlsx:audit` / `xlsx:smoke` | Pass (deterministic runtime SHA `a08195c6…eba6`)                                                |
+| `pnpm auth:check`                | Pass (static)                                                                                   |
+| `pnpm db:check`                  | Pass (static; asserts `bundle_manifest`)                                                        |
+| `pnpm db:migrate`                | Pass — `0003_mighty_chamber` applied to local `Auri` (4 journal entries)                        |
+| `pnpm db:smoke`                  | Pass                                                                                            |
+| `pnpm reports:smoke`             | Pass                                                                                            |
+| `pnpm presets:smoke`             | Pass                                                                                            |
+| `pnpm exports:smoke`             | Pass (ZIP/revision/path unit checks; no live Storage)                                           |
+| `pnpm storage:check:generated`   | Skipped — `SUPABASE_SERVICE_ROLE_KEY` unavailable                                               |
+| `pnpm exports:storage:smoke`     | Skipped — same                                                                                  |
+| `pnpm test:e2e`                  | Skipped — Clerk `E2E_USER_*` not configured (4 tests skipped, including Phase 8)                |
+| Visual LibreOffice (DOCX + XLSX) | Blocked/pending — `soffice` not installed on this machine                                       |
+| Live Supabase Storage upload     | Pending — service-role credentials unavailable                                                  |
 
 ## Schema sources
 
@@ -113,10 +115,9 @@ Never commit `.env.local` or real passwords/keys.
 ## Manual setup still required
 
 1. Confirm Clerk publishable + secret keys and redirect URLs.
-2. Start local Postgres (`postgresql-x64-18` was Stopped; `localhost:5432` refused connections) and apply `pnpm db:migrate` for `0003_mighty_chamber`.
-3. Production: Drizzle migrate with `DIRECT_URL`; do **not** apply Auth FK / `auth.uid()` RLS overlays as-is under Clerk.
-4. Optional: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for template upload and `pnpm storage:setup:generated`.
-5. Optional: `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded Clerk test user only).
+2. Production: Drizzle migrate with `DIRECT_URL`; do **not** apply Auth FK / `auth.uid()` RLS overlays as-is under Clerk.
+3. Optional: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for template upload and `pnpm storage:setup:generated`.
+4. Optional: `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded Clerk test user only).
 
 ## Assumptions
 

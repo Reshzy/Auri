@@ -17,7 +17,7 @@ import {
   buildReportPackageFilename,
 } from "@/lib/exports/filenames";
 import { aggregateOverallStatus } from "@/lib/exports/results";
-import { derivePresentationStatus } from "@/lib/exports/freshness";
+import { derivePresentationStatus, isDownloadable } from "@/lib/exports/freshness";
 import { isRateLimited } from "@/lib/exports/rate-limit";
 import { formatFileSizeBytes } from "@/lib/exports/file-size";
 import { formatExportTimestamp } from "@/lib/exports/timezone";
@@ -91,6 +91,18 @@ describe("current/outdated derivation", () => {
       "outdated",
     );
     expect(derivePresentationStatus({ ...base, storagePresent: false })).toBe("outdated");
+  });
+
+  it("hides download when the Storage object is missing or mismatched", () => {
+    expect(isDownloadable({ storagePresent: false, storageMatchesMetadata: false })).toBe(
+      false,
+    );
+    expect(isDownloadable({ storagePresent: true, storageMatchesMetadata: false })).toBe(
+      false,
+    );
+    expect(isDownloadable({ storagePresent: true, storageMatchesMetadata: true })).toBe(
+      true,
+    );
   });
 });
 

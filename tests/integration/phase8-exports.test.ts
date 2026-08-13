@@ -18,6 +18,7 @@ import { templateVersions } from "@/db/schema/template-versions";
 import { workSchedules } from "@/db/schema/work-schedules";
 import { createCompressedWeekdayRules } from "@/lib/onboarding/defaults";
 import { isZipBundleManifest } from "@/lib/exports/zip-manifest";
+import { EXPORT_RATE_LIMIT_MAX } from "@/lib/exports/rate-limit";
 import { DailyEntryService } from "@/server/services/daily-entry-service";
 import { ExportDeletionService } from "@/server/services/export-deletion-service";
 import { ExportHistoryService } from "@/server/services/export-history-service";
@@ -40,7 +41,8 @@ describe.skipIf(!runLive)(
   () => {
     const userA = randomUUID();
     const userB = randomUUID();
-    const createdUserIds = [userA, userB];
+    const userC = randomUUID();
+    const createdUserIds = [userA, userB, userC];
     const createdTemplateIds: string[] = [];
     const storage = createMemoryGeneratedStorage();
 
@@ -156,6 +158,7 @@ describe.skipIf(!runLive)(
       setGeneratedStorageForTests(storage);
       await seedUser(userA);
       await seedUser(userB);
+      await seedUser(userC);
       await ensureTemplates();
     });
 
@@ -319,6 +322,15 @@ describe.skipIf(!runLive)(
           .where(eq(reportExports.id, next.results[0]!.export!.id))
       )[0]!;
       storage.objects.delete(nextDocx.storagePath);
+      const missingHistory = await ExportHistoryService.listForReport(
+        userA,
+        created.report.id,
+        { storage },
+      );
+      const missingItem = missingHistory.find((item) => item.id === nextDocx.id);
+      expect(missingItem?.downloadable).toBe(false);
+      expect(missingItem?.presentationStatus).toBe("outdated");
+
       const missing = await ExportOrchestrationService.generate({
         ownerId: userA,
         reportId: created.report.id,
@@ -428,5 +440,72 @@ describe.skipIf(!runLive)(
       ).rejects.toBeTruthy();
       expect([...failing.objects.keys()].some((key) => key.includes(id))).toBe(false);
     });
+
+    it("reuses verified current exports even when the new-row rate limit is full", async () => {
+      const created = await ReportPeriodService.create(userC, {
+        year: 2026,
+        month: 6,
+        periodKind: "FIRST_HALF",
+      });
+      await fillWorkdays(userC, created.report.id);
+      const validation = await ReportPeriodService.validate(userC, created.report.id);
+      const ack = validation.warnings.map((warning) => warning.code);
+      const first = await ExportOrchestrationService.generate({
+        ownerId: userC,
+        reportId: created.report.id,
+        formats: ["docx"],
+        acknowledgedWarnings: ack,
+        storage,
+      });
+      expect(first.results[0]?.status).toBe("created");
+      const currentId = first.results[0]!.export!.id;
+      const template = await TemplateService.getActiveAccomplishmentTemplate();
+      expect(template).toBeTruthy();
+      const db = getDb();
+      const fillers = Array.from({ length: EXPORT_RATE_LIMIT_MAX - 1 }, () =>
+        randomUUID(),
+      );
+      await db.insert(reportExports).values(
+        fillers.map((id) => ({
+          id,
+          userId: userC,
+          reportPeriodId: created.report.id,
+          templateVersionId: template!.id,
+          format: "docx" as const,
+          storagePath: `${userC}/${created.report.id}/${id}/Auri_Filler_2026-06-01_to_2026-06-15_Accomplishment.docx`,
+          fileName: "Auri_Filler_2026-06-01_to_2026-06-15_Accomplishment.docx",
+          fileSizeBytes: 12,
+          sha256: "ab".repeat(32),
+          sourceRevision: "filler",
+          isCurrent: false,
+          bundleManifest: null,
+        })),
+      );
+
+      const reused = await ExportOrchestrationService.generate({
+        ownerId: userC,
+        reportId: created.report.id,
+        formats: ["docx"],
+        acknowledgedWarnings: ack,
+        storage,
+      });
+      expect(reused.results[0]?.status).toBe("reused");
+      expect(reused.results[0]?.export?.id).toBe(currentId);
+
+      const currentRow = (
+        await db.select().from(reportExports).where(eq(reportExports.id, currentId))
+      )[0]!;
+      storage.objects.delete(currentRow.storagePath);
+      const limited = await ExportOrchestrationService.generate({
+        ownerId: userC,
+        reportId: created.report.id,
+        formats: ["docx"],
+        acknowledgedWarnings: ack,
+        storage,
+      });
+      expect(limited.overallStatus).toBe("failed");
+      expect(limited.results[0]?.status).toBe("failed");
+      expect(limited.results[0]?.error?.code).toBe("EXPORT_RATE_LIMITED");
+    }, 120_000);
   },
 );
