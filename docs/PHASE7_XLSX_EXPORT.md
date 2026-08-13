@@ -92,15 +92,17 @@ Content-Type: application/json
 { "formats": ["xlsx"], "acknowledgedWarnings": [] }
 ```
 
-Phase 7 accepts exactly one of `docx` or `xlsx`. Rejects `zip`, mixed formats, empty arrays, and duplicates.
+Phase 8 accepts unique subsets of `docx`, `xlsx`, and `zip` (ZIP requires both members). See `docs/PHASE8_EXPORT_HISTORY.md`.
 
 - Fresh `validateReport`; warnings require acknowledgement
 - Snapshots are not refreshed during export
-- XLSX MIME: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- Generation returns JSON metadata; download MIME for XLSX remains `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 - Filename: `Auri_{Sanitized-Employee-Name}_{YYYY-MM-DD}_to_{YYYY-MM-DD}_DTR.xlsx`
 - `Cache-Control: private, no-store`
 - Safe errors: `TEMPLATE_NOT_FOUND`, `TEMPLATE_HASH_MISMATCH`, `REPORT_INCOMPLETE`, `XLSX_GENERATION_FAILED`, etc.
-- **Does not** persist generated workbooks or insert `report_exports` rows (Phase 8)
+- **Does not** include PDF generation or a template designer
+
+Phase 8 persistence, ZIP, preview, and history: see `docs/PHASE8_EXPORT_HISTORY.md`.
 
 ## Structural vs visual validation
 
@@ -110,13 +112,14 @@ Visual one-page legal landscape / Excel repair-warning gate requires LibreOffice
 
 ## Phase 8 boundary
 
-Not implemented in Phase 7:
+Implemented in Phase 8 (see `docs/PHASE8_EXPORT_HISTORY.md`):
 
 - ZIP packaging / multi-format generation
 - Semantic preview UI / generation-review UI
 - Generated-report Storage persistence
 - `report_exports` history, current/outdated states, protected historical downloads
-- PDF generation / template designer
+
+Still not implemented: PDF generation / template designer.
 
 ## Remaining environment-dependent checks
 

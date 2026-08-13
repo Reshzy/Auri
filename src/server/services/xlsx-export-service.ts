@@ -5,6 +5,7 @@ import JSZip from "jszip";
 import { ExportError } from "@/lib/exports/errors";
 import { buildDtrFilename } from "@/lib/exports/filename";
 import { DTR_OWNED_LEFT, DTR_WORKSHEET_PATH } from "@/lib/templates/dtr-cell-map";
+import { computeXlsxSourceRevision } from "@/lib/exports/source-revision";
 import {
   ReportMappingService,
   type MappingReportInput,
@@ -72,7 +73,7 @@ export async function generateDtrXlsx(
       allowLocalFallback: options?.allowLocalTemplateFallback ?? true,
     });
 
-    const sourceRevision = ReportMappingService.sourceRevision(payload, [loaded.sha256]);
+    const sourceRevision = computeXlsxSourceRevision(payload, loaded.sha256);
 
     const zip = await JSZip.loadAsync(loaded.buffer);
     const sheetFile = zip.file(DTR_WORKSHEET_PATH);

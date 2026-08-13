@@ -15,6 +15,7 @@ import {
   type HeaderToken,
 } from "@/lib/templates/accomplishment-tokens";
 import { assertMaxRows } from "@/lib/exports/filename";
+import { stableCanonicalJson } from "@/lib/exports/source-revision";
 import type { ProfileSnapshot, SignatorySnapshot } from "@/db/dal/snapshots";
 import { createHash } from "node:crypto";
 
@@ -81,25 +82,11 @@ export type MappingReportInput = {
   }>;
 };
 
-function stableStringify(value: unknown): string {
-  return JSON.stringify(value, (_, v) => {
-    if (v && typeof v === "object" && !Array.isArray(v)) {
-      const obj = v as Record<string, unknown>;
-      const sorted: Record<string, unknown> = {};
-      for (const key of Object.keys(obj).sort()) {
-        sorted[key] = obj[key];
-      }
-      return sorted;
-    }
-    return v;
-  });
-}
-
 export function hashCanonicalPayload(
   payload: ExportPayload,
   templateHashes: string[],
 ): string {
-  const material = `${stableStringify(payload)}|${templateHashes.join(",")}`;
+  const material = `${stableCanonicalJson(payload)}|${templateHashes.join(",")}`;
   return createHash("sha256").update(material).digest("hex");
 }
 

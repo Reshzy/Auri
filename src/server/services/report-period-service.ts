@@ -5,7 +5,6 @@ import {
   getOwnReportWithEntries,
   getProfileSnapshot,
   getSignatorySnapshot,
-  invalidateOwnReportExports,
   listOwnReports,
   parseScheduleSnapshot,
   refreshOwnReportSnapshots,
@@ -168,8 +167,10 @@ export class ReportPeriodService {
       throw new AppError("Only finalized reports can be reopened.", "PRECONDITION");
     }
 
-    await invalidateOwnReportExports(userId, reportId);
-    await updateOwnReportStatus(userId, reportId, "draft", { finalizedAt: null });
+    await updateOwnReportStatus(userId, reportId, "draft", {
+      finalizedAt: null,
+      invalidateExports: true,
+    });
     return this.syncReadiness(userId, reportId);
   }
 }

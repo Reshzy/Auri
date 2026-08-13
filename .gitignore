@@ -49,6 +49,7 @@ next-env.d.ts
 /tests/artifacts/
 /fixtures/docx/generated/
 /fixtures/xlsx/generated/
+/fixtures/zip/generated/
 *.generated.docx
 *.generated.xlsx
 *.generated.zip

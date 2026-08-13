@@ -1117,14 +1117,15 @@ Use Supabase SQL migrations as the canonical schema. Generate TypeScript databas
 | `id`                  | uuid PK     |                                     |
 | `user_id`             | uuid FK     | Owner                               |
 | `report_period_id`    | uuid FK     | Parent report                       |
-| `template_version_id` | uuid FK     | Exact template                      |
+| `template_version_id` | uuid FK     | Exact template for `docx`/`xlsx`; **null for `zip`** |
 | `format`              | text        | docx/xlsx/zip                       |
 | `storage_path`        | text        | Private generated bucket            |
 | `file_name`           | text        | Sanitized user-facing filename      |
 | `file_size_bytes`     | bigint      | Non-negative                        |
 | `sha256`              | text        | Generated file hash                 |
-| `source_revision`     | text        | Hash of report data + template hash |
+| `source_revision`     | text        | Hash of report data + format-specific template hash(es) |
 | `is_current`          | boolean     | Latest generation for this revision |
+| `bundle_manifest`     | jsonb       | Required immutable ZIP member/template provenance; null for docx/xlsx |
 | `created_at`          | timestamptz | Default now                         |
 
 ### 8.2 Constraints and indexes
@@ -1137,6 +1138,8 @@ Required:
 - indexes on every `user_id`;
 - report index on `(user_id, start_date desc)`;
 - export index on `(report_period_id, created_at desc)`;
+- at most one current export per `(report_period_id, format)` (partial unique);
+- ZIP rows store `bundle_manifest` and null `template_version_id`;
 - preset index on `(user_id, is_active, use_count desc)`;
 - unique template `(template_key, version)`;
 - partial unique active template per `template_key`; and

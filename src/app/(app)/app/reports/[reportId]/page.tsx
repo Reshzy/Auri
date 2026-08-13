@@ -2,11 +2,14 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
+import { ExportHistoryList } from "@/features/exports/export-history-list";
+import { GenerateFilesButton } from "@/features/exports/generate-files-button";
 import { ReportStatusActions } from "@/features/reports/report-status-actions";
 import { ValidationSummary } from "@/features/reports/validation-summary";
 import { hasDatabaseUrl } from "@/lib/env";
 import { formatPeriodKind, formatPeriodLabel, formatStatus } from "@/lib/reports/labels";
 import { formatTotalHoursLabel } from "@/lib/reports/totals";
+import { ExportHistoryService } from "@/server/services/export-history-service";
 import { ReportPeriodService } from "@/server/services/report-period-service";
 
 export default async function ReportDetailPage({
@@ -43,6 +46,9 @@ export default async function ReportDetailPage({
   const total = formatTotalHoursLabel(
     loaded.entries.reduce((sum, e) => sum + e.workedMinutes, 0),
   );
+  const history = await ExportHistoryService.listForReport(user.id, reportId, {
+    limit: 50,
+  });
 
   return (
     <div className="motion-safe-fade-in space-y-6">
@@ -71,6 +77,10 @@ export default async function ReportDetailPage({
             {readOnly ? "Open read-only editor" : "Continue editing"}
           </Link>
         </Button>
+        <Button asChild variant="secondary">
+          <Link href={`/app/reports/${reportId}/preview`}>Preview</Link>
+        </Button>
+        <GenerateFilesButton reportId={reportId} />
       </div>
 
       <ReportStatusActions reportId={reportId} status={loaded.report.status} />
@@ -92,6 +102,11 @@ export default async function ReportDetailPage({
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="border-auri-border bg-auri-surface rounded-3xl border p-5">
+        <h3 className="text-auri-ink mb-3 text-lg font-semibold">Generated files</h3>
+        <ExportHistoryList reportId={reportId} initialItems={history} />
       </section>
     </div>
   );

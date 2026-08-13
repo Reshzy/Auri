@@ -59,6 +59,10 @@ pnpm reports:smoke # Phase 4 disposable report classification smoke
 pnpm presets:smoke # Phase 5 disposable preset CRUD/apply smoke
 pnpm docx:prepare  # Phase 6 runtime DOCX derivation
 pnpm docx:smoke    # Phase 6 DOCX mapping/generation smoke
+pnpm exports:smoke # Phase 8 ZIP/revision/path smoke (no live Storage)
+pnpm storage:setup:generated
+pnpm storage:check:generated
+pnpm exports:storage:smoke
 ```
 
 Do **not** use destructive reset commands. Do **not** run `drizzle-kit push` against production.
@@ -125,8 +129,16 @@ No schema or migration-history conflict was observed. No destructive repair was 
 
 - Runtime DOCX lives under `templates/runtime/`; source under `templates/source/` is immutable.
 - Trusted upload (`pnpm templates:upload:docx` / `pnpm templates:upload:xlsx`) writes to the private `templates` bucket and activates `template_versions` for the matching `template_key` only (`accomplishment` or `dtr`).
-- DOCX export returns a verified buffer in Phase 6; generated-report Storage + `report_exports` persistence remain Phase 8.
+- DOCX export returns a verified buffer in Phase 6; Phase 8 persists generated-report Storage + `report_exports`.
 - See `docs/PHASE6_DOCX_EXPORT.md`.
+
+## Phase 8 data-access notes
+
+- Export DAL: `src/db/dal/exports.ts`. Services: `ExportOrchestrationService`, `ExportPersistenceService`, `ExportHistoryService`, `ExportDownloadService`, `ExportDeletionService`, `ZipExportService`, `ExportFreshnessService`.
+- Additive migration `drizzle/0003_mighty_chamber.sql`: nullable ZIP `template_version_id`, required `bundle_manifest` for ZIP, one current export per report+format, history indexes.
+- Daily-entry mutations, preset apply, snapshot refresh, and reopen set `is_current = false` in the same transaction. Files are not deleted.
+- Private bucket `generated-reports` path: `{internalProfileUuid}/{reportPeriodId}/{exportId}/{fileName}`. Downloads stream through Clerk-authenticated `GET /api/exports/{exportId}/download`.
+- See `docs/PHASE8_EXPORT_HISTORY.md`.
 
 ## Local verification commands
 
@@ -148,5 +160,5 @@ pnpm test:e2e        # Playwright; skipped without Clerk + E2E_USER_* credential
 3. Complete steps; refresh mid-flow to confirm resume.
 4. After completion, create a report under `/app/reports/new` and edit days under `/app/reports/[id]/edit`.
 5. Manage presets at `/app/presets` (starter seed + CRUD) and apply them from the day editor picker.
-6. Prepare/upload DOCX runtime template, then `POST /api/reports/{id}/exports` with `{ "formats": ["docx"] }`.
+6. Prepare/upload DOCX runtime template, then `POST /api/reports/{id}/exports` with `{ "formats": ["docx"] }` (Phase 8 returns persisted JSON + protected download URLs).
 7. Automated coverage: `pnpm test` (unit + disposable Postgres integration). Live Auth browser E2E requires a real onboarded Clerk test account — do not invent credentials.

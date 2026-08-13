@@ -14,6 +14,7 @@ import {
   saveDailyEntryAction,
 } from "@/features/reports/actions";
 import { ReportStatusActions } from "@/features/reports/report-status-actions";
+import { GenerateFilesButton } from "@/features/exports/generate-files-button";
 import { ValidationSummary } from "@/features/reports/validation-summary";
 import { pgTimeToHhmm } from "@/lib/reports/pg-time";
 import { weekdayLabelForYmd } from "@/lib/dates/period";
@@ -462,12 +463,18 @@ export function DailyEditor({
             Status: {formatStatus(status)} · Total worked: {totalsLabel}
           </p>
         </div>
-        <SaveBadge
-          state={saveState}
-          lastSavedAt={lastSavedAt}
-          onRetry={onRetry}
-          error={saveError}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button asChild variant="secondary" size="sm">
+            <Link href={`/app/reports/${report.id}/preview`}>Preview</Link>
+          </Button>
+          <GenerateFilesButton reportId={report.id} />
+          <SaveBadge
+            state={saveState}
+            lastSavedAt={lastSavedAt}
+            onRetry={onRetry}
+            error={saveError}
+          />
+        </div>
       </header>
 
       <ReportStatusActions reportId={report.id} status={status} />

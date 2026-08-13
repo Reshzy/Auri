@@ -11,6 +11,7 @@ import {
 } from "@/db/dal/reports";
 import { accomplishmentPresets } from "@/db/schema/accomplishment-presets";
 import { dailyEntries, reportPeriods } from "@/db/schema";
+import { invalidateOwnReportExportsOn } from "@/db/dal/exports";
 import { dedupeIdsPreserveOrder, mergePresetContents } from "@/lib/presets/merge";
 import {
   normalizeAccomplishmentForCompare,
@@ -466,6 +467,10 @@ export async function applyOwnPresetsToDailyEntry(
       .update(reportPeriods)
       .set({ updatedAt: now })
       .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)));
+
+    if (appliedPresetIds.length > 0) {
+      await invalidateOwnReportExportsOn(tx, userId, reportId);
+    }
 
     const presetsUsage: ApplyPresetsResult["presetsUsage"] = [];
     for (const presetId of appliedPresetIds) {

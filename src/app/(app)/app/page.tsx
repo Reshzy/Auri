@@ -9,6 +9,7 @@ import {
 } from "@/lib/dates/period";
 import { hasDatabaseUrl } from "@/lib/env";
 import { formatPeriodLabel, formatStatus } from "@/lib/reports/labels";
+import { ExportHistoryService } from "@/server/services/export-history-service";
 import { ReportPeriodService } from "@/server/services/report-period-service";
 import { findActiveReportByRange } from "@/db/dal/reports";
 
@@ -42,6 +43,7 @@ export default async function AppOverviewPage() {
   const range = periodRangeForPreset(preset.year, preset.month, preset.kind);
   const current = await findActiveReportByRange(user.id, range.startDate, range.endDate);
   const recent = (await ReportPeriodService.list(user.id)).slice(0, 5);
+  const recentExports = await ExportHistoryService.listRecent(user.id, { limit: 8 });
 
   return (
     <div className="motion-safe-fade-in space-y-8">
@@ -115,9 +117,39 @@ export default async function AppOverviewPage() {
         </div>
         <div className="border-auri-border bg-auri-surface rounded-3xl border p-6">
           <h3 className="text-auri-ink text-lg font-semibold">Latest files</h3>
-          <p className="text-auri-ink-muted mt-2 text-sm">
-            Generated DOCX/XLSX history will appear here after Phase 8.
-          </p>
+          {recentExports.length === 0 ? (
+            <p className="text-auri-ink-muted mt-2 text-sm">
+              Generated Word, Excel, and ZIP files will appear here after you use
+              Generate.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2 text-sm">
+              {recentExports.map((item) => (
+                <li key={item.id}>
+                  {item.downloadable ? (
+                    <a
+                      href={item.downloadUrl}
+                      className="hover:bg-auri-orange-50/50 flex items-center justify-between rounded-xl px-1 py-1"
+                    >
+                      <span className="text-auri-ink font-medium">
+                        {item.format.toUpperCase()} · {item.fileName}
+                      </span>
+                      <span className="text-auri-ink-muted">
+                        {item.presentationStatus === "current" ? "Current" : "Outdated"}
+                      </span>
+                    </a>
+                  ) : (
+                    <span className="text-auri-ink-muted flex items-center justify-between px-1 py-1">
+                      <span>
+                        {item.format.toUpperCase()} · {item.fileName}
+                      </span>
+                      <span>Unavailable</span>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 

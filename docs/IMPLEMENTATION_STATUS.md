@@ -1,10 +1,10 @@
 # Auri Implementation Status
 
-Last updated: 2026-08-11
+Last updated: 2026-08-13
 
 ## Current phase
 
-**Phase 7 complete (XLSX DTR runtime template and export).** Phase 8 has not started.
+**Phase 8 complete (preview, generation review, persistent export history, private downloads, ZIP packaging).** Phase 9 has not started.
 
 ## Completed
 
@@ -55,27 +55,42 @@ Last updated: 2026-08-11
 - [x] Central cell-map constants; dual-copy writer; DTR formatters; structural validators
 - [x] `XlsxExportService` + `TemplateService.loadDtrTemplateBytes`
 - [x] Trusted `pnpm templates:upload:xlsx` (Storage when configured; local DB activation fallback)
-- [x] Export route supports exclusive `docx` **or** `xlsx` (no zip / mixed / Phase 8 persistence)
+- [x] Export route supports exclusive `docx` **or** `xlsx` (Phase 8 extends to mixed + zip persistence)
 - [x] Unit + integration fixtures; docs: `docs/PHASE7_XLSX_EXPORT.md`
 - [x] Visual LibreOffice gate: blocked/pending when `soffice` unavailable
 
-## Quality gates (Phase 7)
+### Phase 8 — Preview, generation review, and history
 
-| Check                             | Result                                                                                 |
-| --------------------------------- | -------------------------------------------------------------------------------------- |
-| `pnpm format:check`               | Fail — pre-existing only: `src/app/(auth)/sign-in/[[...sign-in]]/page.tsx` (untouched) |
-| `pnpm lint`                       | Pass (0 errors; pre-existing `.agents` template warning only)                          |
-| `pnpm typecheck`                  | Pass                                                                                   |
-| `pnpm test`                       | Pass (165 tests)                                                                       |
-| `pnpm build`                      | Pass                                                                                   |
-| `pnpm templates:audit`            | Pass                                                                                   |
-| `pnpm docx:audit` / `docx:smoke`  | Pass                                                                                   |
-| `pnpm xlsx:prepare` / audit/smoke | Pass (deterministic runtime SHA `a08195c6…eba6`)                                       |
-| `pnpm templates:upload:xlsx`      | Pass — local DB activation; Storage skipped without service role                       |
-| `pnpm auth/db/reports/presets`    | Pass (`auth:check`, `db:check`, `db:smoke`, `reports:smoke`, `presets:smoke`)          |
-| `pnpm test:e2e`                   | Skipped — Clerk `E2E_USER_*` not configured for an onboarded test account              |
-| Visual LibreOffice (DOCX + XLSX)  | Blocked/pending — `soffice` not installed on this machine                              |
-| Live Supabase Storage upload      | Pending — service-role credentials unavailable                                         |
+- [x] Semantic Accomplishment/DTR previews and generation review panel
+- [x] Multi-format generation (DOCX, XLSX, ZIP) with persisted `report_exports`
+- [x] ZIP bundle_manifest provenance (no arbitrary ZIP template version)
+- [x] Private `generated-reports` Storage paths + protected downloads + explicit delete
+- [x] Current/outdated derivation, invalidation on mutations, deterministic reuse
+- [x] Export history UI and dashboard recent files
+- [x] Docs: `docs/PHASE8_EXPORT_HISTORY.md`
+
+## Quality gates (Phase 8)
+
+| Check                               | Result                                                                                                                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm format:check`                 | Pass                                                                                                                                |
+| `pnpm lint`                         | Pass (0 errors; pre-existing `.agents` Clerk template warning only)                                                                 |
+| `pnpm typecheck`                    | Pass                                                                                                                                |
+| `pnpm test`                         | Unit/mocked: 178 passed. Live Postgres suites: blocked — `localhost:5432` `ECONNREFUSED` (`postgresql-x64-18` Stopped). Not a pass. |
+| `pnpm build`                        | Pass                                                                                                                                |
+| `pnpm templates:audit`              | Pass                                                                                                                                |
+| `pnpm docx:audit` / `docx:smoke`    | Pass                                                                                                                                |
+| `pnpm xlsx:audit` / `xlsx:smoke`    | Pass (deterministic runtime SHA `a08195c6…eba6`)                                                                                    |
+| `pnpm auth:check`                   | Pass (static)                                                                                                                       |
+| `pnpm db:check`                     | Pass (static; asserts `bundle_manifest`)                                                                                            |
+| `pnpm db:migrate`                   | Blocked — local Postgres not running. Additive `0003_mighty_chamber` is generated, not applied.                                     |
+| `pnpm db:smoke` / reports / presets | Blocked — same Postgres outage. Not re-run as live passes.                                                                          |
+| `pnpm exports:smoke`                | Pass (ZIP/revision/path unit checks; no live Storage)                                                                               |
+| `pnpm storage:check:generated`      | Skipped — `SUPABASE_SERVICE_ROLE_KEY` unavailable                                                                                   |
+| `pnpm exports:storage:smoke`        | Skipped — same                                                                                                                      |
+| `pnpm test:e2e`                     | Skipped — Clerk `E2E_USER_*` not configured (4 tests skipped, including Phase 8)                                                    |
+| Visual LibreOffice (DOCX + XLSX)    | Blocked/pending — `soffice` not installed on this machine                                                                           |
+| Live Supabase Storage upload        | Pending — service-role credentials unavailable                                                                                      |
 
 ## Schema sources
 
@@ -85,7 +100,7 @@ Last updated: 2026-08-11
 | Storage buckets (Clerk-aware notes) | `supabase/overlays/`          | Production Supabase; see overlay README |
 | Historical pre-Drizzle SQL          | `supabase/archive/`           | Reference only                          |
 
-Phase 5–7: no new migrations (`template_versions` already supports `dtr` / `xlsx`).
+Phase 8: additive migration `drizzle/0003_mighty_chamber.sql` (`bundle_manifest`, nullable ZIP `template_version_id`, current-per-format unique index).
 
 ## Environment variables
 
@@ -98,18 +113,20 @@ Never commit `.env.local` or real passwords/keys.
 ## Manual setup still required
 
 1. Confirm Clerk publishable + secret keys and redirect URLs.
-2. Production: Drizzle migrate with `DIRECT_URL`; do **not** apply Auth FK / `auth.uid()` RLS overlays as-is under Clerk.
-3. Optional: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for `pnpm templates:upload:docx` / `templates:upload:xlsx`.
-4. Optional: `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded Clerk test user only).
+2. Start local Postgres (`postgresql-x64-18` was Stopped; `localhost:5432` refused connections) and apply `pnpm db:migrate` for `0003_mighty_chamber`.
+3. Production: Drizzle migrate with `DIRECT_URL`; do **not** apply Auth FK / `auth.uid()` RLS overlays as-is under Clerk.
+4. Optional: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for template upload and `pnpm storage:setup:generated`.
+5. Optional: `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded Clerk test user only).
 
 ## Assumptions
 
 1. Clerk is the canonical identity provider; Supabase provides Postgres + private Storage.
 2. DAL ownership scoping is mandatory; `auth.uid()` policies are not the primary boundary.
-3. Phase 6/7 return DOCX/XLSX buffers without persisting generated-report Storage history (Phase 8).
+3. Phase 8 persists generated files to private `generated-reports` Storage and `report_exports`. Generation returns JSON metadata; downloads use the protected streaming endpoint.
 4. DTR period label uses audited `AUGUST 1-15`; DOCX keeps `August 1-15, 2026`.
 5. Zero undertime leaves daily hour/minute cells blank while preserving `F45`/`N45`.
+6. ZIP provenance uses `bundle_manifest`; `template_version_id` is null for ZIP rows.
 
 ## Next work
 
-1. Phase 8: preview, generation review, ZIP package, generated-report Storage, `report_exports` history — not started.
+1. Phase 9: marketing and motion polish — not started.

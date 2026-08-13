@@ -151,14 +151,15 @@ Plus targeted Playwright when a critical user flow changes.
 
 ## Phase 8 — Preview, generation review, and history
 
-**Spec:** §4.7–4.8, §10.1–10.2, §10.6–10.7
+**Spec:** §4.7–4.8, §10.1–10.2, §10.6–10.7  
+**Status:** Complete — see `docs/PHASE8_EXPORT_HISTORY.md`
 
 - Semantic previews (not pixel-Office claims)
 - Generate review panel with warning acknowledgement
-- ZIP package, Storage upload, signed/protected download
-- Current vs outdated export states
+- ZIP package, private Storage upload, protected download
+- Current vs outdated export states; ZIP `bundle_manifest` provenance
 
-**Exit:** Partial failures accurate; cross-user download blocked.
+**Exit:** Partial failures accurate; cross-user download blocked. Live Storage / Clerk E2E / LibreOffice remain pending when credentials/tools are absent.
 
 ---
 

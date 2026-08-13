@@ -52,6 +52,13 @@ export function hasDatabaseUrl(): boolean {
   return databaseUrlSchema.safeParse(process.env.DATABASE_URL).success;
 }
 
+/** True when trusted server Storage credentials are present (never a user-auth proof). */
+export function hasSupabaseStorageConfig(): boolean {
+  return Boolean(
+    process.env.SUPABASE_URL?.trim() && process.env.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+  );
+}
+
 export function hasDirectUrl(): boolean {
   return databaseUrlSchema.safeParse(process.env.DIRECT_URL).success;
 }

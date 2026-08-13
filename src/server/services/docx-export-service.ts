@@ -5,6 +5,7 @@ import PizZip from "pizzip";
 import { createHash } from "node:crypto";
 import { ExportError } from "@/lib/exports/errors";
 import { buildAccomplishmentFilename } from "@/lib/exports/filename";
+import { computeDocxSourceRevision } from "@/lib/exports/source-revision";
 import {
   ReportMappingService,
   type FlatTokenRecord,
@@ -67,7 +68,7 @@ export async function generateAccomplishmentDocx(
       allowLocalFallback: options?.allowLocalTemplateFallback ?? true,
     });
 
-    const sourceRevision = ReportMappingService.sourceRevision(payload, [loaded.sha256]);
+    const sourceRevision = computeDocxSourceRevision(payload, loaded.sha256);
 
     const buffer = renderDocx(loaded.buffer, tokens);
     const issues = validateGeneratedAccomplishmentDocx(buffer, tokens, {

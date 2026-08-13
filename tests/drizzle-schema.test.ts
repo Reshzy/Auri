@@ -70,6 +70,12 @@ describe("Drizzle migrations", () => {
     expect(schema.reportPeriods.snapshotsRefreshedAt.name).toBe("snapshots_refreshed_at");
   });
 
+  it("adds ZIP bundle_manifest and nullable template_version_id", () => {
+    expect(sql).toContain("bundle_manifest");
+    expect(sql).toContain("report_exports_template_provenance_check");
+    expect(schema.reportExports.bundleManifest.name).toBe("bundle_manifest");
+  });
+
   it("adds clerk_user_id for Clerk identity mapping", () => {
     expect(sql).toContain("clerk_user_id");
   });

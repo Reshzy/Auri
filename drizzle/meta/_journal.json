@@ -22,6 +22,13 @@
       "when": 1786435217632,
       "tag": "0002_groovy_starhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786602144858,
+      "tag": "0003_mighty_chamber",
+      "breakpoints": true
     }
   ]
 }

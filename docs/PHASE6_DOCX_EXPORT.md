@@ -67,7 +67,7 @@ Content-Type: application/json
 - Clerk session → internal owner UUID
 - Rejects `zip` / mixed formats in Phase 6/7; Phase 7 adds exclusive `xlsx`
 - Fresh `validateReport`; blocking errors stop generation; warnings require acknowledgement
-- Returns binary DOCX with MIME `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+- Phase 6/7 returned a binary attachment. **Phase 8 returns JSON export metadata** and protected download URLs (`Cache-Control: private, no-store`)
 - Filename: `Auri_{Sanitized-Employee-Name}_{YYYY-MM-DD}_to_{YYYY-MM-DD}_Accomplishment.docx`
 - `Cache-Control: private, no-store`
 - **Does not** persist generated files or insert incomplete `report_exports` rows (Phase 8)
@@ -86,7 +86,7 @@ Scripts and services avoid logging document contents or personal report text. On
 
 ## Phase 8 boundary
 
-Generated-report Storage uploads, `report_exports` history, protected downloads, current/outdated states, ZIP packaging, and export UI remain Phase 8. Mapper/generator results are shaped so persistence can be added later without rewriting the token pipeline.
+Phase 8 adds generated-report Storage, `report_exports` history, protected downloads, current/outdated states, ZIP packaging, and export UI. See `docs/PHASE8_EXPORT_HISTORY.md`. Mapper/generator results are persisted after structural validation and private upload.
 
 ## Commands
 

@@ -11,6 +11,7 @@ import {
   type ReportPeriodRow,
 } from "@/db/dal/reports";
 import { dailyEntries, reportPeriods } from "@/db/schema";
+import { invalidateOwnReportExportsOn } from "@/db/dal/exports";
 import { resetEntryFromSchedule } from "@/lib/reports/recalculate";
 import { recalculateDailyEntry } from "@/lib/reports/recalculate";
 import { AppError } from "@/lib/reports/errors";
@@ -65,46 +66,50 @@ export async function updateOwnDailyEntry(
 
   const now = new Date().toISOString();
   const db = getDb();
-  const updated = await db
-    .update(dailyEntries)
-    .set({
-      classification: recalculated.classification,
-      classificationLabel: recalculated.classificationLabel,
-      amArrival: recalculated.amArrival,
-      amDeparture: recalculated.amDeparture,
-      pmArrival: recalculated.pmArrival,
-      pmDeparture: recalculated.pmDeparture,
-      workedMinutes: recalculated.workedMinutes,
-      calculatedUndertimeMinutes: recalculated.calculatedUndertimeMinutes,
-      undertimeOverrideMinutes: recalculated.undertimeOverrideMinutes,
-      accomplishments: recalculated.accomplishments,
-      remarks: recalculated.remarks,
-      isComplete: recalculated.isComplete,
-      updatedAt: now,
-    })
-    .where(
-      and(
-        eq(dailyEntries.id, entryId),
-        eq(dailyEntries.reportPeriodId, reportId),
-        eq(dailyEntries.userId, userId),
-      ),
-    )
-    .returning();
+  return db.transaction(async (tx) => {
+    const updated = await tx
+      .update(dailyEntries)
+      .set({
+        classification: recalculated.classification,
+        classificationLabel: recalculated.classificationLabel,
+        amArrival: recalculated.amArrival,
+        amDeparture: recalculated.amDeparture,
+        pmArrival: recalculated.pmArrival,
+        pmDeparture: recalculated.pmDeparture,
+        workedMinutes: recalculated.workedMinutes,
+        calculatedUndertimeMinutes: recalculated.calculatedUndertimeMinutes,
+        undertimeOverrideMinutes: recalculated.undertimeOverrideMinutes,
+        accomplishments: recalculated.accomplishments,
+        remarks: recalculated.remarks,
+        isComplete: recalculated.isComplete,
+        updatedAt: now,
+      })
+      .where(
+        and(
+          eq(dailyEntries.id, entryId),
+          eq(dailyEntries.reportPeriodId, reportId),
+          eq(dailyEntries.userId, userId),
+        ),
+      )
+      .returning();
 
-  if (!updated[0]) throw new AppError("Daily entry not found.", "NOT_FOUND");
+    if (!updated[0]) throw new AppError("Daily entry not found.", "NOT_FOUND");
 
-  await db
-    .update(reportPeriods)
-    .set({ updatedAt: now })
-    .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)));
+    await tx
+      .update(reportPeriods)
+      .set({ updatedAt: now })
+      .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)));
 
-  const reportRows = await db
-    .select()
-    .from(reportPeriods)
-    .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)))
-    .limit(1);
+    await invalidateOwnReportExportsOn(tx, userId, reportId);
 
-  return { report: reportRows[0]!, entry: updated[0], savedAt: now };
+    const reportRows = await tx
+      .select()
+      .from(reportPeriods)
+      .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)))
+      .limit(1);
+
+    return { report: reportRows[0]!, entry: updated[0], savedAt: now };
+  });
 }
 
 export async function clearOwnDailyEntry(

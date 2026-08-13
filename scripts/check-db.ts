@@ -66,8 +66,8 @@ function main() {
   );
 
   assert(
-    drizzleSql.includes("snapshots_refreshed_at"),
-    "Drizzle migration missing report_periods.snapshots_refreshed_at",
+    drizzleSql.includes("bundle_manifest"),
+    "Drizzle migration missing report_exports.bundle_manifest for ZIP provenance",
   );
 
   const overlays = readDirSql(path.join(root, "supabase", "overlays"));

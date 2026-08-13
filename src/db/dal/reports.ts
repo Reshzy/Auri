@@ -10,7 +10,8 @@ import {
   type ScheduleSnapshot,
   type SignatorySnapshot,
 } from "@/db/dal/snapshots";
-import { dailyEntries, reportExports, reportPeriods } from "@/db/schema";
+import { dailyEntries, reportPeriods } from "@/db/schema";
+import { invalidateOwnReportExportsOn } from "@/db/dal/exports";
 import { classifyDateFromSchedule } from "@/lib/reports/classify";
 import { AppError } from "@/lib/reports/errors";
 import { datesForPreset, periodRangeForPreset } from "@/lib/dates/period";
@@ -254,59 +255,53 @@ export async function refreshOwnReportSnapshots(
 
   const now = new Date().toISOString();
   const db = getDb();
-  const updated = await db
-    .update(reportPeriods)
-    .set({
-      profileSnapshot: snapshots.profileSnapshot,
-      scheduleSnapshot: snapshots.scheduleSnapshot,
-      signatorySnapshot: snapshots.signatorySnapshot,
-      snapshotsRefreshedAt: now,
-      updatedAt: now,
-    })
-    .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)))
-    .returning();
+  return db.transaction(async (tx) => {
+    const updated = await tx
+      .update(reportPeriods)
+      .set({
+        profileSnapshot: snapshots.profileSnapshot,
+        scheduleSnapshot: snapshots.scheduleSnapshot,
+        signatorySnapshot: snapshots.signatorySnapshot,
+        snapshotsRefreshedAt: now,
+        updatedAt: now,
+      })
+      .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)))
+      .returning();
 
-  if (!updated[0]) throw new AppError("Report not found.", "NOT_FOUND");
-  return updated[0];
+    if (!updated[0]) throw new AppError("Report not found.", "NOT_FOUND");
+    await invalidateOwnReportExportsOn(tx, userId, reportId);
+    return updated[0];
+  });
 }
 
 export async function updateOwnReportStatus(
   userId: string,
   reportId: string,
   status: "draft" | "ready" | "finalized" | "archived",
-  options?: { finalizedAt?: string | null },
+  options?: { finalizedAt?: string | null; invalidateExports?: boolean },
 ): Promise<ReportPeriodRow> {
   assertUserId(userId);
   const now = new Date().toISOString();
   const db = getDb();
-  const updated = await db
-    .update(reportPeriods)
-    .set({
-      status,
-      finalizedAt: options?.finalizedAt === undefined ? undefined : options.finalizedAt,
-      updatedAt: now,
-    })
-    .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)))
-    .returning();
-  if (!updated[0]) throw new AppError("Report not found.", "NOT_FOUND");
-  return updated[0];
+  return db.transaction(async (tx) => {
+    const updated = await tx
+      .update(reportPeriods)
+      .set({
+        status,
+        finalizedAt: options?.finalizedAt === undefined ? undefined : options.finalizedAt,
+        updatedAt: now,
+      })
+      .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)))
+      .returning();
+    if (!updated[0]) throw new AppError("Report not found.", "NOT_FOUND");
+    if (options?.invalidateExports) {
+      await invalidateOwnReportExportsOn(tx, userId, reportId);
+    }
+    return updated[0];
+  });
 }
 
-export async function invalidateOwnReportExports(
-  userId: string,
-  reportId: string,
-): Promise<number> {
-  assertUserId(userId);
-  const db = getDb();
-  const updated = await db
-    .update(reportExports)
-    .set({ isCurrent: false })
-    .where(
-      and(eq(reportExports.reportPeriodId, reportId), eq(reportExports.userId, userId)),
-    )
-    .returning({ id: reportExports.id });
-  return updated.length;
-}
+export { invalidateOwnReportExports } from "@/db/dal/exports";
 
 export function getScheduleRulesFromReport(report: ReportPeriodRow): WeekdayRules {
   return parseScheduleSnapshot(report.scheduleSnapshot).weekdayRules;
