@@ -4,136 +4,95 @@ Last updated: 2026-08-13
 
 ## Current phase
 
-**Phase 9 complete (marketing, motion, product states, metadata).** Phase 10 has not started.
+**Phase 10 implemented in-repo** (hardening, CI, production-readiness documentation). Remote production, live Storage, authenticated E2E, Vercel deploy, and Office visual gates remain pending where credentials or tools are absent.
 
 ## Completed
 
-### Phase 0 — Repository and template audit
+### Phase 0–9
 
-- [x] Source templates, audit docs, manifests, `pnpm templates:audit`
+Unchanged. See earlier status entries.
 
-### Phase 1 — Next.js and design foundation
+### Phase 10 — Hardening, CI, and deployment
 
-- [x] App Router shells, tokens, tooling, motion, route placeholders
+- [x] GitHub Actions CI (clean-clone quality, public Playwright, gated authenticated E2E, gated Storage smoke)
+- [x] Disposable Postgres migrate-from-zero + `0003_mighty_chamber` incremental replay **in CI** (local Docker absent; local schema check passed)
+- [x] Clerk-safe overlays (`supabase/overlays/clerk/`)
+- [x] Security headers, `pnpm security:check`, `pnpm audit:deps`
+- [x] Docs: `PHASE10_HARDENING_DEPLOYMENT.md`, `DEPLOYMENT.md`, `OPERATIONS.md`, `LAUNCH_CHECKLIST.md`, `TESTING.md`, `ENVIRONMENT.md`
+- [ ] GitHub Actions green on this commit (requires push)
+- [ ] Production Supabase migrate / buckets / templates
+- [ ] Production Clerk + authenticated Playwright
+- [ ] Vercel production smoke
+- [ ] Office visual / repair-warning review
 
-### Phase 2 — Clerk Auth + Drizzle data layer
+## Quality gates (Phase 10)
 
-- [x] Clerk Auth (`@clerk/nextjs`), Proxy (`clerkMiddleware`), sign-up/in/out
-- [x] Protected `/app/*` + `/onboarding` + auth-entry redirects
-- [x] Drizzle ORM + `postgres` driver; `src/db/schema` canonical for eight §8 tables
-- [x] Committed `drizzle/` migrations (portable Postgres) including `profiles.clerk_user_id`
-- [x] Supabase Storage overlays under `supabase/overlays/` (Auth FK/RLS overlays stale for Clerk)
-- [x] Server-only DAL: `requireAuthenticatedUser` (Clerk → profile UUID), ownership guards
-- [x] Local `db:inspect` → `db:migrate` → `db:check` → `db:smoke` verified
-
-### Phase 3 — Onboarding and settings
-
-- [x] Resumable `/onboarding` wizard (welcome → profile → schedule → signatories → templates → ready)
-- [x] Settings: `/app/settings/profile`, `schedule`, `signatories`, `templates`
-- [x] Zod schemas + server-only DAL + auth gates + snapshot builders
-
-### Phase 4 — Report periods and daily editor
-
-- [x] Report CRUD, daily editor, validation, finalize/reopen, `pnpm reports:smoke`
-- [x] Docs: `docs/PHASE4_REPORTS.md`
-
-### Phase 5 — Accomplishment presets
-
-- [x] Presets CRUD/apply/seed, `pnpm presets:smoke`
-- [x] Docs: `docs/PHASE5_PRESETS.md`
-
-### Phase 6 — DOCX runtime template and export
-
-- [x] Runtime DOCX + `DocxExportService` + Clerk-protected DOCX export
-- [x] Docs: `docs/PHASE6_DOCX_EXPORT.md`
-- [x] Visual LibreOffice gate: blocked/pending when `soffice` unavailable
-
-### Phase 7 — XLSX DTR export
-
-- [x] Scrubbed runtime `dtr-csc-form-48-v1.xlsx` + manifest (`pnpm xlsx:prepare` / `xlsx:audit`)
-- [x] Source SHA-256 immutability gate; OOXML batch patcher (`jszip` + `@xmldom/xmldom`)
-- [x] Central cell-map constants; dual-copy writer; DTR formatters; structural validators
-- [x] `XlsxExportService` + `TemplateService.loadDtrTemplateBytes`
-- [x] Trusted `pnpm templates:upload:xlsx` (Storage when configured; local DB activation fallback)
-- [x] Export route supports exclusive `docx` **or** `xlsx` (Phase 8 extends to mixed + zip persistence)
-- [x] Unit + integration fixtures; docs: `docs/PHASE7_XLSX_EXPORT.md`
-- [x] Visual LibreOffice gate: blocked/pending when `soffice` unavailable
-
-### Phase 8 — Preview, generation review, and history
-
-- [x] Semantic Accomplishment/DTR previews and generation review panel
-- [x] Multi-format generation (DOCX, XLSX, ZIP) with persisted `report_exports`
-- [x] ZIP bundle_manifest provenance (no arbitrary ZIP template version)
-- [x] Private `generated-reports` Storage paths + protected downloads + explicit delete
-- [x] Current/outdated derivation, invalidation on mutations, deterministic reuse
-- [x] Export history UI and dashboard recent files
-- [x] Docs: `docs/PHASE8_EXPORT_HISTORY.md`
-
-### Phase 9 — Marketing and motion polish
-
-- [x] Complete public landing page (nav, hero, editor visual, flow, outputs, presets, trust, CTA, footer)
-- [x] Cohesive light visual polish across auth, onboarding, and app shells
-- [x] Selective GSAP with reduced-motion path; no animation-hidden content
-- [x] Shared empty/alert/skeleton/unavailable states and route error/loading/404
-- [x] Metadata, favicon, icons, manifest, Open Graph image
-- [x] Dark mode deferred after light-theme audit
-- [x] Docs: `docs/PHASE9_MARKETING_MOTION.md`, `docs/DESIGN.md`, `docs/ACCESSIBILITY.md`
-
-## Quality gates (Phase 9)
-
-| Check                            | Result                                                                                                  |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `pnpm format:check`              | Pass                                                                                                    |
-| `pnpm lint`                      | Pass (0 errors; pre-existing `.agents` Clerk template warning only)                                     |
-| `pnpm typecheck`                 | Pass                                                                                                    |
-| `pnpm test`                      | Pass — 202 tests (37 files). Includes Phase 9 brand/motion/state tests and live Phase 8 Postgres tests. |
-| `pnpm build`                     | Pass                                                                                                    |
-| `pnpm templates:audit`           | Pass                                                                                                    |
-| `pnpm docx:audit`                | Pass                                                                                                    |
-| `pnpm xlsx:audit`                | Pass (deterministic runtime SHA `a08195c6…eba6`)                                                        |
-| `pnpm db:check`                  | Pass (static; asserts `bundle_manifest`)                                                                |
-| `pnpm db:smoke`                  | Pass                                                                                                    |
-| `pnpm reports:smoke`             | Pass                                                                                                    |
-| `pnpm presets:smoke`             | Pass                                                                                                    |
-| `pnpm exports:smoke`             | Pass (ZIP/revision/path unit checks; no live Storage)                                                   |
-| `pnpm test:e2e`                  | Pass — 7 public Phase 9 tests. 4 Clerk-authenticated tests skipped (`E2E_USER_*` not configured).       |
-| Visual LibreOffice (DOCX + XLSX) | Blocked/pending — `soffice` not installed on this machine                                               |
-| Live Supabase Storage upload     | Pending — service-role credentials unavailable                                                          |
+| Check                                 | Result                                                                                                                        |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm install --frozen-lockfile`      | Passed                                                                                                                        |
+| `pnpm format:check`                   | Passed                                                                                                                        |
+| `pnpm lint`                           | Passed (0 errors; pre-existing `.agents` Clerk template warning only)                                                         |
+| `pnpm typecheck`                      | Passed                                                                                                                        |
+| `pnpm test`                           | Passed — 212 tests (42 files), including local Postgres integration                                                           |
+| `pnpm build`                          | Passed                                                                                                                        |
+| `pnpm templates:audit`                | Passed                                                                                                                        |
+| `pnpm docx:audit`                     | Passed                                                                                                                        |
+| `pnpm xlsx:audit`                     | Passed (runtime SHA `a08195c6…eba6`)                                                                                          |
+| `pnpm docx:smoke`                     | Passed                                                                                                                        |
+| `pnpm xlsx:smoke`                     | Passed                                                                                                                        |
+| `pnpm auth:check`                     | Passed                                                                                                                        |
+| `pnpm db:check`                       | Passed                                                                                                                        |
+| `pnpm db:migrate:verify`              | Passed (schema check against local `Auri`). Incremental 0003 replay not run locally (no disposable second database / Docker). |
+| `pnpm db:smoke`                       | Passed                                                                                                                        |
+| `pnpm reports:smoke`                  | Passed                                                                                                                        |
+| `pnpm presets:smoke`                  | Passed                                                                                                                        |
+| `pnpm exports:smoke`                  | Passed                                                                                                                        |
+| `pnpm security:check`                 | Passed                                                                                                                        |
+| `pnpm audit:deps`                     | Passed — no known production vulnerabilities at high level                                                                    |
+| `pnpm test:e2e`                       | Passed — 10 public tests. 5 Clerk-authenticated tests skipped (`E2E_USER_*` not configured).                                  |
+| `pnpm storage:check`                  | Pending manual verification — skipped; service-role credentials absent                                                        |
+| Visual LibreOffice / Microsoft Office | Pending manual verification — binaries absent                                                                                 |
+| Live two-user Storage isolation       | Pending manual verification                                                                                                   |
+| Production migrate / Vercel deploy    | Pending manual verification — targets not configured                                                                          |
+| GitHub Actions clean-clone            | Pending manual verification — workflow not executed on GitHub in this session                                                 |
 
 ## Schema sources
 
-| Layer                               | Location                      | Environments                            |
-| ----------------------------------- | ----------------------------- | --------------------------------------- |
-| Portable app schema                 | `src/db/schema/` → `drizzle/` | Local Postgres + Supabase Postgres      |
-| Storage buckets (Clerk-aware notes) | `supabase/overlays/`          | Production Supabase; see overlay README |
-| Historical pre-Drizzle SQL          | `supabase/archive/`           | Reference only                          |
-
-Phase 8: additive migration `drizzle/0003_mighty_chamber.sql` (`bundle_manifest`, nullable ZIP `template_version_id`, current-per-format unique index).
+| Layer                            | Location                      | Environments                                      |
+| -------------------------------- | ----------------------------- | ------------------------------------------------- |
+| Portable app schema              | `src/db/schema/` → `drizzle/` | Local Postgres + Supabase Postgres                |
+| Clerk-safe RLS / private buckets | `supabase/overlays/clerk/`    | Production Supabase (apply after Drizzle migrate) |
+| Historical Auth overlays         | `supabase/overlays/001`–`004` | Do not apply as-is under Clerk                    |
+| Historical pre-Drizzle SQL       | `supabase/archive/`           | Reference only                                    |
 
 ## Environment variables
 
-See `.env.example` and `docs/DATABASE.md`.
+See `.env.example` and `docs/ENVIRONMENT.md`.
 
-Optional for Playwright live Auth: `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`.
+Optional for Playwright live Auth: `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`, `E2E_USER_B_*`.
 
 Never commit `.env.local` or real passwords/keys.
 
 ## Manual setup still required
 
-1. Confirm Clerk publishable + secret keys and redirect URLs.
-2. Production: Drizzle migrate with `DIRECT_URL`; do **not** apply Auth FK / `auth.uid()` RLS overlays as-is under Clerk.
-3. Optional: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for template upload and `pnpm storage:setup:generated`.
-4. Optional: `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for Playwright (onboarded Clerk test user only).
+1. Confirm production Clerk instance, origins, and redirect URLs.
+2. Production: Drizzle migrate with `DIRECT_URL`; apply `supabase/overlays/clerk/` only.
+3. `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` for bucket setup and template upload.
+4. Vercel project with split preview/production env; Node 24.x.
+5. Disposable onboarded Clerk E2E users.
+6. Microsoft Word/Excel (or LibreOffice plus a later Word/Excel confirmation) visual review.
 
 ## Assumptions
 
 1. Clerk is the canonical identity provider; Supabase provides Postgres + private Storage.
 2. DAL ownership scoping is mandatory; `auth.uid()` policies are not the primary boundary.
-3. Phase 8 persists generated files to private `generated-reports` Storage and `report_exports`. Generation returns JSON metadata; downloads use the protected streaming endpoint.
-4. DTR period label uses audited `AUGUST 1-15`; DOCX keeps `August 1-15, 2026`.
-5. Zero undertime leaves daily hour/minute cells blank while preserving `F45`/`N45`.
-6. Dark mode remains deferred until a complete semantic dark token set exists; previews stay paper-white.
+3. CI dummy Clerk keys are placeholders for `next build` only, not a production instance.
+4. Dark mode and all §21 post-v1 features remain deferred.
+
+## Launch classification
+
+**READY AFTER LISTED MANUAL GATES**
 
 ## Next work
 
-1. Phase 10: hardening, CI, and deployment — not started.
+Complete the manual gates in `docs/LAUNCH_CHECKLIST.md`. Do not start post-v1 features.

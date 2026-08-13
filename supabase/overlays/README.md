@@ -13,13 +13,15 @@ Auri authentication is **Clerk**, not Supabase Auth.
 | `003_rls_policies.sql`           | **Stale** — `auth.uid()` does not equal Auri owner UUIDs unless Clerk JWT claims are intentionally configured and policies rewritten. App authorization is explicit DAL scoping.                                                                                                                                                                            |
 | `004_storage_buckets.sql`        | **Templates bucket** is safe (private; service-role write). **generated-reports** `auth.uid()` path policies are Clerk-incompatible. Phase 8 downloads use a Clerk-authenticated protected streaming endpoint with service-role Storage access in trusted server code only — never treat service-role as user authorization. Do not make the bucket public. |
 
+**Apply `supabase/overlays/clerk/` instead.** Those files enable RLS without `auth.uid()` policies, keep both buckets private, and drop leftover Auth policies.
+
 Never treat service-role Storage access as user authorization. Never expose private buckets publicly.
 
 ## Apply order (production only — after reviewing Clerk notice)
 
 1. Apply portable Drizzle migrations (`pnpm db:migrate` with production `DIRECT_URL`).
-2. Create Storage buckets (adapt `004` as needed; rewrite generated-report policies for Clerk/internal UUID path prefixes before enabling user downloads).
-3. Do not auto-apply Auth FK / trigger / `auth.uid()` RLS overlays against a Clerk-backed deployment.
+2. Apply `supabase/overlays/clerk/001`–`003` in order (see `clerk/README.md`).
+3. Do not auto-apply Auth FK / trigger / `auth.uid()` RLS overlays (`001`–`004`) against a Clerk-backed deployment.
 
 ## Local development
 

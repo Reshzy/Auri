@@ -1,0 +1,18 @@
+{
+  "id": "second-half-31-days",
+  "period": {
+    "kind": "SECOND_HALF",
+    "year": 2026,
+    "month": 8,
+    "startDate": "2026-08-16",
+    "endDate": "2026-08-31",
+    "expectedEntryCount": 16
+  },
+  "employee": {
+    "name": "Sample Employee",
+    "title": "Contract of Service"
+  },
+  "notes": [
+    "Use for 16-row accomplishment report and 31-day second-half DTR visual review."
+  ]
+}

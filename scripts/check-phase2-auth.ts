@@ -79,12 +79,16 @@ function main() {
     "Missing Clerk sign-up page",
   );
 
-  // Overlays remain for legacy hosted Postgres; they still assume Supabase Auth JWTs.
+  // Historical overlays remain as reference; Clerk-safe overlays live in overlays/clerk/.
   if (existsSync(overlaysDir)) {
     console.log(
-      "Note: supabase/overlays still present (auth.uid RLS) — stale for Clerk until rewritten.",
+      "Note: supabase/overlays 001–004 assume auth.uid() and must not be applied as-is. Use supabase/overlays/clerk/.",
     );
   }
+  assert(
+    existsSync(path.join(overlaysDir, "clerk", "001_rls_enable_deny_default.sql")),
+    "Missing Clerk-safe RLS overlay",
+  );
 
   const clerkConfigured = hasClerkConfig();
 

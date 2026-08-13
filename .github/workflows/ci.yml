@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NEXT_PUBLIC_SITE_URL: http://localhost:3000
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder_not_a_real_key
+  CLERK_SECRET_KEY: sk_test_ci_placeholder_not_a_real_key
+  AURI_TEMPLATE_BUCKET: templates
+  AURI_GENERATED_BUCKET: generated-reports
+  AURI_DEFAULT_TIMEZONE: Asia/Manila
+
+jobs:
+  quality:
+    name: Clean-clone quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/auri_ci
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/auri_ci
+      AURI_MIGRATE_TARGET: ci
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: auri_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d auri_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Format
+        run: pnpm format:check
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Apply migrations from zero
+        run: pnpm db:migrate
+      - name: Verify schema and 0003 incremental migration
+        run: pnpm db:migrate:verify
+      - name: Unit and integration tests
+        run: pnpm test
+      - name: Production build
+        run: pnpm build
+      - name: Template audits
+        run: |
+          pnpm templates:audit
+          pnpm docx:audit
+          pnpm xlsx:audit
+      - name: Auth and database static checks
+        run: |
+          pnpm auth:check
+          pnpm db:check
+      - name: Security check
+        run: pnpm security:check
+      - name: Disposable database smokes
+        run: |
+          pnpm db:smoke
+          pnpm reports:smoke
+          pnpm presets:smoke
+          pnpm exports:smoke
+      - name: Dependency audit
+        run: pnpm audit:deps
+
+  playwright-public:
+    name: Public Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Public end-to-end tests
+        run: pnpm test:e2e:public
+        env:
+          CI: true
+      - name: Upload public HTML report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-public-report
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  playwright-authenticated:
+    name: Authenticated Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: ${{ github.event.pull_request.head.repo.fork != true && secrets.E2E_USER_EMAIL != '' }}
+    env:
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+      E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+      E2E_USER_B_EMAIL: ${{ secrets.E2E_USER_B_EMAIL }}
+      E2E_USER_B_PASSWORD: ${{ secrets.E2E_USER_B_PASSWORD }}
+      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.E2E_DIRECT_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Authenticated end-to-end tests
+        run: pnpm test:e2e:authenticated
+        env:
+          CI: true
+
+  storage-smoke:
+    name: Live Storage smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ github.event.pull_request.head.repo.fork != true && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      AURI_TEMPLATE_BUCKET: templates
+      AURI_GENERATED_BUCKET: generated-reports
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Private bucket check
+        run: pnpm storage:check
+      - name: Generated-reports smoke
+        run: pnpm exports:storage:smoke

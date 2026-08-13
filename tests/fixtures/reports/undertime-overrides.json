@@ -1,0 +1,39 @@
+{
+  "id": "undertime-overrides",
+  "period": {
+    "kind": "FIRST_HALF",
+    "year": 2026,
+    "month": 8,
+    "startDate": "2026-08-01",
+    "endDate": "2026-08-15",
+    "expectedEntryCount": 15
+  },
+  "employee": {
+    "name": "Sample Employee",
+    "title": "Contract of Service"
+  },
+  "days": [
+    {
+      "date": "2026-08-03",
+      "amArrival": "07:00",
+      "amDeparture": "12:00",
+      "pmArrival": "13:00",
+      "pmDeparture": "18:00",
+      "calculatedUndertimeMinutes": 0,
+      "undertimeOverrideMinutes": null
+    },
+    {
+      "date": "2026-08-04",
+      "amArrival": "08:00",
+      "amDeparture": "12:00",
+      "pmArrival": "13:00",
+      "pmDeparture": "17:00",
+      "calculatedUndertimeMinutes": 120,
+      "undertimeOverrideMinutes": 30
+    }
+  ],
+  "notes": [
+    "Manual undertime override wins in output while the calculated value remains stored.",
+    "Zero undertime leaves DTR hour/minute cells blank and preserves F45/N45 formulas."
+  ]
+}

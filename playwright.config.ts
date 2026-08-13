@@ -15,14 +15,28 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
+  timeout: 60_000,
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
-    trace: "on-first-retry",
+    screenshot: "off",
+    video: "off",
   },
   projects: [
     {
-      name: "chromium",
-      use: { browserName: "chromium" },
+      name: "public",
+      testMatch: /(?:phase9-|public-).+\.spec\.ts/,
+      use: {
+        browserName: "chromium",
+        trace: "on-first-retry",
+      },
+    },
+    {
+      name: "authenticated",
+      testMatch: /(?:phase[4-8]-|authenticated-).+\.spec\.ts/,
+      use: {
+        browserName: "chromium",
+        trace: "off",
+      },
     },
   ],
   metadata: {
@@ -33,7 +47,7 @@ export default defineConfig({
     : {
         command: "pnpm exec next dev --port 3000",
         url: "http://localhost:3000",
-        reuseExistingServer: true,
+        reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },
 });

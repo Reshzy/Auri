@@ -1,0 +1,21 @@
+{
+  "id": "long-content",
+  "period": {
+    "kind": "FIRST_HALF",
+    "year": 2026,
+    "month": 3,
+    "startDate": "2026-03-01",
+    "endDate": "2026-03-15",
+    "expectedEntryCount": 15
+  },
+  "employee": {
+    "name": "Maria Magdalena Santos-Reyes y Villanueva",
+    "title": "Administrative Assistant III"
+  },
+  "accomplishments": [
+    "Prepared, reviewed, and routed a long package of supporting documents for the reporting period, including attendance notes, transmittal letters, and follow-up correspondence that must remain fully visible in the generated files."
+  ],
+  "notes": [
+    "Long names and accomplishment text must not clip certification or signatories."
+  ]
+}

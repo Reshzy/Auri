@@ -18,6 +18,14 @@ describe("server-only database boundary", () => {
       "src/db/dal/daily-entries.ts",
       "src/server/services/report-period-service.ts",
       "src/server/services/daily-entry-service.ts",
+      "src/db/dal/exports.ts",
+      "src/server/services/export-orchestration-service.ts",
+      "src/server/services/export-download-service.ts",
+      "src/server/services/export-persistence-service.ts",
+      "src/server/services/docx-export-service.ts",
+      "src/server/services/xlsx-export-service.ts",
+      "src/server/services/zip-export-service.ts",
+      "src/server/storage/generated-reports-storage.ts",
     ]) {
       const source = readFileSync(path.resolve(__dirname, "..", relative), "utf8");
       expect(source).toMatch(/import ["']server-only["']/);

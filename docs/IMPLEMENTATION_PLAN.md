@@ -179,14 +179,15 @@ Plus targeted Playwright when a critical user flow changes.
 
 ## Phase 10 — Hardening, CI, and deployment
 
-**Spec:** §13, §17–§20
+**Spec:** §13, §17–§20  
+**Status:** Implemented in-repo — remote production/Office/authenticated E2E gates remain manual. See `docs/PHASE10_HARDENING_DEPLOYMENT.md`.
 
-- Full unit/integration/E2E suite
-- GitHub Actions CI
-- Production Supabase + Vercel config/docs
-- Launch checklist and smoke test
+- GitHub Actions CI (clean clone, disposable Postgres, public Playwright; authenticated/Storage jobs gated)
+- Clerk-safe RLS/Storage overlays; migration verify + rollback notes
+- Security headers, secret scan, dependency audit
+- Deployment, operations, environment, testing, and launch-checklist docs
 
-**Exit:** Clean-clone CI green; two-account RLS verified; Office open/print review passed.
+**Exit:** Clean-clone CI green on GitHub; two-account live isolation; Office open/print review — still pending where tools/credentials are absent.
 
 ---
 

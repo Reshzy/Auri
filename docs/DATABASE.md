@@ -52,6 +52,7 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 pnpm db:inspect    # non-destructive schema listing
 pnpm db:generate   # after editing src/db/schema
 pnpm db:migrate    # apply committed drizzle/ migrations
+pnpm db:migrate:verify # schema check; CI also replays 0003 on a disposable DB
 pnpm db:check      # static consistency checks
 pnpm db:studio     # Drizzle Studio
 pnpm db:smoke      # insert/select/delete disposable profile row
@@ -69,10 +70,14 @@ Do **not** use destructive reset commands. Do **not** run `drizzle-kit push` aga
 
 ## Production deployment (schema + overlays)
 
-1. Set production `DATABASE_URL` (pooler) and `DIRECT_URL` (direct/session).
-2. Apply Drizzle migrations with an explicit production step: `pnpm db:migrate` using production `DIRECT_URL`.
-3. Apply Storage bucket overlay carefully (`supabase/overlays/004_storage_buckets.sql`). Do **not** apply `001`–`003` as-is — they assume Supabase Auth UUID identity (`auth.users` FK, `auth.uid()` RLS) and conflict with Clerk + internal profile UUIDs.
-4. Confirm Clerk redirect URLs for the Vercel site.
+1. Identify the exact Supabase project. Set `AURI_MIGRATE_TARGET=production` and `AURI_ALLOW_PRODUCTION_MIGRATE=1`.
+2. Set production `DATABASE_URL` (pooler) and `DIRECT_URL` (direct/session).
+3. Backup, then apply Drizzle migrations: `pnpm db:migrate`. Verify with `pnpm db:migrate:verify` (schema check only on production).
+4. Apply **Clerk-safe** overlays `supabase/overlays/clerk/001`–`003`. Do **not** apply `001`–`004` Auth FK / `auth.uid()` overlays as-is.
+5. `pnpm storage:setup` then upload runtime templates.
+6. Confirm Clerk redirect URLs for the Vercel site.
+
+See `docs/DEPLOYMENT.md` and `docs/OPERATIONS.md`.
 
 ## Profile provisioning
 

@@ -2,6 +2,9 @@
   "name": "auri",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,8 +14,12 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:unit": "vitest run --exclude tests/integration/**",
+    "test:integration": "vitest run tests/integration",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:public": "playwright test --project=public",
+    "test:e2e:authenticated": "playwright test --project=authenticated",
     "templates:audit": "tsx scripts/audit-templates.ts",
     "docx:prepare": "tsx scripts/prepare-accomplishment-template.ts",
     "docx:audit": "tsx scripts/audit-accomplishment-template.ts",
@@ -24,11 +31,19 @@
     "templates:upload:xlsx": "tsx scripts/upload-dtr-template.ts",
     "storage:setup:generated": "tsx scripts/setup-generated-reports-bucket.ts",
     "storage:check:generated": "tsx scripts/setup-generated-reports-bucket.ts --check",
+    "storage:setup:templates": "tsx scripts/setup-templates-bucket.ts",
+    "storage:check:templates": "tsx scripts/setup-templates-bucket.ts --check",
+    "storage:setup": "tsx scripts/setup-storage-buckets.ts",
+    "storage:check": "tsx scripts/setup-storage-buckets.ts --check",
     "exports:smoke": "tsx scripts/smoke-exports.ts",
     "exports:storage:smoke": "tsx scripts/smoke-exports-storage.ts",
     "auth:check": "tsx scripts/check-phase2-auth.ts",
+    "security:check": "tsx scripts/check-security.ts",
+    "audit:deps": "pnpm audit --prod --audit-level high",
+    "office:visual": "tsx scripts/office-visual.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:verify": "tsx scripts/verify-migrations.ts",
     "db:check": "tsx scripts/check-db.ts",
     "db:studio": "drizzle-kit studio",
     "db:inspect": "tsx scripts/inspect-local-db.ts",
@@ -37,7 +52,8 @@
     "phase4:check": "tsx scripts/smoke-reports.ts",
     "presets:smoke": "tsx scripts/smoke-presets.ts",
     "phase5:check": "tsx scripts/smoke-presets.ts",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm auth:check && pnpm db:check"
+    "ci:quality": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm templates:audit && pnpm docx:audit && pnpm xlsx:audit && pnpm auth:check && pnpm db:check && pnpm security:check",
+    "check": "pnpm ci:quality"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.7.1",

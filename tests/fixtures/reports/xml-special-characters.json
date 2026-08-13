@@ -1,0 +1,23 @@
+{
+  "id": "xml-special-characters",
+  "period": {
+    "kind": "FIRST_HALF",
+    "year": 2026,
+    "month": 2,
+    "startDate": "2026-02-01",
+    "endDate": "2026-02-15",
+    "expectedEntryCount": 15,
+    "leapYearSecondHalfEnd": "2026-02-28"
+  },
+  "employee": {
+    "name": "Ñoel & María <Santos>",
+    "title": "COS"
+  },
+  "accomplishments": [
+    "Drafted letters with characters &, <, >, \", and Filipino text such as ngayon, ñaño, and magandang umaga."
+  ],
+  "notes": [
+    "XML-sensitive and Filipino characters must survive DOCX/XLSX generation.",
+    "February/leap-year DTR coverage is a separate visual case using 2024-02-16 to 2024-02-29."
+  ]
+}

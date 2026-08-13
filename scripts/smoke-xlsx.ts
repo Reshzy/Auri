@@ -115,6 +115,7 @@ async function main() {
   console.log(`sha256=${result.sha256}`);
   console.log(`bytes=${result.fileSizeBytes}`);
   console.log(`wrote=${outPath}`);
+  process.exit(0);
 }
 
 main().catch((error) => {
