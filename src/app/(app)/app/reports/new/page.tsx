@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CreateReportForm } from "@/features/reports/create-report-form";
 import { inferCurrentPeriodPreset, todayYmdManila } from "@/lib/dates/period";
+
+export const metadata: Metadata = {
+  title: "New report",
+  description: "Create a first-half or second-half reporting period.",
+};
 
 export default function NewReportPage() {
   const preset = inferCurrentPeriodPreset(todayYmdManila());

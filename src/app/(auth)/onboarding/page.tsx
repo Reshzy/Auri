@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/auth/auth-card";
+import { OnboardingStepMotion } from "@/components/motion/onboarding-step-motion";
 import { loadOnboardingContext } from "@/db/dal/onboarding-state";
 import { ProfileForm } from "@/features/settings/profile-form";
 import { ScheduleForm } from "@/features/settings/schedule-form";
@@ -15,8 +17,14 @@ import {
   type OnboardingStepId,
 } from "@/lib/onboarding/progress";
 import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Set up Auri",
+  description: "Finish your profile, schedule, and signatories before creating a report.",
+};
 
 export default async function OnboardingPage({
   searchParams,
@@ -43,13 +51,18 @@ export default async function OnboardingPage({
   }
 
   const step = context.step;
+  const stepIndex = ONBOARDING_STEPS.indexOf(step) + 1;
 
   return (
     <div className="mx-auto w-full max-w-2xl">
       <AuthCard
         title="Set up Auri"
-        description="Collect employee, schedule, and signatory details before your first report. Progress is saved so you can resume after refresh."
+        description="Progress is saved, so you can resume after refresh. Complete these details before your first report."
       >
+        <p className="text-auri-ink-muted mb-3 text-sm">
+          Step {stepIndex} of {ONBOARDING_STEPS.length}. You can return to an earlier step
+          at any time.
+        </p>
         <ol className="mb-6 flex flex-wrap gap-2" aria-label="Onboarding progress">
           {ONBOARDING_STEPS.map((id) => {
             const active = id === step;
@@ -58,13 +71,14 @@ export default async function OnboardingPage({
               <li key={id}>
                 <Link
                   href={`/onboarding?step=${id}`}
-                  className={
+                  className={cn(
+                    "inline-flex min-h-11 items-center rounded-full px-3 py-1 text-xs font-medium",
                     active
-                      ? "bg-auri-orange-600 inline-flex rounded-full px-3 py-1 text-xs font-semibold text-white"
+                      ? "bg-auri-orange-600 font-semibold text-white"
                       : done
-                        ? "bg-auri-orange-100 text-auri-orange-700 inline-flex rounded-full px-3 py-1 text-xs font-medium"
-                        : "bg-auri-orange-50 text-auri-ink-muted inline-flex rounded-full px-3 py-1 text-xs"
-                  }
+                        ? "bg-auri-orange-100 text-auri-orange-700"
+                        : "bg-auri-orange-50 text-auri-ink-muted",
+                  )}
                   aria-current={active ? "step" : undefined}
                 >
                   {ONBOARDING_STEP_LABELS[id]}
@@ -74,7 +88,9 @@ export default async function OnboardingPage({
           })}
         </ol>
 
-        <StepBody step={step} context={context} />
+        <OnboardingStepMotion step={step}>
+          <StepBody step={step} context={context} />
+        </OnboardingStepMotion>
       </AuthCard>
     </div>
   );

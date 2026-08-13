@@ -1,12 +1,18 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import type { PresetListItem } from "@/features/presets/types";
 import { DailyEditor, type EditorEntry } from "@/features/reports/daily-editor";
+import { DatabaseUnavailable } from "@/components/ui/unavailable-state";
 import { hasDatabaseUrl } from "@/lib/env";
 import type { DayClassification } from "@/lib/reports/classify";
 import { pgTimeToHhmm } from "@/lib/reports/pg-time";
 import { PresetService } from "@/server/services/preset-service";
 import { ReportPeriodService } from "@/server/services/report-period-service";
+
+export const metadata: Metadata = {
+  title: "Editor",
+};
 
 export default async function ReportEditPage({
   params,
@@ -16,7 +22,7 @@ export default async function ReportEditPage({
   searchParams: Promise<{ day?: string }>;
 }) {
   if (!hasDatabaseUrl()) {
-    return <p className="text-auri-ink-muted">Database is not configured.</p>;
+    return <DatabaseUnavailable />;
   }
 
   let user;

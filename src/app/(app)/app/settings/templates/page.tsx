@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { getTemplateAvailability } from "@/db/dal/templates";
 import { TemplatesAvailabilityPanel } from "@/features/settings/templates-panel";
 import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+
+export const metadata: Metadata = {
+  title: "Templates",
+};
 
 export default async function TemplatesSettingsPage() {
   if (!hasClerkConfig() || !hasDatabaseUrl()) {

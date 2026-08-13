@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { FileText, LayoutDashboard, Sparkles } from "lucide-react";
 import { AuriMark } from "@/components/brand/auri-mark";
@@ -24,6 +25,8 @@ type AppSidebarProps = {
 };
 
 export function AppSidebar({ className }: AppSidebarProps) {
+  const pathname = usePathname();
+
   return (
     <aside
       className={cn(
@@ -40,11 +43,21 @@ export function AppSidebar({ className }: AppSidebarProps) {
         <div className="space-y-1">
           {primaryNav.map((item) => {
             const Icon = item.icon;
+            const active =
+              item.href === "/app"
+                ? pathname === "/app"
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-auri-ink-muted hover:bg-auri-orange-50 hover:text-auri-ink flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors"
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
+                  active
+                    ? "bg-auri-orange-50 text-auri-ink"
+                    : "text-auri-ink-muted hover:bg-auri-orange-50 hover:text-auri-ink",
+                )}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 {item.label}
@@ -61,7 +74,13 @@ export function AppSidebar({ className }: AppSidebarProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-auri-ink-muted hover:bg-auri-orange-50 hover:text-auri-ink flex items-center rounded-xl px-3 py-2 pl-10 text-sm transition-colors"
+                aria-current={pathname === item.href ? "page" : undefined}
+                className={cn(
+                  "flex items-center rounded-xl px-3 py-2 pl-10 text-sm transition-colors",
+                  pathname === item.href
+                    ? "bg-auri-orange-50 text-auri-ink"
+                    : "text-auri-ink-muted hover:bg-auri-orange-50 hover:text-auri-ink",
+                )}
               >
                 {item.label}
               </Link>

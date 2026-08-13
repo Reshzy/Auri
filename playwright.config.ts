@@ -28,4 +28,12 @@ export default defineConfig({
   metadata: {
     authConfigured: hasAuth,
   },
+  webServer: process.env.PLAYWRIGHT_BASE_URL
+    ? undefined
+    : {
+        command: "pnpm exec next dev --port 3000",
+        url: "http://localhost:3000",
+        reuseExistingServer: true,
+        timeout: 120_000,
+      },
 });

@@ -165,14 +165,15 @@ Plus targeted Playwright when a critical user flow changes.
 
 ## Phase 9 — Marketing and motion polish
 
-**Spec:** §15, §5.6
+**Spec:** §15, §5.6, §12.6, §14  
+**Status:** Complete — see `docs/PHASE9_MARKETING_MOTION.md`
 
-- Full landing page copy/sections
+- Full landing page copy/sections and fictional product UI composition
 - Selective GSAP sequences + reduced-motion path
-- Empty/error/skeleton polish; metadata/icons
-- Dark mode only if light theme is complete
+- Empty/error/skeleton polish; metadata/icons/OG image
+- Dark mode deferred (light theme complete; second theme would be incomplete)
 
-**Exit:** No animation-hidden content; branded non-generic UI.
+**Exit:** No animation-hidden content; branded non-generic UI — met. Live Storage / Clerk E2E / LibreOffice remain pending when credentials/tools are absent.
 
 ---
 

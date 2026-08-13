@@ -76,6 +76,16 @@ const SAFE_MESSAGES: Partial<Record<ExportErrorCode, string>> = {
   VALIDATION: "Invalid export request.",
 };
 
+export function toSafeExportUserMessage(
+  code: string | undefined,
+  fallback = "Generation failed. Try again.",
+): string {
+  if (code && Object.prototype.hasOwnProperty.call(SAFE_MESSAGES, code)) {
+    return SAFE_MESSAGES[code as ExportErrorCode] ?? fallback;
+  }
+  return fallback;
+}
+
 export function toSafeExportErrorBody(
   error: unknown,
   options?: { fallbackCode?: ExportErrorCode },

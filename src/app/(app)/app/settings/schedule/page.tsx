@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { ensureProfile } from "@/db/dal/profiles";
@@ -9,6 +10,10 @@ import {
 } from "@/lib/onboarding/defaults";
 import type { WeekdayRules } from "@/lib/validation/onboarding";
 import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+
+export const metadata: Metadata = {
+  title: "Work schedule",
+};
 
 export default async function ScheduleSettingsPage() {
   if (!hasClerkConfig() || !hasDatabaseUrl()) {

@@ -1,6 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
+import { clerkAppearance } from "@/lib/clerk-appearance";
+import { AURI_DESCRIPTION, AURI_NAME, AURI_TAGLINE, AURI_THEME_COLOR } from "@/lib/brand";
+import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,9 +17,34 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Auri — Work, without the paperwork",
-  description:
-    "Create your Daily Time Record and accomplishment report from one simple workspace.",
+  metadataBase: getSiteUrl(),
+  title: {
+    default: `${AURI_NAME} — ${AURI_TAGLINE}`,
+    template: `%s — ${AURI_NAME}`,
+  },
+  description: AURI_DESCRIPTION,
+  applicationName: AURI_NAME,
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon",
+    apple: "/apple-icon",
+  },
+  openGraph: {
+    title: `${AURI_NAME} — ${AURI_TAGLINE}`,
+    description: AURI_DESCRIPTION,
+    siteName: AURI_NAME,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${AURI_NAME} — ${AURI_TAGLINE}`,
+    description: AURI_DESCRIPTION,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: AURI_THEME_COLOR,
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -27,7 +55,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClerkProvider afterSignOutUrl="/">{children}</ClerkProvider>
+        <ClerkProvider afterSignOutUrl="/" appearance={clerkAppearance}>
+          {children}
+        </ClerkProvider>
       </body>
     </html>
   );

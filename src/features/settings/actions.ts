@@ -16,6 +16,7 @@ import {
   weekdayRulesSchema,
   workScheduleSchema,
 } from "@/lib/validation/onboarding";
+import { toSafeErrorMessage } from "@/lib/reports/errors";
 import { hasDatabaseUrl } from "@/lib/env";
 
 export type SettingsActionState = {
@@ -84,7 +85,7 @@ export async function saveProfileAction(
     await updateOwnProfile(user.id, parsed.data, rejectClientUserId(formData));
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Could not save profile.",
+      error: toSafeErrorMessage(error, "Could not save profile."),
     };
   }
 
@@ -144,7 +145,7 @@ export async function saveScheduleAction(
     });
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Could not save schedule.",
+      error: toSafeErrorMessage(error, "Could not save schedule."),
     };
   }
 
@@ -195,7 +196,7 @@ export async function saveSignatoriesAction(
     );
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Could not save signatories.",
+      error: toSafeErrorMessage(error, "Could not save signatories."),
     };
   }
 
@@ -271,7 +272,7 @@ export async function completeOnboardingAction(
     await completeOwnOnboarding(user.id, rejectClientUserId(formData));
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Could not complete onboarding.",
+      error: toSafeErrorMessage(error, "Could not complete onboarding."),
     };
   }
 

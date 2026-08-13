@@ -26,7 +26,11 @@ import {
   clearAcknowledgementsOnDataChange,
   zipSelectionRequiresMembers,
 } from "@/lib/exports/review-state";
-import { toSafeExportErrorBody, ExportError } from "@/lib/exports/errors";
+import {
+  toSafeExportErrorBody,
+  toSafeExportUserMessage,
+  ExportError,
+} from "@/lib/exports/errors";
 import { buildZipBundleManifest, isZipBundleManifest } from "@/lib/exports/zip-manifest";
 import {
   isUnsafeFlatZipEntryName,
@@ -241,6 +245,10 @@ describe("safe errors, rate limit, size, timezone, preview copy", () => {
     );
     expect(body.error.code).toBe("EXPORT_STORAGE_FAILED");
     expect(body.error.message).not.toContain("secret-path");
+    expect(toSafeExportUserMessage("DOCX_GENERATION_FAILED")).toBe(
+      "Document generation failed.",
+    );
+    expect(toSafeExportUserMessage("STACK_TRACE_HERE", "Try again.")).toBe("Try again.");
   });
 
   it("rate-limits after the configured count", () => {

@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { ensureProfile, getOwnProfile } from "@/db/dal/profiles";
 import { ProfileForm } from "@/features/settings/profile-form";
 import { SAMPLE_PROFILE_DEFAULTS } from "@/lib/onboarding/defaults";
 import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+
+export const metadata: Metadata = {
+  title: "Profile & office",
+};
 
 export default async function ProfileSettingsPage() {
   if (!hasClerkConfig() || !hasDatabaseUrl()) {

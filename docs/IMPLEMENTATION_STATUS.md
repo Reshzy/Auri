@@ -4,7 +4,7 @@ Last updated: 2026-08-13
 
 ## Current phase
 
-**Phase 8 complete (preview, generation review, persistent export history, private downloads, ZIP packaging).** Phase 9 has not started.
+**Phase 9 complete (marketing, motion, product states, metadata).** Phase 10 has not started.
 
 ## Completed
 
@@ -69,30 +69,36 @@ Last updated: 2026-08-13
 - [x] Export history UI and dashboard recent files
 - [x] Docs: `docs/PHASE8_EXPORT_HISTORY.md`
 
-## Quality gates (Phase 8)
+### Phase 9 — Marketing and motion polish
 
-| Check                            | Result                                                                                          |
-| -------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `pnpm format:check`              | Pass                                                                                            |
-| `pnpm lint`                      | Pass (0 errors; pre-existing `.agents` Clerk template warning only)                             |
-| `pnpm typecheck`                 | Pass                                                                                            |
-| `pnpm test`                      | Pass — 194 tests (32 files). Includes 3 live Phase 8 Postgres+memory-Storage persistence tests. |
-| `pnpm build`                     | Pass                                                                                            |
-| `pnpm templates:audit`           | Pass                                                                                            |
-| `pnpm docx:audit` / `docx:smoke` | Pass                                                                                            |
-| `pnpm xlsx:audit` / `xlsx:smoke` | Pass (deterministic runtime SHA `a08195c6…eba6`)                                                |
-| `pnpm auth:check`                | Pass (static)                                                                                   |
-| `pnpm db:check`                  | Pass (static; asserts `bundle_manifest`)                                                        |
-| `pnpm db:migrate`                | Pass — `0003_mighty_chamber` applied to local `Auri` (4 journal entries)                        |
-| `pnpm db:smoke`                  | Pass                                                                                            |
-| `pnpm reports:smoke`             | Pass                                                                                            |
-| `pnpm presets:smoke`             | Pass                                                                                            |
-| `pnpm exports:smoke`             | Pass (ZIP/revision/path unit checks; no live Storage)                                           |
-| `pnpm storage:check:generated`   | Skipped — `SUPABASE_SERVICE_ROLE_KEY` unavailable                                               |
-| `pnpm exports:storage:smoke`     | Skipped — same                                                                                  |
-| `pnpm test:e2e`                  | Skipped — Clerk `E2E_USER_*` not configured (4 tests skipped, including Phase 8)                |
-| Visual LibreOffice (DOCX + XLSX) | Blocked/pending — `soffice` not installed on this machine                                       |
-| Live Supabase Storage upload     | Pending — service-role credentials unavailable                                                  |
+- [x] Complete public landing page (nav, hero, editor visual, flow, outputs, presets, trust, CTA, footer)
+- [x] Cohesive light visual polish across auth, onboarding, and app shells
+- [x] Selective GSAP with reduced-motion path; no animation-hidden content
+- [x] Shared empty/alert/skeleton/unavailable states and route error/loading/404
+- [x] Metadata, favicon, icons, manifest, Open Graph image
+- [x] Dark mode deferred after light-theme audit
+- [x] Docs: `docs/PHASE9_MARKETING_MOTION.md`, `docs/DESIGN.md`, `docs/ACCESSIBILITY.md`
+
+## Quality gates (Phase 9)
+
+| Check                            | Result                                                                                                  |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `pnpm format:check`              | Pass                                                                                                    |
+| `pnpm lint`                      | Pass (0 errors; pre-existing `.agents` Clerk template warning only)                                     |
+| `pnpm typecheck`                 | Pass                                                                                                    |
+| `pnpm test`                      | Pass — 202 tests (37 files). Includes Phase 9 brand/motion/state tests and live Phase 8 Postgres tests. |
+| `pnpm build`                     | Pass                                                                                                    |
+| `pnpm templates:audit`           | Pass                                                                                                    |
+| `pnpm docx:audit`                | Pass                                                                                                    |
+| `pnpm xlsx:audit`                | Pass (deterministic runtime SHA `a08195c6…eba6`)                                                        |
+| `pnpm db:check`                  | Pass (static; asserts `bundle_manifest`)                                                                |
+| `pnpm db:smoke`                  | Pass                                                                                                    |
+| `pnpm reports:smoke`             | Pass                                                                                                    |
+| `pnpm presets:smoke`             | Pass                                                                                                    |
+| `pnpm exports:smoke`             | Pass (ZIP/revision/path unit checks; no live Storage)                                                   |
+| `pnpm test:e2e`                  | Pass — 7 public Phase 9 tests. 4 Clerk-authenticated tests skipped (`E2E_USER_*` not configured).       |
+| Visual LibreOffice (DOCX + XLSX) | Blocked/pending — `soffice` not installed on this machine                                               |
+| Live Supabase Storage upload     | Pending — service-role credentials unavailable                                                          |
 
 ## Schema sources
 
@@ -126,8 +132,8 @@ Never commit `.env.local` or real passwords/keys.
 3. Phase 8 persists generated files to private `generated-reports` Storage and `report_exports`. Generation returns JSON metadata; downloads use the protected streaming endpoint.
 4. DTR period label uses audited `AUGUST 1-15`; DOCX keeps `August 1-15, 2026`.
 5. Zero undertime leaves daily hour/minute cells blank while preserving `F45`/`N45`.
-6. ZIP provenance uses `bundle_manifest`; `template_version_id` is null for ZIP rows.
+6. Dark mode remains deferred until a complete semantic dark token set exists; previews stay paper-white.
 
 ## Next work
 
-1. Phase 9: marketing and motion polish — not started.
+1. Phase 10: hardening, CI, and deployment — not started.

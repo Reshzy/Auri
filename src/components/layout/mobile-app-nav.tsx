@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, LayoutDashboard, MoreHorizontal, Settings } from "lucide-react";
+import { FileText, LayoutDashboard, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/app", label: "Overview", icon: LayoutDashboard },
   { href: "/app/reports", label: "Reports", icon: FileText },
-  { href: "/app/presets", label: "More", icon: MoreHorizontal },
+  { href: "/app/presets", label: "Presets", icon: Sparkles },
   { href: "/app/settings/profile", label: "Settings", icon: Settings },
 ] as const;
 
@@ -26,7 +26,9 @@ export function MobileAppNav() {
           const active =
             item.href === "/app"
               ? pathname === "/app"
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+              : item.href.startsWith("/app/settings")
+                ? pathname.startsWith("/app/settings")
+                : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
           return (
             <li key={item.href}>

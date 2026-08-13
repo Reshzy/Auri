@@ -22,6 +22,7 @@ import {
 import type { PresetListItem } from "@/features/presets/types";
 import { filterPresets } from "@/lib/presets/search";
 import { orderPresets } from "@/lib/presets/order";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 
 const initialState: PresetActionState = {};
@@ -280,23 +281,16 @@ export function PresetsManager({ initialPresets }: { initialPresets: PresetListI
       </div>
 
       {initialPresets.length === 0 ? (
-        <div className="border-auri-border bg-auri-surface rounded-3xl border p-6">
-          <p className="text-auri-ink font-medium">No presets yet</p>
-          <p className="text-auri-ink-muted mt-1 text-sm">
-            Add the five sample office phrases, or create your own reusable
-            accomplishments.
-          </p>
-          <div className="mt-4">
-            <SeedStartersForm />
-          </div>
-        </div>
+        <EmptyState
+          title="No presets yet"
+          description="Add the five sample office phrases, or create your own reusable accomplishments."
+          action={<SeedStartersForm />}
+        />
       ) : visible.length === 0 ? (
-        <div className="border-auri-border bg-auri-surface rounded-3xl border p-6">
-          <p className="text-auri-ink font-medium">No matches</p>
-          <p className="text-auri-ink-muted mt-1 text-sm">
-            Try a different search, or clear the filter.
-          </p>
-        </div>
+        <EmptyState
+          title="No matches"
+          description="Try a different search, or clear the filter."
+        />
       ) : (
         <ul className="space-y-3">
           {visible.map((preset) => (

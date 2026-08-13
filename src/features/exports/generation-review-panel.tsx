@@ -8,6 +8,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { GenerationSuccessMotion } from "@/components/motion/generation-success";
+import { Alert } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toSafeExportUserMessage } from "@/lib/exports/errors";
 import {
   acknowledgementsAreComplete,
   clearAcknowledgementsOnDataChange,
@@ -173,9 +177,17 @@ function GenerationReviewBody({
   return (
     <>
       {loading ? (
-        <p className="text-auri-ink-muted mt-4 text-sm">Loading review…</p>
+        <div className="mt-4 space-y-3" role="status" aria-live="polite">
+          <span className="sr-only">Loading review</span>
+          <Skeleton className="h-24" />
+          <Skeleton className="h-10" />
+        </div>
       ) : null}
-      {loadError ? <p className="text-auri-danger mt-4 text-sm">{loadError}</p> : null}
+      {loadError ? (
+        <Alert tone="danger" className="mt-4" title="Could not load generation review">
+          <p>Try closing this dialog and opening Generate again.</p>
+        </Alert>
+      ) : null}
 
       {review ? (
         <div className="mt-4 space-y-4 text-sm">
@@ -301,35 +313,50 @@ function GenerationReviewBody({
           </ul>
 
           {result ? (
-            <div>
-              <p className="font-medium">
-                {result.overallStatus === "complete"
-                  ? "Generation complete"
-                  : result.overallStatus === "partial"
-                    ? "Partial success — some formats failed"
-                    : "Generation failed"}
-              </p>
-              <ul className="mt-2 space-y-2">
-                {result.results.map((item) => (
-                  <li key={item.format} className="flex flex-wrap items-center gap-2">
-                    <span>
-                      {item.format.toUpperCase()} · {item.status}
-                    </span>
-                    {item.export && item.status !== "failed" ? (
-                      <a
-                        className="text-auri-orange-700 underline"
-                        href={item.export.downloadUrl}
-                      >
-                        Download
-                      </a>
-                    ) : null}
-                    {item.error ? (
-                      <span className="text-auri-danger">{item.error.code}</span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <GenerationSuccessMotion active={result.overallStatus === "complete"}>
+              <Alert
+                tone={
+                  result.overallStatus === "complete"
+                    ? "success"
+                    : result.overallStatus === "partial"
+                      ? "warning"
+                      : "danger"
+                }
+                title={
+                  result.overallStatus === "complete"
+                    ? "Generation complete"
+                    : result.overallStatus === "partial"
+                      ? "Partial success — some formats failed"
+                      : "Generation failed"
+                }
+              >
+                <ul className="mt-2 space-y-2">
+                  {result.results.map((item) => (
+                    <li key={item.format} className="flex flex-wrap items-center gap-2">
+                      <span>
+                        {item.format.toUpperCase()} · {item.status}
+                      </span>
+                      {item.export && item.status !== "failed" ? (
+                        <a
+                          className="text-auri-orange-700 underline"
+                          href={item.export.downloadUrl}
+                        >
+                          Download
+                        </a>
+                      ) : null}
+                      {item.error ? (
+                        <span>
+                          {toSafeExportUserMessage(
+                            item.error.code,
+                            "This format could not be generated.",
+                          )}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </Alert>
+            </GenerationSuccessMotion>
           ) : null}
 
           <div className="flex flex-wrap gap-3">

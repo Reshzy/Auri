@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PaperEntrance } from "@/components/motion/paper-entrance";
 import { isNonWorkClassification, type DayClassification } from "@/lib/reports/classify";
 import {
   formatDocxDate,
@@ -10,6 +11,7 @@ import { formatTotalHoursLabel } from "@/lib/reports/totals";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ExportPayload } from "@/server/services/report-mapping-service";
 import type { ReportValidationResult } from "@/server/services/report-validation";
+import { Alert } from "@/components/ui/alert";
 import { PREVIEW_DISCLAIMER } from "@/lib/exports/preview-copy";
 
 export function SemanticReportPreview({
@@ -27,20 +29,14 @@ export function SemanticReportPreview({
       {(validation.errors.length > 0 || validation.warnings.length > 0) && (
         <div className="space-y-2">
           {validation.errors.map((issue) => (
-            <p
-              key={`e-${issue.code}-${issue.workDate ?? ""}`}
-              className="text-auri-danger text-sm"
-            >
+            <Alert key={`e-${issue.code}-${issue.workDate ?? ""}`} tone="danger">
               {issue.message}
-            </p>
+            </Alert>
           ))}
           {validation.warnings.map((issue) => (
-            <p
-              key={`w-${issue.code}-${issue.workDate ?? ""}`}
-              className="text-auri-warning text-sm"
-            >
+            <Alert key={`w-${issue.code}-${issue.workDate ?? ""}`} tone="warning">
               {issue.message}
-            </p>
+            </Alert>
           ))}
         </div>
       )}
@@ -61,11 +57,7 @@ export function SemanticReportPreview({
 }
 
 function Paper({ children }: { children: ReactNode }) {
-  return (
-    <article className="border-auri-border text-auri-ink rounded-3xl border bg-white p-5 shadow-sm sm:p-8">
-      {children}
-    </article>
-  );
+  return <PaperEntrance>{children}</PaperEntrance>;
 }
 
 function AccomplishmentPreview({ payload }: { payload: ExportPayload }) {

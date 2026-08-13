@@ -12,19 +12,43 @@ export function HeroAurora() {
 
   useGSAP(
     () => {
-      if (!rootRef.current || prefersReducedMotion()) {
+      const root = rootRef.current;
+      if (!root || prefersReducedMotion()) {
         return;
       }
 
-      gsap.to(rootRef.current.querySelectorAll("[data-orb]"), {
-        y: 18,
-        x: 12,
-        duration: 6,
+      const orbs = root.querySelectorAll("[data-orb]");
+      if (orbs.length === 0) {
+        return;
+      }
+
+      const tween = gsap.to(orbs, {
+        y: 14,
+        x: 10,
+        duration: 8,
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
-        stagger: 0.6,
+        stagger: 0.8,
+        paused: true,
       });
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            tween.play();
+          } else {
+            tween.pause();
+          }
+        },
+        { threshold: 0.05 },
+      );
+
+      observer.observe(root);
+      return () => {
+        observer.disconnect();
+        tween.kill();
+      };
     },
     { scope: rootRef },
   );

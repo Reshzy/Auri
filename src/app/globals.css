@@ -12,6 +12,7 @@
   --auri-ink-muted: #6f6258;
   --auri-paper: #fffaf5;
   --auri-surface: #ffffff;
+  --auri-bg: var(--auri-paper);
   --auri-border: #eadfd5;
   --auri-success: #15803d;
   --auri-warning: #b45309;
@@ -34,6 +35,7 @@
   --color-auri-ink-muted: var(--auri-ink-muted);
   --color-auri-paper: var(--auri-paper);
   --color-auri-surface: var(--auri-surface);
+  --color-auri-bg: var(--auri-bg);
   --color-auri-border: var(--auri-border);
   --color-auri-success: var(--auri-success);
   --color-auri-warning: var(--auri-warning);

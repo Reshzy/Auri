@@ -1,18 +1,20 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { PresetsManager } from "@/features/presets/presets-manager";
 import type { PresetListItem } from "@/features/presets/types";
 import { hasDatabaseUrl } from "@/lib/env";
 import { PresetService } from "@/server/services/preset-service";
+import { DatabaseUnavailable } from "@/components/ui/unavailable-state";
+
+export const metadata: Metadata = {
+  title: "Presets",
+  description: "Reusable accomplishment phrases for faster daily entry.",
+};
 
 export default async function PresetsPage() {
   if (!hasDatabaseUrl()) {
-    return (
-      <div className="space-y-3">
-        <h2 className="text-auri-ink text-2xl font-semibold">Presets</h2>
-        <p className="text-auri-ink-muted">Database is not configured.</p>
-      </div>
-    );
+    return <DatabaseUnavailable />;
   }
 
   let user;

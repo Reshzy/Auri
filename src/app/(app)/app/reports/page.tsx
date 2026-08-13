@@ -1,19 +1,22 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DatabaseUnavailable } from "@/components/ui/unavailable-state";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { hasDatabaseUrl } from "@/lib/env";
 import { formatPeriodKind, formatPeriodLabel, formatStatus } from "@/lib/reports/labels";
 import { ReportPeriodService } from "@/server/services/report-period-service";
 
+export const metadata: Metadata = {
+  title: "Reports",
+  description: "Half-month periods with completion progress and worked time.",
+};
+
 export default async function ReportsPage() {
   if (!hasDatabaseUrl()) {
-    return (
-      <div className="space-y-3">
-        <h2 className="text-auri-ink text-2xl font-semibold">Reports</h2>
-        <p className="text-auri-ink-muted">Database is not configured.</p>
-      </div>
-    );
+    return <DatabaseUnavailable />;
   }
 
   let user;
@@ -40,17 +43,15 @@ export default async function ReportsPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="border-auri-border bg-auri-surface rounded-3xl border p-6">
-          <p className="text-auri-ink font-medium">No reports yet</p>
-          <p className="text-auri-ink-muted mt-1 text-sm">
-            Create a first-half or second-half period to start daily entries.
-          </p>
-          <div className="mt-4">
+        <EmptyState
+          title="No reports yet"
+          description="Create a first-half or second-half period to start daily entries."
+          action={
             <Button asChild>
               <Link href="/app/reports/new">Create report</Link>
             </Button>
-          </div>
-        </div>
+          }
+        />
       ) : (
         <ul className="space-y-3">
           {items.map((item) => {

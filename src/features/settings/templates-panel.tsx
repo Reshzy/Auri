@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Alert } from "@/components/ui/alert";
 import { FormMessage, SubmitButton } from "@/features/settings/form-status";
 import {
   completeOnboardingAction,
@@ -56,12 +57,14 @@ export function TemplatesAvailabilityPanel({
         ))}
       </ul>
       {!bothAvailable ? (
-        <p className="text-auri-ink-muted text-sm">
-          Both the accomplishment DOCX and DTR XLSX templates must be available. Runtime
-          activation happens in a later phase; Phase 0 source files satisfy local
-          onboarding checks.
-        </p>
-      ) : null}
+        <Alert tone="warning" title="Templates unavailable">
+          Both the accomplishment DOCX and DTR XLSX templates must be available before you
+          can generate files. Use audited Phase 0 source files locally, or activate
+          trusted template versions.
+        </Alert>
+      ) : (
+        <Alert tone="success">Both templates are available for generation.</Alert>
+      )}
       {mode === "onboarding" ? (
         <form action={formAction}>
           <input type="hidden" name="nextStep" value="ready" />

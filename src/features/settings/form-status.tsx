@@ -1,25 +1,14 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 
 export function FormMessage({ error, success }: { error?: string; success?: string }) {
   if (!error && !success) {
     return null;
   }
-  return (
-    <div
-      role={error ? "alert" : "status"}
-      aria-live="polite"
-      className={
-        error
-          ? "border-auri-danger/30 bg-auri-danger/10 text-auri-danger rounded-xl border px-3 py-2 text-sm"
-          : "border-auri-success/30 bg-auri-success/10 text-auri-success rounded-xl border px-3 py-2 text-sm"
-      }
-    >
-      {error ?? success}
-    </div>
-  );
+  return <Alert tone={error ? "danger" : "success"}>{error ?? success}</Alert>;
 }
 
 export function SubmitButton({

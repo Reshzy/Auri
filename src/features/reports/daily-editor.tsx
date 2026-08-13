@@ -871,7 +871,11 @@ function SaveBadge({
           : "Saved";
 
   return (
-    <div className="border-auri-border bg-auri-surface sticky top-2 z-10 flex items-center gap-3 rounded-2xl border px-4 py-2 text-sm shadow-sm">
+    <div
+      className="border-auri-border bg-auri-surface sticky top-2 z-10 flex items-center gap-3 rounded-2xl border px-4 py-2 text-sm shadow-sm"
+      role="status"
+      aria-live="polite"
+    >
       <span
         className={cn(
           "font-medium",

@@ -2,6 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Alert } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { ExportHistoryItem } from "@/lib/exports/types";
 
 export function ExportHistoryList({
@@ -42,18 +50,22 @@ export function ExportHistoryList({
 
   if (items.length === 0) {
     return (
-      <p className="text-auri-ink-muted text-sm">
-        No generated files yet. Use Generate to create Word, Excel, or a ZIP package.
-      </p>
+      <EmptyState
+        title="No generated files yet"
+        description="Use Generate to create Word, Excel, or a ZIP package. Files stay private to your account."
+      />
     );
   }
 
   return (
     <div className="space-y-3">
       {error ? (
-        <p className="text-auri-danger text-sm" role="alert">
-          {error}
-        </p>
+        <Alert tone="danger">
+          {error}{" "}
+          <button type="button" className="underline" onClick={() => setError(null)}>
+            Dismiss
+          </button>
+        </Alert>
       ) : null}
       <ul className="space-y-2">
         {items.map((item) => (
@@ -95,29 +107,38 @@ export function ExportHistoryList({
               ) : (
                 <span className="text-auri-ink-muted text-xs">Download unavailable</span>
               )}
-              {confirmId === item.id ? (
-                <>
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    disabled={busyId === item.id}
-                    onClick={() => void onDelete(item.id)}
-                  >
-                    {busyId === item.id ? "Deleting…" : "Confirm delete"}
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmId(null)}>
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <Button size="sm" variant="ghost" onClick={() => setConfirmId(item.id)}>
-                  Delete
-                </Button>
-              )}
+              <Button size="sm" variant="ghost" onClick={() => setConfirmId(item.id)}>
+                Delete
+              </Button>
             </div>
           </li>
         ))}
       </ul>
+      <Dialog
+        open={Boolean(confirmId)}
+        onOpenChange={(open) => !open && setConfirmId(null)}
+      >
+        <DialogContent>
+          <DialogTitle>Delete this file?</DialogTitle>
+          <DialogDescription>
+            The download will be removed from your history. You can generate the report
+            again later.
+          </DialogDescription>
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setConfirmId(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              disabled={!confirmId || busyId === confirmId}
+              onClick={() => confirmId && void onDelete(confirmId)}
+            >
+              {busyId === confirmId ? "Deleting…" : "Delete file"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

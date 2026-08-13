@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { SignIn } from "@clerk/nextjs";
 import { AuthCard } from "@/components/auth/auth-card";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Continue to your Auri workspace.",
+};
 
 export default function SignInPage() {
   return (

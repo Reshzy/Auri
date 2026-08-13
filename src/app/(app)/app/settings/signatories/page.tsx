@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { ensureProfile } from "@/db/dal/profiles";
@@ -5,6 +6,10 @@ import { listOwnSignatories } from "@/db/dal/signatories";
 import { SignatoriesForm } from "@/features/settings/signatories-form";
 import { SAMPLE_SIGNATORY_DEFAULTS } from "@/lib/onboarding/defaults";
 import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+
+export const metadata: Metadata = {
+  title: "Signatories",
+};
 
 export default async function SignatoriesSettingsPage() {
   if (!hasClerkConfig() || !hasDatabaseUrl()) {

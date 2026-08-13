@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -6,11 +7,16 @@ import { ExportHistoryList } from "@/features/exports/export-history-list";
 import { GenerateFilesButton } from "@/features/exports/generate-files-button";
 import { ReportStatusActions } from "@/features/reports/report-status-actions";
 import { ValidationSummary } from "@/features/reports/validation-summary";
+import { DatabaseUnavailable } from "@/components/ui/unavailable-state";
 import { hasDatabaseUrl } from "@/lib/env";
 import { formatPeriodKind, formatPeriodLabel, formatStatus } from "@/lib/reports/labels";
 import { formatTotalHoursLabel } from "@/lib/reports/totals";
 import { ExportHistoryService } from "@/server/services/export-history-service";
 import { ReportPeriodService } from "@/server/services/report-period-service";
+
+export const metadata: Metadata = {
+  title: "Report",
+};
 
 export default async function ReportDetailPage({
   params,
@@ -18,7 +24,7 @@ export default async function ReportDetailPage({
   params: Promise<{ reportId: string }>;
 }) {
   if (!hasDatabaseUrl()) {
-    return <p className="text-auri-ink-muted">Database is not configured.</p>;
+    return <DatabaseUnavailable />;
   }
 
   let user;
