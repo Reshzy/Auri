@@ -26,9 +26,10 @@ function readSqlDir(dir: string): string {
 
 function main() {
   assert(existsSync(drizzleDir), "Missing drizzle/ migrations");
-  assert(existsSync(path.join(root, "proxy.ts")), "Missing root proxy.ts");
+  const proxyPath = path.join(root, "src", "proxy.ts");
+  assert(existsSync(proxyPath), "Missing src/proxy.ts (required when using src/app)");
 
-  const proxySource = readFileSync(path.join(root, "proxy.ts"), "utf8");
+  const proxySource = readFileSync(proxyPath, "utf8");
   assert(proxySource.includes("clerkMiddleware"), "proxy.ts must use clerkMiddleware()");
   assert(
     proxySource.includes("/__clerk/:path*"),

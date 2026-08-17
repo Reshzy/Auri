@@ -23,7 +23,14 @@ export default async function ApplicationLayout({
           redirect("/onboarding");
         }
       }
-    } catch {
+    } catch (error) {
+      const digest =
+        error && typeof error === "object" && "digest" in error
+          ? String((error as { digest?: unknown }).digest)
+          : "";
+      if (digest.includes("NEXT_REDIRECT") || digest.includes("NEXT_NOT_FOUND")) {
+        throw error;
+      }
       redirect("/sign-in");
     }
   }
