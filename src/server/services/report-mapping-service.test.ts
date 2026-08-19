@@ -125,7 +125,7 @@ describe("DTR period label on ExportPayload", () => {
 describe("docx formatters continued", () => {
   it("formats AM/PM ranges without leading hour zeros", () => {
     expect(formatDocxTimeRange("07:00", "12:00")).toBe("7:00-12:00");
-    expect(formatDocxTimeRange("13:00", "18:00")).toBe("13:00-18:00");
+    expect(formatDocxTimeRange("13:00", "18:00")).toBe("1:00-6:00");
     expect(formatDocxTimeRange(null, null)).toBe("-");
   });
 
@@ -179,7 +179,7 @@ describe("ReportMappingService", () => {
     const tokens = ReportMappingService.toFlatTokens(payload);
     expect(tokens.r01_date).toBe("August 1, 2026");
     expect(tokens.r01_am).toBe("7:00-12:00");
-    expect(tokens.r01_pm).toBe("13:00-18:00");
+    expect(tokens.r01_pm).toBe("1:00-6:00");
     expect(tokens.r01_time_spent).toBe("10 hrs");
     expect(tokens.r01_accomplishment).toBe("Prepared docs / Assisted visitors");
     expect(tokens.r01_remarks).toBe("ok");
