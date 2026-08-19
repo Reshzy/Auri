@@ -7,9 +7,13 @@ export type NormalizeTimeResult =
 
 /**
  * Accept keyboard-friendly inputs (`700`, `7:00`, `07:00`) and Postgres `HH:MM:SS`.
- * Normalize to canonical `HH:MM`.
+ * Normalize to canonical 24-hour `HH:MM`.
+ * PM session fields treat 1:00–11:59 as afternoon (column context, no AM/PM suffix).
  */
-export function normalizeTimeInput(raw: string | null | undefined): NormalizeTimeResult {
+export function normalizeTimeInput(
+  raw: string | null | undefined,
+  session?: "am" | "pm",
+): NormalizeTimeResult {
   if (raw === null || raw === undefined) {
     return { ok: true, value: "" };
   }
@@ -36,6 +40,9 @@ export function normalizeTimeInput(raw: string | null | undefined): NormalizeTim
     const padded = trimmed.padStart(4, "0");
     hours = Number(padded.slice(0, 2));
     minutes = Number(padded.slice(2, 4));
+  } else if (/^\d{1,2}$/.test(trimmed)) {
+    hours = Number(trimmed);
+    minutes = 0;
   } else {
     return { ok: false, error: "Invalid time format. Use 700, 7:00, or 07:00." };
   }
@@ -47,9 +54,16 @@ export function normalizeTimeInput(raw: string | null | undefined): NormalizeTim
     return { ok: false, error: "Time must be a valid 24-hour clock value." };
   }
 
+  // PM columns are 12-hour without AM/PM (DTR context). 1:00–11:59 → 13:00–23:59.
+  // 12:xx stays noon; 13:00–23:59 is already 24-hour and is left unchanged.
+  if (session === "pm" && hours >= 1 && hours <= 11) {
+    hours += 12;
+  }
+
+  const value = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   return {
     ok: true,
-    value: `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`,
+    value,
   };
 }
 
@@ -152,7 +166,7 @@ export function normalizeAndValidateDayTimes(input: {
   const issues: SessionValidationIssue[] = [];
 
   for (const key of fields) {
-    const result = normalizeTimeInput(input[key]);
+    const result = normalizeTimeInput(input[key], key.startsWith("pm") ? "pm" : "am");
     if (!result.ok) {
       issues.push({
         field: key.startsWith("am") ? "am" : "pm",

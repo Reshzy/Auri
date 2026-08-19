@@ -16,6 +16,7 @@ import {
 import { ReportStatusActions } from "@/features/reports/report-status-actions";
 import { GenerateFilesButton } from "@/features/exports/generate-files-button";
 import { ValidationSummary } from "@/features/reports/validation-summary";
+import { formatDtrClock } from "@/lib/reports/dtr-format";
 import { pgTimeToHhmm } from "@/lib/reports/pg-time";
 import { weekdayLabelForYmd } from "@/lib/dates/period";
 import type { DayClassification } from "@/lib/reports/classify";
@@ -68,14 +69,18 @@ type DayForm = {
   remarks: string;
 };
 
+function clockForEditor(value: string | null | undefined): string {
+  return formatDtrClock(pgTimeToHhmm(value) ?? value ?? "");
+}
+
 function entryToForm(entry: EditorEntry): DayForm {
   return {
     classification: entry.classification,
     classificationLabel: entry.classificationLabel ?? "",
-    amArrival: entry.amArrival ?? "",
-    amDeparture: entry.amDeparture ?? "",
-    pmArrival: entry.pmArrival ?? "",
-    pmDeparture: entry.pmDeparture ?? "",
+    amArrival: clockForEditor(entry.amArrival),
+    amDeparture: clockForEditor(entry.amDeparture),
+    pmArrival: clockForEditor(entry.pmArrival),
+    pmDeparture: clockForEditor(entry.pmDeparture),
     undertimeOverride:
       entry.undertimeOverrideMinutes === null ||
       entry.undertimeOverrideMinutes === undefined
@@ -139,6 +144,18 @@ function mapSavedEntry(
   saved: Record<string, unknown>,
   fallback: EditorEntry,
 ): EditorEntry {
+  const amArrival = clockForEditor(
+    pgTimeToHhmm((saved.amArrival as string | null) ?? fallback.amArrival),
+  );
+  const amDeparture = clockForEditor(
+    pgTimeToHhmm((saved.amDeparture as string | null) ?? fallback.amDeparture),
+  );
+  const pmArrival = clockForEditor(
+    pgTimeToHhmm((saved.pmArrival as string | null) ?? fallback.pmArrival),
+  );
+  const pmDeparture = clockForEditor(
+    pgTimeToHhmm((saved.pmDeparture as string | null) ?? fallback.pmDeparture),
+  );
   return {
     id: String(saved.id ?? fallback.id),
     workDate: String(saved.workDate ?? fallback.workDate),
@@ -147,14 +164,10 @@ function mapSavedEntry(
     classificationLabel:
       (saved.classificationLabel as string | null | undefined) ??
       fallback.classificationLabel,
-    amArrival: pgTimeToHhmm((saved.amArrival as string | null) ?? fallback.amArrival),
-    amDeparture: pgTimeToHhmm(
-      (saved.amDeparture as string | null) ?? fallback.amDeparture,
-    ),
-    pmArrival: pgTimeToHhmm((saved.pmArrival as string | null) ?? fallback.pmArrival),
-    pmDeparture: pgTimeToHhmm(
-      (saved.pmDeparture as string | null) ?? fallback.pmDeparture,
-    ),
+    amArrival,
+    amDeparture,
+    pmArrival,
+    pmDeparture,
     workedMinutes: Number(saved.workedMinutes ?? fallback.workedMinutes),
     calculatedUndertimeMinutes: Number(
       saved.calculatedUndertimeMinutes ?? fallback.calculatedUndertimeMinutes,
@@ -841,7 +854,7 @@ function TimeField({
       <Input
         id={id}
         inputMode="numeric"
-        placeholder="700 / 7:00 / 07:00"
+        placeholder="6 / 6:00 / 600"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}

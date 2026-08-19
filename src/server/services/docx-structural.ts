@@ -146,13 +146,19 @@ export function validateGeneratedAccomplishmentDocx(
     }
   }
 
+  // Flag leftover template sample text only when it was not supplied by the payload.
+  // Real reports may reuse the source office's sample employee/accomplishment wording.
   for (const sample of [
     "RODGE ANDRU P. VILORIA",
     "JOEL A. PUZON",
     "LANI P. LANGAMAN",
     "ASSISTS VISITORS AT THE OFFICE OF THE VICE MAYOR",
   ]) {
-    if (plain.includes(sample)) {
+    if (!plain.includes(sample)) continue;
+    const suppliedByTokens = Object.values(tokens).some((value) =>
+      value.includes(sample),
+    );
+    if (!suppliedByTokens) {
       issues.push({
         code: "SAMPLE_LEAK",
         message: "Stale sample employee/report data remains in output.",

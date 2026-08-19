@@ -1,10 +1,16 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-
-const isProtectedRoute = createRouteMatcher(["/app(.*)", "/onboarding(.*)"]);
+import { clerkMiddleware } from "@clerk/nextjs/server";
+import { requiresAuthentication } from "@/lib/auth/paths";
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+  // Early signed-out redirect only. Pages, layouts, API routes, and
+  // Server Actions still enforce auth with requireAuthenticatedUser().
+  if (!requiresAuthentication(req.nextUrl.pathname)) {
+    return;
+  }
+
+  const { isAuthenticated, redirectToSignIn } = await auth();
+  if (!isAuthenticated) {
+    return redirectToSignIn();
   }
 });
 
