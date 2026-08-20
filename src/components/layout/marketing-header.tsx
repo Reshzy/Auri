@@ -6,11 +6,9 @@ import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Menu, X } from "lucide-react";
 import { AuriMark } from "@/components/brand/auri-mark";
 import { Button } from "@/components/ui/button";
+import { AURI_PRIMARY_CTA } from "@/lib/brand";
 
-const links = [
-  { href: "/#product", label: "Product" },
-  { href: "/#how-it-works", label: "How it works" },
-] as const;
+const links = [{ href: "/#product", label: "Product" }] as const;
 
 export function MarketingHeader() {
   const [open, setOpen] = useState(false);
@@ -40,7 +38,9 @@ export function MarketingHeader() {
               </Button>
             </SignInButton>
             <SignUpButton mode="redirect">
-              <Button size="sm">Get started</Button>
+              <Button className="bg-auri-orange-700 shadow-auri-orange-700/20 hover:bg-auri-orange-700/90 hidden h-11 md:inline-flex">
+                {AURI_PRIMARY_CTA}
+              </Button>
             </SignUpButton>
           </Show>
           <Show when="signed-in">
@@ -95,6 +95,17 @@ export function MarketingHeader() {
                     Sign in
                   </button>
                 </SignInButton>
+              </Show>
+            </li>
+            <li>
+              <Show when="signed-out">
+                <Link
+                  href="/sign-up"
+                  className="text-auri-ink hover:bg-auri-orange-50 flex min-h-11 items-center rounded-xl px-3 text-sm"
+                  onClick={() => setOpen(false)}
+                >
+                  {AURI_PRIMARY_CTA}
+                </Link>
               </Show>
               <Show when="signed-in">
                 <Link

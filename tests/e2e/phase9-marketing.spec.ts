@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Phase 9 marketing landing", () => {
-  test("shows approved copy, sections, and CTA targets in the initial HTML", async ({
+  test("shows approved copy, product evidence, and CTA targets in the initial HTML", async ({
     page,
   }) => {
     await page.goto("/");
@@ -9,30 +9,27 @@ test.describe("Phase 9 marketing landing", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Work, without the paperwork." }),
     ).toBeVisible();
-    await expect(page.getByText("Your reporting routine, simplified.")).toBeVisible();
+    await expect(page.getByText("Daily Time Record (DTR)")).toBeVisible();
     await expect(
       page.getByRole("link", { name: "Create your report" }).first(),
     ).toHaveAttribute("href", "/sign-up");
-    await expect(page.getByRole("link", { name: "See how it works" })).toHaveAttribute(
-      "href",
-      "/#how-it-works",
-    );
+    await expect(page.getByRole("link", { name: "See how it works" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Get started" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Create account" })).toHaveCount(0);
 
     await expect(page.locator("#product")).toBeVisible();
-    await expect(page.locator("#how-it-works")).toBeVisible();
     await expect(page.locator("#outputs")).toBeVisible();
-    await expect(page.locator("#presets")).toBeVisible();
     await expect(page.locator("#trust")).toBeVisible();
     await expect(page.locator("#get-started")).toBeVisible();
 
-    await expect(
-      page.getByRole("heading", { name: "Record → Review → Generate" }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "One input. Two files." }),
-    ).toBeVisible();
+    await expect(page.getByText("CSC Form No. 48")).toBeVisible();
     await expect(page.getByText("Accomplishment report", { exact: true })).toBeVisible();
     await expect(page.getByText("Daily Time Record", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "This half-month’s Daily Time Record and accomplishment report, from the days you already logged.",
+      }),
+    ).toBeVisible();
   });
 
   test("keeps hero copy visible when reduced motion is requested", async ({ page }) => {
@@ -53,16 +50,12 @@ test.describe("Phase 9 marketing landing", () => {
     await expect(
       page.getByRole("navigation", { name: "Marketing mobile" }),
     ).toBeVisible();
+    const mobileNav = page.getByRole("navigation", { name: "Marketing mobile" });
+    await expect(mobileNav.getByRole("link", { name: "Product" })).toBeVisible();
     await expect(
-      page.getByRole("navigation", { name: "Marketing mobile" }).getByRole("link", {
-        name: "Product",
-      }),
+      mobileNav.getByRole("link", { name: "Create your report" }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("navigation", { name: "Marketing mobile" }).getByRole("link", {
-        name: "How it works",
-      }),
-    ).toBeVisible();
+    await expect(mobileNav.getByRole("link", { name: "How it works" })).toHaveCount(0);
   });
 
   test("renders a branded 404", async ({ page }) => {

@@ -61,11 +61,11 @@ export function HeroAurora() {
     >
       <div
         data-orb
-        className="bg-auri-orange-300/40 absolute -top-16 left-[10%] h-56 w-56 rounded-full blur-3xl"
+        className="bg-auri-orange-300/40 absolute -top-16 left-[10%] h-32 w-32 rounded-full blur-3xl sm:h-56 sm:w-56"
       />
       <div
         data-orb
-        className="bg-auri-orange-500/20 absolute top-24 right-[8%] h-64 w-64 rounded-full blur-3xl"
+        className="bg-auri-orange-500/20 absolute top-16 right-[8%] h-36 w-36 rounded-full blur-3xl sm:top-24 sm:h-64 sm:w-64"
       />
     </div>
   );

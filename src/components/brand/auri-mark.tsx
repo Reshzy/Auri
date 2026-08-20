@@ -15,7 +15,7 @@ export function AuriMark({ className, showWordmark = true }: AuriMarkProps) {
         <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.45),transparent_55%)]" />
         <span className="bg-auri-paper relative h-3.5 w-3.5 rounded-full" />
       </span> */}
-      <img src="/logo.png" alt="Auri logo" className="h-10" />
+      <img src="/logo.png" alt={showWordmark ? "" : "Auri"} className="h-10" />
       {showWordmark ? (
         <span className="text-auri-ink text-lg font-semibold tracking-tight">Auri</span>
       ) : null}
