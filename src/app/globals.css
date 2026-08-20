@@ -78,6 +78,12 @@
     color: var(--foreground);
     font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
     min-height: 100vh;
+    caret-color: var(--auri-orange-700);
+  }
+
+  ::selection {
+    background: var(--auri-orange-100);
+    color: var(--auri-ink);
   }
 
   :focus-visible {

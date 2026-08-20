@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
-import { clerkAppearance } from "@/lib/clerk-appearance";
+import { clerkAppearance, clerkLocalization } from "@/lib/clerk-appearance";
 import { AURI_DESCRIPTION, AURI_NAME, AURI_TAGLINE, AURI_THEME_COLOR } from "@/lib/brand";
 import { getSiteUrl } from "@/lib/site";
 import "./globals.css";
@@ -45,6 +45,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: AURI_THEME_COLOR,
   colorScheme: "light",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -55,7 +56,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClerkProvider afterSignOutUrl="/" appearance={clerkAppearance}>
+        <ClerkProvider
+          afterSignOutUrl="/"
+          appearance={clerkAppearance}
+          localization={clerkLocalization}
+        >
           {children}
         </ClerkProvider>
       </body>
