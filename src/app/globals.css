@@ -9,6 +9,7 @@
   --auri-orange-700: #c2410c;
 
   --auri-ink: #17130f;
+  --auri-orange-hover: color-mix(in srgb, var(--auri-orange-700) 82%, var(--auri-ink));
   --auri-ink-muted: #6f6258;
   --auri-paper: #fffaf5;
   --auri-surface: #ffffff;
@@ -31,6 +32,7 @@
   --color-auri-orange-500: var(--auri-orange-500);
   --color-auri-orange-600: var(--auri-orange-600);
   --color-auri-orange-700: var(--auri-orange-700);
+  --color-auri-orange-hover: var(--auri-orange-hover);
   --color-auri-ink: var(--auri-ink);
   --color-auri-ink-muted: var(--auri-ink-muted);
   --color-auri-paper: var(--auri-paper);
@@ -93,6 +95,22 @@
 }
 
 @layer utilities {
+  .auri-safe-x {
+    padding-inline: max(1rem, env(safe-area-inset-left, 0px))
+      max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  @media (width >= 40rem) {
+    .auri-safe-x {
+      padding-inline: max(1.5rem, env(safe-area-inset-left, 0px))
+        max(1.5rem, env(safe-area-inset-right, 0px));
+    }
+  }
+
+  .auri-hash-target {
+    scroll-margin-top: calc(4rem + env(safe-area-inset-top, 0px) + 0.75rem);
+  }
+
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }

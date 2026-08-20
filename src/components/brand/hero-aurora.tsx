@@ -13,7 +13,11 @@ export function HeroAurora() {
   useGSAP(
     () => {
       const root = rootRef.current;
-      if (!root || prefersReducedMotion()) {
+      if (
+        !root ||
+        prefersReducedMotion() ||
+        !window.matchMedia("(min-width: 1024px)").matches
+      ) {
         return;
       }
 
@@ -57,15 +61,15 @@ export function HeroAurora() {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden"
+      className="pointer-events-none absolute inset-0 overflow-hidden contain-paint"
     >
       <div
         data-orb
-        className="bg-auri-orange-300/40 absolute -top-16 left-[10%] h-32 w-32 rounded-full blur-3xl sm:h-56 sm:w-56"
+        className="bg-auri-orange-300/35 absolute -top-10 left-[12%] hidden h-40 w-40 rounded-full blur-2xl lg:block"
       />
       <div
         data-orb
-        className="bg-auri-orange-500/20 absolute top-16 right-[8%] h-36 w-36 rounded-full blur-3xl sm:top-24 sm:h-64 sm:w-64"
+        className="bg-auri-orange-500/18 absolute top-20 right-[10%] hidden h-44 w-44 rounded-full blur-2xl lg:block"
       />
     </div>
   );

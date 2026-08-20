@@ -14,9 +14,9 @@ import {
 export function LandingPage() {
   return (
     <div>
-      <section id="product" className="relative overflow-hidden">
+      <section id="product" className="auri-hash-target relative">
         <HeroAurora />
-        <div className="relative mx-auto flex max-w-6xl flex-col justify-center px-4 py-10 sm:px-6 lg:min-h-[calc(100vh-4rem)] lg:py-12">
+        <div className="auri-safe-x relative mx-auto flex max-w-6xl flex-col justify-center py-10 lg:min-h-[calc(100vh-4rem)] lg:py-12">
           <HeroReveal>
             <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
               <div className="space-y-6">
@@ -33,11 +33,7 @@ export function LandingPage() {
                   {AURI_HERO_BODY}
                 </p>
                 <div data-hero-item>
-                  <Button
-                    asChild
-                    size="lg"
-                    className="bg-auri-orange-700 hover:bg-auri-orange-700/90 shadow-auri-orange-700/20"
-                  >
+                  <Button asChild size="lg">
                     <Link href="/sign-up">{AURI_PRIMARY_CTA}</Link>
                   </Button>
                 </div>
@@ -50,8 +46,11 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="get-started" className="border-auri-border/70 border-t">
-        <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
+      <section
+        id="get-started"
+        className="auri-hash-target border-auri-border/70 border-t"
+      >
+        <div className="auri-safe-x mx-auto max-w-3xl py-16 text-center">
           <h2 className="text-auri-ink text-3xl font-semibold tracking-tight text-balance">
             {AURI_CLOSE_HEADING}
           </h2>
@@ -59,11 +58,7 @@ export function LandingPage() {
             {AURI_CLOSE_BODY}
           </p>
           <div className="mt-8 flex justify-center">
-            <Button
-              asChild
-              size="lg"
-              className="bg-auri-orange-700 hover:bg-auri-orange-700/90 shadow-auri-orange-700/20"
-            >
+            <Button asChild size="lg">
               <Link href="/sign-up">{AURI_PRIMARY_CTA}</Link>
             </Button>
           </div>

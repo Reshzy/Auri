@@ -3,8 +3,8 @@
  */
 export function MarketingOutputPair() {
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <article className="border-auri-border rotate-[-1.25deg] rounded-2xl border bg-white p-3 shadow-[2px_6px_18px_rgb(23_19_15/0.08)]">
+    <div className="grid grid-cols-2 gap-3 px-1 py-2 sm:px-0">
+      <article className="border-auri-border rotate-0 rounded-2xl border bg-white p-3 shadow-[2px_6px_18px_rgb(23_19_15/0.08)] sm:rotate-[-1.25deg]">
         <p className="text-auri-ink text-[11px] font-semibold">Daily Time Record</p>
         <p className="text-auri-ink-muted text-[10px]">XLSX · CSC Form No. 48</p>
         <dl className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1 text-[10px] tabular-nums">
@@ -29,7 +29,7 @@ export function MarketingOutputPair() {
           Left and right copies match.
         </p>
       </article>
-      <article className="border-auri-border rotate-[1.5deg] rounded-2xl border bg-white p-3 shadow-[2px_6px_18px_rgb(23_19_15/0.08)]">
+      <article className="border-auri-border rotate-0 rounded-2xl border bg-white p-3 shadow-[2px_6px_18px_rgb(23_19_15/0.08)] sm:rotate-[1.5deg]">
         <p className="text-auri-ink text-[11px] font-semibold">Accomplishment report</p>
         <p className="text-auri-ink-muted text-[10px]">DOCX · Word layout</p>
         <ul className="text-auri-ink mt-3 space-y-1 text-[10px] leading-snug">

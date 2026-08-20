@@ -8,8 +8,8 @@ import { AURI_PRIMARY_CTA, AURI_TAGLINE } from "@/lib/brand";
 
 export function MarketingFooter() {
   return (
-    <footer className="border-auri-border/80 bg-auri-surface/70 border-t">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <footer className="border-auri-border/80 bg-auri-surface/70 border-t pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
+      <div className="auri-safe-x mx-auto flex max-w-6xl flex-col gap-6 py-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <AuriMark />
           <p className="text-auri-ink-muted max-w-md text-sm">{AURI_TAGLINE}</p>
@@ -37,7 +37,7 @@ export function MarketingFooter() {
             </SignUpButton>
           </Show>
           <Show when="signed-in">
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost">
               <Link href="/app">Open app</Link>
             </Button>
           </Show>

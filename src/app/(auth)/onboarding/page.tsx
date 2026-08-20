@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/auth/auth-card";
 import { OnboardingStepMotion } from "@/components/motion/onboarding-step-motion";
+import { Button } from "@/components/ui/button";
 import { loadOnboardingContext } from "@/db/dal/onboarding-state";
 import { ProfileForm } from "@/features/settings/profile-form";
 import { ScheduleForm } from "@/features/settings/schedule-form";
@@ -74,7 +75,7 @@ export default async function OnboardingPage({
                   className={cn(
                     "inline-flex min-h-11 items-center rounded-full px-3 py-1 text-xs font-medium",
                     active
-                      ? "bg-auri-orange-600 font-semibold text-white"
+                      ? "bg-auri-orange-700 font-semibold text-white"
                       : done
                         ? "bg-auri-orange-100 text-auri-orange-700"
                         : "bg-auri-orange-50 text-auri-ink-muted",
@@ -113,12 +114,9 @@ function StepBody({
             capture the employee, office, schedule, and signatory details those files
             need.
           </p>
-          <Link
-            href="/onboarding?step=profile"
-            className="bg-auri-orange-600 hover:bg-auri-orange-700 inline-flex h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-medium text-white"
-          >
-            Continue
-          </Link>
+          <Button asChild className="w-full">
+            <Link href="/onboarding?step=profile">Continue</Link>
+          </Button>
         </div>
       );
     case "profile":

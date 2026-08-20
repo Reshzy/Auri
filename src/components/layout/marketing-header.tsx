@@ -14,10 +14,10 @@ export function MarketingHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="border-auri-border/70 bg-auri-paper/85 sticky top-0 z-40 border-b backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <header className="border-auri-border/70 bg-auri-paper/85 sticky top-0 z-40 border-b pt-[env(safe-area-inset-top,0px)] backdrop-blur-md">
+      <div className="auri-safe-x mx-auto flex h-16 max-w-6xl items-center justify-between">
         <Link href="/" aria-label="Auri home">
-          <AuriMark />
+          <AuriMark priority />
         </Link>
         <nav className="hidden items-center gap-6 md:flex" aria-label="Marketing">
           {links.map((link) => (
@@ -33,18 +33,16 @@ export function MarketingHeader() {
         <div className="flex items-center gap-2">
           <Show when="signed-out">
             <SignInButton mode="redirect">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+              <Button variant="ghost" className="hidden sm:inline-flex">
                 Sign in
               </Button>
             </SignInButton>
             <SignUpButton mode="redirect">
-              <Button className="bg-auri-orange-700 shadow-auri-orange-700/20 hover:bg-auri-orange-700/90 hidden h-11 md:inline-flex">
-                {AURI_PRIMARY_CTA}
-              </Button>
+              <Button className="hidden md:inline-flex">{AURI_PRIMARY_CTA}</Button>
             </SignUpButton>
           </Show>
           <Show when="signed-in">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button asChild variant="ghost" className="hidden sm:inline-flex">
               <Link href="/app">Open app</Link>
             </Button>
             <UserButton />
@@ -70,7 +68,7 @@ export function MarketingHeader() {
       {open ? (
         <nav
           id="marketing-mobile-nav"
-          className="border-auri-border/70 border-t px-4 py-4 md:hidden"
+          className="auri-safe-x border-auri-border/70 border-t py-4 md:hidden"
           aria-label="Marketing mobile"
         >
           <ul className="space-y-1">

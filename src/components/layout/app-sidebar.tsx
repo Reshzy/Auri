@@ -36,7 +36,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
     >
       <div className="border-auri-border border-b px-5 py-5">
         <Link href="/app" aria-label="Auri application home">
-          <AuriMark />
+          <AuriMark priority />
         </Link>
       </div>
       <nav className="flex flex-1 flex-col gap-6 px-3 py-5" aria-label="Application">
