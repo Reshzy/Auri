@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
 import { AuriMark } from "@/components/brand/auri-mark";
 import { Button } from "@/components/ui/button";
-import { AURI_PRIMARY_CTA, AURI_TAGLINE } from "@/lib/brand";
+import { AURI_PRIMARY_CTA, AURI_PRIMARY_CTA_HINT, AURI_TAGLINE } from "@/lib/brand";
 
 export function MarketingFooter() {
   return (
@@ -33,6 +33,7 @@ export function MarketingFooter() {
             <SignUpButton mode="redirect">
               <button type="button" className="hover:text-auri-ink min-h-11">
                 {AURI_PRIMARY_CTA}
+                <span className="sr-only"> {AURI_PRIMARY_CTA_HINT}</span>
               </button>
             </SignUpButton>
           </Show>

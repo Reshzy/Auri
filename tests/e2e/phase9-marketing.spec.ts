@@ -16,6 +16,7 @@ test.describe("Phase 9 marketing landing", () => {
     await expect(page.getByRole("link", { name: "See how it works" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Get started" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Create account" })).toHaveCount(0);
+    await expect(page.getByText("You’ll create an account first.").first()).toBeVisible();
 
     await expect(page.locator("#product")).toBeVisible();
     await expect(page.locator("#outputs")).toBeVisible();
@@ -27,7 +28,7 @@ test.describe("Phase 9 marketing landing", () => {
     await expect(page.getByText("Daily Time Record", { exact: true })).toBeVisible();
     await expect(
       page.getByRole("heading", {
-        name: "This half-month’s Daily Time Record and accomplishment report, from the days you already logged.",
+        name: "Both files for this half-month, from the days you log.",
       }),
     ).toBeVisible();
   });

@@ -8,6 +8,7 @@ import {
   AURI_CLOSE_HEADING,
   AURI_HERO_BODY,
   AURI_PRIMARY_CTA,
+  AURI_PRIMARY_CTA_HINT,
   AURI_TAGLINE,
 } from "@/lib/brand";
 
@@ -34,8 +35,16 @@ export function LandingPage() {
                 </p>
                 <div data-hero-item>
                   <Button asChild size="lg">
-                    <Link href="/sign-up">{AURI_PRIMARY_CTA}</Link>
+                    <Link href="/sign-up" aria-describedby="hero-cta-hint">
+                      {AURI_PRIMARY_CTA}
+                    </Link>
                   </Button>
+                  <p
+                    id="hero-cta-hint"
+                    className="text-auri-ink-muted mt-3 max-w-xl text-sm text-pretty"
+                  >
+                    {AURI_PRIMARY_CTA_HINT}
+                  </p>
                 </div>
               </div>
               <div data-hero-item>
@@ -57,10 +66,18 @@ export function LandingPage() {
           <p className="text-auri-ink-muted mx-auto mt-3 max-w-xl text-pretty">
             {AURI_CLOSE_BODY}
           </p>
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8">
             <Button asChild size="lg">
-              <Link href="/sign-up">{AURI_PRIMARY_CTA}</Link>
+              <Link href="/sign-up" aria-describedby="close-cta-hint">
+                {AURI_PRIMARY_CTA}
+              </Link>
             </Button>
+            <p
+              id="close-cta-hint"
+              className="text-auri-ink-muted mx-auto mt-3 max-w-xl text-sm text-pretty"
+            >
+              {AURI_PRIMARY_CTA_HINT}
+            </p>
           </div>
         </div>
       </section>

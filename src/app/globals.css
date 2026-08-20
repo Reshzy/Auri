@@ -46,20 +46,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
 @layer base {
   * {
     border-color: var(--auri-border);
+  }
+
+  a {
+    text-underline-offset: 0.2em;
   }
 
   html {
@@ -123,6 +116,12 @@
     .motion-safe-fade-in {
       animation: none;
       opacity: 1;
+    }
+
+    .animate-pulse,
+    .animate-in,
+    .animate-out {
+      animation: none !important;
     }
   }
 }

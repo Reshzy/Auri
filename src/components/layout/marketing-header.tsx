@@ -6,7 +6,7 @@ import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Menu, X } from "lucide-react";
 import { AuriMark } from "@/components/brand/auri-mark";
 import { Button } from "@/components/ui/button";
-import { AURI_PRIMARY_CTA } from "@/lib/brand";
+import { AURI_PRIMARY_CTA, AURI_PRIMARY_CTA_HINT } from "@/lib/brand";
 
 const links = [{ href: "/#product", label: "Product" }] as const;
 
@@ -24,7 +24,7 @@ export function MarketingHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-auri-ink-muted hover:text-auri-ink text-sm transition-colors"
+              className="text-auri-ink-muted hover:text-auri-ink inline-flex min-h-11 items-center text-sm transition-colors"
             >
               {link.label}
             </Link>
@@ -38,7 +38,10 @@ export function MarketingHeader() {
               </Button>
             </SignInButton>
             <SignUpButton mode="redirect">
-              <Button className="hidden md:inline-flex">{AURI_PRIMARY_CTA}</Button>
+              <Button className="hidden md:inline-flex">
+                {AURI_PRIMARY_CTA}
+                <span className="sr-only"> {AURI_PRIMARY_CTA_HINT}</span>
+              </Button>
             </SignUpButton>
           </Show>
           <Show when="signed-in">
@@ -97,13 +100,12 @@ export function MarketingHeader() {
             </li>
             <li>
               <Show when="signed-out">
-                <Link
-                  href="/sign-up"
-                  className="text-auri-ink hover:bg-auri-orange-50 flex min-h-11 items-center rounded-xl px-3 text-sm"
-                  onClick={() => setOpen(false)}
-                >
-                  {AURI_PRIMARY_CTA}
-                </Link>
+                <Button asChild className="w-full">
+                  <Link href="/sign-up" onClick={() => setOpen(false)}>
+                    {AURI_PRIMARY_CTA}
+                    <span className="sr-only"> {AURI_PRIMARY_CTA_HINT}</span>
+                  </Link>
+                </Button>
               </Show>
               <Show when="signed-in">
                 <Link

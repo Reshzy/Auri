@@ -53,7 +53,7 @@ export function MarketingEditorMock() {
             <li>Reviewed incoming requests and routed replies.</li>
           </ul>
         </div>
-        <p className="text-auri-ink-muted text-xs">Presets · Copy previous workday</p>
+        <p className="text-auri-ink-muted text-xs">Sample day · not interactive</p>
       </div>
     </div>
   );

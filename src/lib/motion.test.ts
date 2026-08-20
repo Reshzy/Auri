@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
 import { prefersReducedMotion } from "./motion";
 
 describe("prefersReducedMotion", () => {
@@ -18,5 +19,12 @@ describe("prefersReducedMotion", () => {
       }),
     });
     expect(prefersReducedMotion()).toBe(true);
+  });
+});
+
+describe("reduced-motion CSS", () => {
+  it("does not globally zero transition duration", () => {
+    const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+    expect(css).not.toMatch(/transition-duration:\s*0\.01ms\s*!important/);
   });
 });
