@@ -10,7 +10,7 @@ Local visual render: **not performed** — LibreOffice/`soffice` is not installe
 | File                          | Location after Phase 0                         | Size (bytes) | SHA-256                                                            |
 | ----------------------------- | ---------------------------------------------- | ------------ | ------------------------------------------------------------------ |
 | `ACCOMPLISHMENT - RODGE.docx` | `templates/source/ACCOMPLISHMENT - RODGE.docx` | 28561        | `d1381a91daf69d13a8a3d836be722dc4fa05544def667b194dce959361e091c5` |
-| `DTR RODGE.xlsx`              | `templates/source/DTR RODGE.xlsx`              | 18015        | `7cc8fd8fe90f6062864410c4a8920e909350369c99ee7548e24f922ac5f5314b` |
+| `DTR RODGE.xlsx`              | `templates/source/DTR RODGE.xlsx`              | 18292        | `26a88e371c9df57ab3a2535493d81af70cf5f788cead3695dcc67de0b12da80c` |
 
 Byte-identical copies also remain at the repository root from bootstrap. Phase 0 placed canonical copies under `templates/source/` without modifying file contents (hashes verified equal before and after copy). Prefer `templates/source/` as the immutable source of truth.
 

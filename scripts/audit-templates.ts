@@ -21,7 +21,7 @@ const FILES = [
   {
     label: "dtr-xlsx",
     relativePath: path.join("templates", "source", "DTR RODGE.xlsx"),
-    expectedSha256: "7cc8fd8fe90f6062864410c4a8920e909350369c99ee7548e24f922ac5f5314b",
+    expectedSha256: "26a88e371c9df57ab3a2535493d81af70cf5f788cead3695dcc67de0b12da80c",
   },
 ] as const;
 

@@ -29,6 +29,6 @@ pnpm templates:upload:xlsx
 | File                                 | SHA-256                                                            |
 | ------------------------------------ | ------------------------------------------------------------------ |
 | `source/ACCOMPLISHMENT - RODGE.docx` | `d1381a91daf69d13a8a3d836be722dc4fa05544def667b194dce959361e091c5` |
-| `source/DTR RODGE.xlsx`              | `7cc8fd8fe90f6062864410c4a8920e909350369c99ee7548e24f922ac5f5314b` |
+| `source/DTR RODGE.xlsx`              | `26a88e371c9df57ab3a2535493d81af70cf5f788cead3695dcc67de0b12da80c` |
 
 Runtime hashes live in the corresponding manifests. See `docs/TEMPLATE_AUDIT.md`, `docs/PHASE6_DOCX_EXPORT.md`, and `docs/PHASE7_XLSX_EXPORT.md`.
