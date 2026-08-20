@@ -66,19 +66,6 @@ export function LandingPage() {
           <p className="text-auri-ink-muted mx-auto mt-3 max-w-xl text-pretty">
             {AURI_CLOSE_BODY}
           </p>
-          <div className="mt-8">
-            <Button asChild size="lg">
-              <Link href="/sign-up" aria-describedby="close-cta-hint">
-                {AURI_PRIMARY_CTA}
-              </Link>
-            </Button>
-            <p
-              id="close-cta-hint"
-              className="text-auri-ink-muted mx-auto mt-3 max-w-xl text-sm text-pretty"
-            >
-              {AURI_PRIMARY_CTA_HINT}
-            </p>
-          </div>
         </div>
       </section>
     </div>

@@ -8,6 +8,8 @@ describe("marketing output pair", () => {
     const html = renderToStaticMarkup(<MarketingOutputPair />);
     expect(html).not.toMatch(/Viloria|Puzon|Langaman|Sacramed|Sanchez Mira/i);
     expect(html).toContain("CSC Form No. 48");
+    expect(html).toContain("Left copy");
+    expect(html).toContain("Right copy");
     expect(html).toContain("07:00");
   });
 });

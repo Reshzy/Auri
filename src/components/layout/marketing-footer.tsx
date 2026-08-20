@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Show, SignInButton } from "@clerk/nextjs";
 import { AuriMark } from "@/components/brand/auri-mark";
 import { Button } from "@/components/ui/button";
-import { AURI_PRIMARY_CTA, AURI_PRIMARY_CTA_HINT, AURI_TAGLINE } from "@/lib/brand";
+import { AURI_TAGLINE } from "@/lib/brand";
 
 export function MarketingFooter() {
   return (
@@ -14,35 +14,21 @@ export function MarketingFooter() {
           <AuriMark />
           <p className="text-auri-ink-muted max-w-md text-sm">{AURI_TAGLINE}</p>
         </div>
-        <nav
-          className="text-auri-ink-muted flex flex-wrap items-center gap-x-4 gap-y-2 text-sm"
-          aria-label="Footer"
-        >
-          <Link
-            href="/#product"
-            className="hover:text-auri-ink inline-flex min-h-11 items-center"
-          >
-            Product
-          </Link>
-          <Show when="signed-out">
-            <SignInButton mode="redirect">
-              <button type="button" className="hover:text-auri-ink min-h-11">
-                Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton mode="redirect">
-              <button type="button" className="hover:text-auri-ink min-h-11">
-                {AURI_PRIMARY_CTA}
-                <span className="sr-only"> {AURI_PRIMARY_CTA_HINT}</span>
-              </button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
-            <Button asChild variant="ghost">
-              <Link href="/app">Open app</Link>
-            </Button>
-          </Show>
-        </nav>
+        <Show when="signed-out">
+          <SignInButton mode="redirect">
+            <button
+              type="button"
+              className="text-auri-ink-muted hover:text-auri-ink inline-flex min-h-11 items-center text-sm"
+            >
+              Sign in
+            </button>
+          </SignInButton>
+        </Show>
+        <Show when="signed-in">
+          <Button asChild variant="ghost">
+            <Link href="/app">Open app</Link>
+          </Button>
+        </Show>
       </div>
     </footer>
   );

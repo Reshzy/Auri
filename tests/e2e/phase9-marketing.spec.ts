@@ -44,19 +44,18 @@ test.describe("Phase 9 marketing landing", () => {
     ).toBeVisible();
   });
 
-  test("opens mobile marketing navigation from the keyboard", async ({ page }) => {
+  test("keeps sign in reachable on a phone without a product menu", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await page.getByRole("button", { name: "Open menu" }).press("Enter");
+    await expect(page.getByRole("button", { name: "Open menu" })).toHaveCount(0);
+    await expect(page.getByRole("navigation", { name: "Marketing mobile" })).toHaveCount(
+      0,
+    );
+    await expect(page.getByRole("link", { name: "Product" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Sign in" }).first()).toBeVisible();
     await expect(
-      page.getByRole("navigation", { name: "Marketing mobile" }),
+      page.getByRole("link", { name: "Create your report" }).first(),
     ).toBeVisible();
-    const mobileNav = page.getByRole("navigation", { name: "Marketing mobile" });
-    await expect(mobileNav.getByRole("link", { name: "Product" })).toBeVisible();
-    await expect(
-      mobileNav.getByRole("link", { name: "Create your report" }),
-    ).toBeVisible();
-    await expect(mobileNav.getByRole("link", { name: "How it works" })).toHaveCount(0);
   });
 
   test("renders a branded 404", async ({ page }) => {
