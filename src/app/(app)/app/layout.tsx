@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileAppNav } from "@/components/layout/mobile-app-nav";
+import { SkipToContent } from "@/components/layout/skip-to-content";
 import { ensureProfile } from "@/db/dal/profiles";
 import { getAppUser } from "@/db/dal/get-app-user";
 import { isOnboardingComplete } from "@/lib/onboarding/progress";
@@ -36,11 +37,17 @@ export default async function ApplicationLayout({
   }
 
   return (
-    <div className="min-h-screen md:flex">
+    <div className="relative min-h-screen md:flex">
+      <SkipToContent />
       <AppSidebar className="hidden md:flex" />
       <div className="flex min-h-screen flex-1 flex-col">
         <AppHeader />
-        <main className="flex-1 px-4 py-6 pb-24 md:px-8 md:pb-8">{children}</main>
+        <main
+          id="main-content"
+          className="flex-1 px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:px-8 md:pb-8"
+        >
+          {children}
+        </main>
       </div>
       <MobileAppNav />
     </div>

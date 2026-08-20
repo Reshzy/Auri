@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ExportFileRow } from "@/features/exports/export-file-row";
 import type { ExportHistoryItem } from "@/lib/exports/types";
 
 export function ExportHistoryList({
@@ -69,49 +70,15 @@ export function ExportHistoryList({
       ) : null}
       <ul className="space-y-2">
         {items.map((item) => (
-          <li
+          <ExportFileRow
             key={item.id}
-            className="border-auri-border flex flex-col gap-2 rounded-2xl border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div>
-              <p className="text-auri-ink font-medium">
-                {item.format.toUpperCase()} · {item.fileName}
-              </p>
-              <p className="text-auri-ink-muted">
-                {item.createdAtLabel} · {item.fileSizeLabel} ·{" "}
-                {item.templates
-                  .map((template) =>
-                    template.version != null
-                      ? `${template.key} v${template.version}`
-                      : template.key,
-                  )
-                  .join(" + ") || "Template unknown"}
-              </p>
-              <p>
-                <span
-                  className={
-                    item.presentationStatus === "current"
-                      ? "text-auri-success"
-                      : "text-auri-warning"
-                  }
-                >
-                  {item.presentationStatus === "current" ? "Current" : "Outdated"}
-                </span>
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {item.downloadable ? (
-                <Button asChild size="sm" variant="secondary">
-                  <a href={item.downloadUrl}>Download</a>
-                </Button>
-              ) : (
-                <span className="text-auri-ink-muted text-xs">Download unavailable</span>
-              )}
+            item={item}
+            actions={
               <Button size="sm" variant="ghost" onClick={() => setConfirmId(item.id)}>
                 Delete
               </Button>
-            </div>
-          </li>
+            }
+          />
         ))}
       </ul>
       <Dialog

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { assertOwnerMatchesSession } from "@/db/dal/ownership";
 import { ensureProfile, getOwnProfile } from "@/db/dal/profiles";
@@ -66,7 +66,38 @@ export async function findActiveReportByRange(
   return rows[0] ?? null;
 }
 
-export async function listOwnReports(userId: string): Promise<
+async function attachEntries(
+  userId: string,
+  reports: ReportPeriodRow[],
+): Promise<Array<{ report: ReportPeriodRow; entries: DailyEntryRow[] }>> {
+  if (reports.length === 0) return [];
+  const db = getDb();
+  const ids = reports.map((report) => report.id);
+  const entries = await db
+    .select()
+    .from(dailyEntries)
+    .where(
+      and(eq(dailyEntries.userId, userId), inArray(dailyEntries.reportPeriodId, ids)),
+    )
+    .orderBy(asc(dailyEntries.workDate));
+
+  const byReport = new Map<string, DailyEntryRow[]>();
+  for (const entry of entries) {
+    const list = byReport.get(entry.reportPeriodId) ?? [];
+    list.push(entry);
+    byReport.set(entry.reportPeriodId, list);
+  }
+
+  return reports.map((report) => ({
+    report,
+    entries: byReport.get(report.id) ?? [],
+  }));
+}
+
+export async function listOwnReports(
+  userId: string,
+  options?: { limit?: number },
+): Promise<
   Array<{
     report: ReportPeriodRow;
     entries: DailyEntryRow[];
@@ -74,49 +105,52 @@ export async function listOwnReports(userId: string): Promise<
 > {
   assertUserId(userId);
   const db = getDb();
-  const reports = await db
+  const query = db
     .select()
     .from(reportPeriods)
     .where(eq(reportPeriods.userId, userId))
     .orderBy(desc(reportPeriods.startDate), desc(reportPeriods.createdAt));
 
-  const result = [];
-  for (const report of reports) {
-    const entries = await db
-      .select()
-      .from(dailyEntries)
-      .where(
-        and(eq(dailyEntries.reportPeriodId, report.id), eq(dailyEntries.userId, userId)),
-      )
-      .orderBy(asc(dailyEntries.workDate));
-    result.push({ report, entries });
-  }
-  return result;
+  const reports =
+    options?.limit != null
+      ? await query.limit(Math.min(Math.max(options.limit, 1), 100))
+      : await query;
+
+  return attachEntries(userId, reports);
+}
+
+export async function findActiveReportWithEntriesByRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+): Promise<{ report: ReportPeriodRow; entries: DailyEntryRow[] } | null> {
+  const report = await findActiveReportByRange(userId, startDate, endDate);
+  if (!report) return null;
+  const [loaded] = await attachEntries(userId, [report]);
+  return loaded ?? null;
+}
+
+export async function getOwnReportsWithEntries(
+  userId: string,
+  reportIds: string[],
+): Promise<Array<{ report: ReportPeriodRow; entries: DailyEntryRow[] }>> {
+  assertUserId(userId);
+  const unique = [...new Set(reportIds.filter((id) => UUID_RE.test(id)))];
+  if (unique.length === 0) return [];
+  const db = getDb();
+  const reports = await db
+    .select()
+    .from(reportPeriods)
+    .where(and(eq(reportPeriods.userId, userId), inArray(reportPeriods.id, unique)));
+  return attachEntries(userId, reports);
 }
 
 export async function getOwnReportWithEntries(
   userId: string,
   reportId: string,
 ): Promise<{ report: ReportPeriodRow; entries: DailyEntryRow[] } | null> {
-  assertUserId(userId);
-  const db = getDb();
-  const reports = await db
-    .select()
-    .from(reportPeriods)
-    .where(and(eq(reportPeriods.id, reportId), eq(reportPeriods.userId, userId)))
-    .limit(1);
-  const report = reports[0];
-  if (!report) return null;
-
-  const entries = await db
-    .select()
-    .from(dailyEntries)
-    .where(
-      and(eq(dailyEntries.reportPeriodId, reportId), eq(dailyEntries.userId, userId)),
-    )
-    .orderBy(asc(dailyEntries.workDate));
-
-  return { report, entries };
+  const [loaded] = await getOwnReportsWithEntries(userId, [reportId]);
+  return loaded ?? null;
 }
 
 function assertEditable(status: string): void {

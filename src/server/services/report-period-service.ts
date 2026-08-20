@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   createOwnReportPeriod,
+  findActiveReportWithEntriesByRange,
   getOwnReportWithEntries,
   getProfileSnapshot,
   getSignatorySnapshot,
@@ -44,9 +45,22 @@ export class ReportPeriodService {
     return createOwnReportPeriod(userId, input, clientSuppliedOwnerId);
   }
 
-  static async list(userId: string): Promise<ReportListItem[]> {
-    const rows = await listOwnReports(userId);
+  static async list(
+    userId: string,
+    options?: { limit?: number },
+  ): Promise<ReportListItem[]> {
+    const rows = await listOwnReports(userId, options);
     return rows.map(({ report, entries }) => summarize(report, entries));
+  }
+
+  static async findActiveSummary(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<ReportListItem | null> {
+    const loaded = await findActiveReportWithEntriesByRange(userId, startDate, endDate);
+    if (!loaded) return null;
+    return summarize(loaded.report, loaded.entries);
   }
 
   static async get(userId: string, reportId: string) {

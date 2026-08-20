@@ -49,6 +49,18 @@ export function formatStatus(status: string): string {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+export function formatCompletionSummary(input: {
+  progressLabel: string;
+  incompleteOrInvalidCount: number;
+  totalWorkedLabel: string;
+}): string {
+  const incomplete =
+    input.incompleteOrInvalidCount > 0
+      ? `${input.incompleteOrInvalidCount} missing/incomplete`
+      : "All days complete";
+  return `Progress ${input.progressLabel} · ${input.totalWorkedLabel} · ${incomplete}`;
+}
+
 export function formatMinutesLabel(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;

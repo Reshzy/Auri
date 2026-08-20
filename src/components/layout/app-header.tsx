@@ -1,5 +1,6 @@
 "use client";
 
+import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 
 function titleForPath(pathname: string): string {
@@ -22,9 +23,14 @@ export function AppHeader() {
   const title = titleForPath(pathname);
 
   return (
-    <header className="border-auri-border bg-auri-surface/80 border-b px-4 py-4 md:px-8">
-      <p className="text-auri-ink-muted text-sm">Asia/Manila</p>
-      <h1 className="text-auri-ink text-lg font-semibold">{title}</h1>
+    <header className="border-auri-border bg-auri-surface/80 flex items-center justify-between gap-3 border-b px-4 py-4 pt-[max(1rem,env(safe-area-inset-top,0px))] md:px-8 md:pt-4">
+      <div>
+        <p className="text-auri-ink-muted text-sm">Asia/Manila</p>
+        <h1 className="text-auri-ink text-lg font-semibold">{title}</h1>
+      </div>
+      <div className="flex min-h-11 min-w-11 items-center justify-center md:hidden">
+        <UserButton />
+      </div>
     </header>
   );
 }

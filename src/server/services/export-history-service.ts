@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getOwnReportWithEntries } from "@/db/dal/reports";
+import { getOwnReportWithEntries, getOwnReportsWithEntries } from "@/db/dal/reports";
 import {
   listOwnExportsForReport,
   listOwnRecentExports,
@@ -120,28 +120,48 @@ export class ExportHistoryService {
       list.push(row);
       byReport.set(row.reportPeriodId, list);
     }
-    const presented: ExportHistoryItem[] = [];
-    for (const [reportId, group] of byReport) {
-      const loaded = await getOwnReportWithEntries(userId, reportId);
-      if (!loaded) continue;
-      presented.push(...(await this.presentRows(loaded, group, options)));
-    }
-    presented.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    return presented.slice(0, options?.limit ?? 8);
+    const loadedList = await getOwnReportsWithEntries(userId, [...byReport.keys()]);
+    const loadedById = new Map(loadedList.map((loaded) => [loaded.report.id, loaded]));
+    const hashes = await this.activeTemplateHashes();
+    const labels = await loadTemplateLabels(rows.flatMap(templateIdsForRow));
+    const groups = await Promise.all(
+      [...byReport.entries()].map(async ([reportId, group]) => {
+        const loaded = loadedById.get(reportId);
+        if (!loaded) return [];
+        return this.presentRows(loaded, group, { ...options, hashes, labels });
+      }),
+    );
+    return groups
+      .flat()
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, options?.limit ?? 8);
+  }
+
+  private static async activeTemplateHashes(): Promise<{
+    accomplishmentSha256: string;
+    dtrSha256: string;
+  }> {
+    const [accomplishment, dtr] = await Promise.all([
+      TemplateService.getActiveAccomplishmentTemplate(),
+      TemplateService.getActiveDtrTemplate(),
+    ]);
+    return {
+      accomplishmentSha256: accomplishment?.sha256 ?? "",
+      dtrSha256: dtr?.sha256 ?? "",
+    };
   }
 
   private static async presentRows(
     loaded: NonNullable<Awaited<ReturnType<typeof getOwnReportWithEntries>>>,
     rows: ReportExportRow[],
-    options?: { storage?: GeneratedStorage },
+    options?: {
+      storage?: GeneratedStorage;
+      hashes?: { accomplishmentSha256: string; dtrSha256: string };
+      labels?: Map<string, HistoryTemplateLabel>;
+    },
   ): Promise<ExportHistoryItem[]> {
     const payload = ReportMappingService.buildPayload(mappingInputFromLoaded(loaded));
-    const accomplishment = await TemplateService.getActiveAccomplishmentTemplate();
-    const dtr = await TemplateService.getActiveDtrTemplate();
-    const hashes = {
-      accomplishmentSha256: accomplishment?.sha256 ?? "",
-      dtrSha256: dtr?.sha256 ?? "",
-    };
+    const hashes = options?.hashes ?? (await this.activeTemplateHashes());
     const expected = {
       docx: ExportFreshnessService.expectedRevision("docx", payload, hashes),
       xlsx: ExportFreshnessService.expectedRevision("xlsx", payload, hashes),
@@ -149,18 +169,20 @@ export class ExportHistoryService {
     };
     const profile = loaded.report.profileSnapshot as ProfileSnapshot;
     const timezone = profile.timezone || "Asia/Manila";
-    const templateIds = rows.flatMap(templateIdsForRow);
-    const labels = await loadTemplateLabels(templateIds);
+    const labels =
+      options?.labels ?? (await loadTemplateLabels(rows.flatMap(templateIdsForRow)));
 
-    const items: ExportHistoryItem[] = [];
-    for (const row of rows) {
+    const freshnessResults = await Promise.all(
+      rows.map((row) => {
+        const format = row.format as "docx" | "xlsx" | "zip";
+        return ExportFreshnessService.present(row, expected[format], options);
+      }),
+    );
+
+    return rows.map((row, index) => {
       const format = row.format as "docx" | "xlsx" | "zip";
-      const freshness = await ExportFreshnessService.present(
-        row,
-        expected[format],
-        options,
-      );
-      items.push({
+      const freshness = freshnessResults[index]!;
+      return {
         id: row.id,
         reportId: row.reportPeriodId,
         format,
@@ -175,8 +197,7 @@ export class ExportHistoryService {
         templates: templateIdsForRow(row).map(
           (id) => labels.get(id) ?? { key: "unknown", version: null },
         ),
-      });
-    }
-    return items;
+      };
+    });
   }
 }
