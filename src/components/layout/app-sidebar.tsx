@@ -30,16 +30,23 @@ export function AppSidebar({ className }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "border-auri-border bg-auri-surface/90 flex h-full w-64 flex-col border-r",
+        "border-auri-border bg-auri-surface/90 flex w-64 shrink-0 flex-col border-r md:sticky md:top-0 md:h-dvh",
         className,
       )}
     >
-      <div className="border-auri-border border-b px-5 py-5">
-        <Link href="/app" aria-label="Auri application home">
+      <div className="border-auri-border shrink-0 border-b px-5 py-5">
+        <Link
+          href="/app"
+          aria-label="Auri application home"
+          className="inline-flex min-w-0"
+        >
           <AuriMark priority />
         </Link>
       </div>
-      <nav className="flex flex-1 flex-col gap-6 px-3 py-5" aria-label="Application">
+      <nav
+        className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-3 py-5"
+        aria-label="Application"
+      >
         <div className="space-y-1">
           {primaryNav.map((item) => {
             const Icon = item.icon;
@@ -59,7 +66,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                     : "text-auri-ink-muted hover:bg-auri-orange-50 hover:text-auri-ink",
                 )}
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
+                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {item.label}
               </Link>
             );
@@ -88,7 +95,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
           </div>
         </div>
       </nav>
-      <div className="border-auri-border flex items-center border-t px-3 py-3">
+      <div className="border-auri-border mt-auto flex shrink-0 items-center border-t px-3 py-3">
         <UserButton />
       </div>
     </aside>

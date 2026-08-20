@@ -21,7 +21,7 @@ export function AuriMark({
         height={160}
         sizes="46px"
         priority={priority}
-        className="h-10 w-auto"
+        className="h-10 w-auto shrink-0"
       />
       {showWordmark ? (
         <span className="text-auri-ink text-lg font-semibold tracking-tight">Auri</span>

@@ -37,17 +37,19 @@ export default async function ApplicationLayout({
   }
 
   return (
-    <div className="relative min-h-screen md:flex">
+    <div className="relative min-h-dvh">
       <SkipToContent />
-      <AppSidebar className="hidden md:flex" />
-      <div className="flex min-h-screen flex-1 flex-col">
-        <AppHeader />
-        <main
-          id="main-content"
-          className="flex-1 px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:px-8 md:pb-8"
-        >
-          {children}
-        </main>
+      <div className="md:flex md:min-h-dvh">
+        <AppSidebar className="hidden md:flex" />
+        <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+          <AppHeader />
+          <main
+            id="main-content"
+            className="flex-1 px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:px-8 md:pb-8"
+          >
+            {children}
+          </main>
+        </div>
       </div>
       <MobileAppNav />
     </div>
