@@ -1,6 +1,7 @@
 /** DOCX / export display formatters matching audited official presentation. */
 
 import { parseYmd } from "@/lib/dates/period";
+import { formatDtrClock } from "@/lib/reports/dtr-format";
 import { formatTotalHoursLabel } from "@/lib/reports/totals";
 
 const MONTHS = [
@@ -42,13 +43,9 @@ export function formatAccomplishmentPeriodLabel(
   return `${formatDocxDate(startDate)}-${formatDocxDate(endDate)}`;
 }
 
-/** Format HH:MM as H:MM without leading zero on the hour (audited AM/PM cells). */
+/** Format HH:MM as a familiar 12-hour clock without AM/PM (same as DTR). */
 export function formatDocxClock(hhmm: string): string {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim());
-  if (!match) return hhmm.trim();
-  const hour = Number(match[1]);
-  const minute = match[2]!;
-  return `${hour}:${minute}`;
+  return formatDtrClock(hhmm);
 }
 
 /** Audited AM/PM range: `7:00-12:00` */

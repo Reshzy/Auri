@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 
 export const SOURCE_REVISION_VERSION = "auri-src-rev-v1";
+/** Bump when DOCX clock/display formatting changes so stale exports are not reused. */
+export const DOCX_DISPLAY_CLOCK_VERSION = "12h-v1";
 
 export type ExportFormat = "docx" | "xlsx" | "zip";
 
@@ -42,11 +44,13 @@ function revisionMaterial(parts: {
   ];
   if (parts.format === "docx") {
     lines.push(`template.accomplishment=${parts.accomplishmentHash ?? ""}`);
+    lines.push(`docx.clock=${DOCX_DISPLAY_CLOCK_VERSION}`);
   } else if (parts.format === "xlsx") {
     lines.push(`template.dtr=${parts.dtrHash ?? ""}`);
   } else {
     lines.push(`template.accomplishment=${parts.accomplishmentHash ?? ""}`);
     lines.push(`template.dtr=${parts.dtrHash ?? ""}`);
+    lines.push(`docx.clock=${DOCX_DISPLAY_CLOCK_VERSION}`);
   }
   return lines.join("\n");
 }

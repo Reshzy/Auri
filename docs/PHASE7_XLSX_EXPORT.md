@@ -18,8 +18,8 @@ PostgreSQL is accessed through authenticated server-side Drizzle. Explicit DAL a
 
 | Artifact           | Path                                        | SHA-256                                                            |
 | ------------------ | ------------------------------------------- | ------------------------------------------------------------------ |
-| Source (immutable) | `templates/source/DTR RODGE.xlsx`           | `7cc8fd8fe90f6062864410c4a8920e909350369c99ee7548e24f922ac5f5314b` |
-| Runtime            | `templates/runtime/dtr-csc-form-48-v1.xlsx` | `a08195c60aed77bd2dd8a78c283697fd6ba1a4bd4a13262e395a17854181eba6` |
+| Source (immutable) | `templates/source/DTR RODGE.xlsx`           | `26a88e371c9df57ab3a2535493d81af70cf5f788cead3695dcc67de0b12da80c` |
+| Runtime            | `templates/runtime/dtr-csc-form-48-v1.xlsx` | `20ef7627254232a1d9e055f708b715cae49e29a463def5a6e18a99c2f5700b0c` |
 
 Never overwrite, resave, or patch the source workbook. Preparation fails closed if the source hash mismatches.
 

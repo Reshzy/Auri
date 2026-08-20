@@ -15,10 +15,18 @@ describe("normalizeTimeInput", () => {
     expect(normalizeTimeInput("07:15:00")).toEqual({ ok: true, value: "07:15" });
   });
 
-  it("rejects invalid formats", () => {
-    expect(normalizeTimeInput("25:00").ok).toBe(false);
+  it("accepts hour-only input and rejects invalid formats", () => {
+    expect(normalizeTimeInput("7")).toEqual({ ok: true, value: "07:00" });
     expect(normalizeTimeInput("abc").ok).toBe(false);
-    expect(normalizeTimeInput("7").ok).toBe(false);
+    expect(normalizeTimeInput("25:00").ok).toBe(false);
+  });
+
+  it("treats 1:00–11:59 in PM fields as afternoon", () => {
+    expect(normalizeTimeInput("600", "pm")).toEqual({ ok: true, value: "18:00" });
+    expect(normalizeTimeInput("6", "pm")).toEqual({ ok: true, value: "18:00" });
+    expect(normalizeTimeInput("12:57", "pm")).toEqual({ ok: true, value: "12:57" });
+    expect(normalizeTimeInput("1300", "pm")).toEqual({ ok: true, value: "13:00" });
+    expect(normalizeTimeInput("600", "am")).toEqual({ ok: true, value: "06:00" });
   });
 });
 
@@ -41,6 +49,18 @@ describe("session validation", () => {
       pmDeparture: null,
     });
     expect(result.issues[0]?.message).toMatch(/earlier/);
+  });
+
+  it("accepts keyboard PM times that are afternoon in column context", () => {
+    const result = normalizeAndValidateDayTimes({
+      amArrival: "647",
+      amDeparture: "1201",
+      pmArrival: "12:57",
+      pmDeparture: "600",
+    });
+    expect(result.issues).toEqual([]);
+    expect(result.pmArrival).toBe("12:57");
+    expect(result.pmDeparture).toBe("18:00");
   });
 
   it("rejects overlapping AM/PM sessions", () => {

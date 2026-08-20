@@ -1,6 +1,9 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
+import { access, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { constants as fsConstants } from "node:fs";
+import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { ExportError } from "@/lib/exports/errors";
 import {
@@ -73,6 +76,93 @@ function assertUploadContract(input: {
   if (hash !== input.expectedSha256) {
     throw new ExportError("EXPORT_INTEGRITY_FAILED", "Generated file hash mismatch.");
   }
+}
+
+const LOCAL_GENERATED_ROOT = path.join(process.cwd(), "generated", "reports");
+
+async function fileExists(fsPath: string): Promise<boolean> {
+  try {
+    await access(fsPath, fsConstants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function localFsPath(storagePath: string): string {
+  const parsed = parseGeneratedStoragePath(storagePath);
+  if (!parsed) {
+    throw new ExportError("EXPORT_INTEGRITY_FAILED", "Invalid storage path.");
+  }
+  return path.join(
+    LOCAL_GENERATED_ROOT,
+    parsed.ownerId,
+    parsed.reportPeriodId,
+    parsed.exportId,
+    parsed.fileName,
+  );
+}
+
+/** Dev-only persistence when Supabase Storage credentials are not configured. */
+export function createLocalFileGeneratedStorage(): GeneratedStorage {
+  return {
+    bucket: `${GENERATED_REPORTS_BUCKET}-local`,
+    isConfigured() {
+      return true;
+    },
+    async isPublic() {
+      return false;
+    },
+    async upload(input) {
+      assertUploadContract(input);
+      const fsPath = localFsPath(input.path);
+      if (await fileExists(fsPath)) {
+        const existingBytes = await readFile(fsPath);
+        const existingHash = sha256Hex(existingBytes);
+        if (existingHash !== input.expectedSha256) {
+          throw new ExportError(
+            "EXPORT_INTEGRITY_FAILED",
+            "Refusing to overwrite an existing object with different bytes.",
+          );
+        }
+        return {
+          path: input.path,
+          byteLength: existingBytes.byteLength,
+          sha256: existingHash,
+          contentType: input.contentType,
+        };
+      }
+      await mkdir(path.dirname(fsPath), { recursive: true });
+      await writeFile(fsPath, input.bytes);
+      return {
+        path: input.path,
+        byteLength: input.bytes.byteLength,
+        sha256: input.expectedSha256,
+        contentType: input.contentType,
+      };
+    },
+    async download(storagePath) {
+      const fsPath = localFsPath(storagePath);
+      if (!(await fileExists(fsPath))) return null;
+      return Buffer.from(await readFile(fsPath));
+    },
+    async exists(storagePath) {
+      return fileExists(localFsPath(storagePath));
+    },
+    async head(storagePath) {
+      const bytes = await this.download(storagePath);
+      return bytes ? { byteLength: bytes.byteLength } : null;
+    },
+    async removeExact(storagePath) {
+      if (!parseGeneratedStoragePath(storagePath)) {
+        throw new ExportError("EXPORT_DELETE_FAILED", "Invalid storage path.");
+      }
+      const fsPath = localFsPath(storagePath);
+      if (!(await fileExists(fsPath))) return "absent";
+      await unlink(fsPath);
+      return "deleted";
+    },
+  };
 }
 
 export function createMemoryGeneratedStorage(): GeneratedStorage & {
@@ -284,8 +374,15 @@ export function setGeneratedStorageForTests(storage: GeneratedStorage | null): v
   injected = storage;
 }
 
+let localFileStorage: GeneratedStorage | null = null;
+
 export function getGeneratedStorage(): GeneratedStorage {
   if (injected) return injected;
+  if (hasSupabaseStorageConfig()) return createSupabaseGeneratedStorage();
+  if (process.env.NODE_ENV === "development") {
+    localFileStorage ??= createLocalFileGeneratedStorage();
+    return localFileStorage;
+  }
   return createSupabaseGeneratedStorage();
 }
 
