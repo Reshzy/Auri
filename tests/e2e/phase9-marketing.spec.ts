@@ -52,7 +52,11 @@ test.describe("Phase 9 marketing landing", () => {
       0,
     );
     await expect(page.getByRole("link", { name: "Product" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Sign in" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sign in" }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Sign in" }).first()).toHaveAttribute(
+      "href",
+      "/sign-in",
+    );
     await expect(
       page.getByRole("link", { name: "Create your report" }).first(),
     ).toBeVisible();
