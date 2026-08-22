@@ -16,10 +16,12 @@ export default async function ApplicationLayout({
   children: React.ReactNode;
 }>) {
   let email: string | null = null;
+  let avatarUrl: string | null = null;
   if (hasAuthConfig()) {
     try {
       const user = await getAppUser();
       email = user.email;
+      avatarUrl = user.avatarUrl ?? null;
       if (hasDatabaseUrl()) {
         const profile = await ensureProfile(user.id);
         if (!isOnboardingComplete(profile.onboardingCompletedAt)) {
@@ -42,9 +44,9 @@ export default async function ApplicationLayout({
     <div className="relative min-h-dvh">
       <SkipToContent />
       <div className="md:flex md:min-h-dvh">
-        <AppSidebar className="hidden md:flex" email={email} />
+        <AppSidebar className="hidden md:flex" email={email} avatarUrl={avatarUrl} />
         <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-          <AppHeader email={email} />
+          <AppHeader email={email} avatarUrl={avatarUrl} />
           <main
             id="main-content"
             className="flex-1 px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:px-8 md:pb-8"

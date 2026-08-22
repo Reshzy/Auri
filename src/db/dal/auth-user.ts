@@ -1,6 +1,7 @@
 import "server-only";
 
 import { ensureProfileForAuthUser } from "@/db/dal/profiles";
+import { avatarUrlFromAuthClaims } from "@/lib/auth/avatar";
 import { hasAuthConfig, hasDatabaseUrl } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,6 +9,7 @@ export type AuthenticatedUser = {
   id: string;
   authUserId: string;
   email: string | null;
+  avatarUrl?: string | null;
 };
 
 /**
@@ -35,5 +37,6 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
     id: profile.id,
     authUserId,
     email,
+    avatarUrl: avatarUrlFromAuthClaims(claims),
   };
 }

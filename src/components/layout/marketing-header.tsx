@@ -4,7 +4,7 @@ import { AuriMark } from "@/components/brand/auri-mark";
 import { getOptionalAuthUser } from "@/lib/auth/session";
 
 export async function MarketingHeader() {
-  const { signedIn, email } = await getOptionalAuthUser();
+  const { signedIn, email, avatarUrl } = await getOptionalAuthUser();
 
   return (
     <header className="border-auri-border/70 bg-auri-paper/85 sticky top-0 z-40 border-b pt-[env(safe-area-inset-top,0px)] backdrop-blur-md">
@@ -12,7 +12,7 @@ export async function MarketingHeader() {
         <Link href="/" aria-label="Auri home">
           <AuriMark priority />
         </Link>
-        <MarketingAuthLinks signedIn={signedIn} email={email} />
+        <MarketingAuthLinks signedIn={signedIn} email={email} avatarUrl={avatarUrl} />
       </div>
     </header>
   );
