@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  AUTH_CLERK_LOAD_BODY,
+  AUTH_CLERK_LOAD_TITLE,
   AUTH_CONFIG_ERROR_BODY,
   AUTH_SIGN_IN_SWITCHER_ACTION,
   AUTH_SIGN_IN_SWITCHER_PROMPT,
@@ -21,6 +23,12 @@ describe("auth copy", () => {
     expect(AUTH_CONFIG_ERROR_BODY).toContain("Clerk");
     expect(AUTH_CONFIG_ERROR_BODY).toContain("database");
     expect(AUTH_CONFIG_ERROR_BODY.toLowerCase()).not.toContain("error occurred");
+  });
+
+  it("explains a Clerk frontend that never loads", () => {
+    expect(AUTH_CLERK_LOAD_TITLE).toContain("not connected");
+    expect(AUTH_CLERK_LOAD_BODY).toContain("clerk.accounts.dev");
+    expect(AUTH_CLERK_LOAD_BODY).toContain("vercel.app");
   });
 
   it("expands DTR on sign-up instead of using the acronym alone", () => {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SignUp } from "@clerk/nextjs";
+import { ClerkFormGate } from "@/components/auth/clerk-form-gate";
 import { AuthAccountSwitcher } from "@/components/auth/auth-account-switcher";
 import { AuthCard } from "@/components/auth/auth-card";
 import {
@@ -28,12 +29,14 @@ export default function SignUpPage() {
           />
         }
       >
-        <SignUp
-          routing="path"
-          path="/sign-up"
-          signInUrl="/sign-in"
-          fallbackRedirectUrl="/onboarding"
-        />
+        <ClerkFormGate>
+          <SignUp
+            routing="path"
+            path="/sign-up"
+            signInUrl="/sign-in"
+            fallbackRedirectUrl="/onboarding"
+          />
+        </ClerkFormGate>
       </AuthCard>
     </div>
   );
