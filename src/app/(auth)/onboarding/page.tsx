@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/auth/auth-card";
 import { OnboardingStepMotion } from "@/components/motion/onboarding-step-motion";
 import { Button } from "@/components/ui/button";
+import { DatabaseUnavailable } from "@/components/ui/unavailable-state";
 import { loadOnboardingContext } from "@/db/dal/onboarding-state";
 import { ProfileForm } from "@/features/settings/profile-form";
 import { ScheduleForm } from "@/features/settings/schedule-form";
@@ -12,12 +13,13 @@ import {
   ReadyStepPanel,
   TemplatesAvailabilityPanel,
 } from "@/features/settings/templates-panel";
+import { shouldShowDatabaseUnavailable } from "@/lib/auth/handle-page-error";
+import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
 import {
   ONBOARDING_STEPS,
   ONBOARDING_STEP_LABELS,
   type OnboardingStepId,
 } from "@/lib/onboarding/progress";
-import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -32,19 +34,25 @@ export default async function OnboardingPage({
 }: {
   searchParams: Promise<{ step?: string }>;
 }) {
-  if (!hasClerkConfig()) {
-    redirect("/sign-in?error=config");
-  }
-  if (!hasDatabaseUrl()) {
-    redirect("/sign-in?error=config");
+  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+    return (
+      <div className="mx-auto w-full max-w-md">
+        <DatabaseUnavailable />
+      </div>
+    );
   }
 
   const params = await searchParams;
   let context;
   try {
     context = await loadOnboardingContext(params.step);
-  } catch {
-    redirect("/sign-in");
+  } catch (error) {
+    shouldShowDatabaseUnavailable(error);
+    return (
+      <div className="mx-auto w-full max-w-md">
+        <DatabaseUnavailable />
+      </div>
+    );
   }
 
   if (context.completed) {

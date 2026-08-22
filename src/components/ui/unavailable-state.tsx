@@ -25,7 +25,7 @@ export function DatabaseUnavailable() {
   return (
     <UnavailableState
       title="Workspace is not connected"
-      description="The database is not configured in this environment. Sign in again after setup, or return to the overview."
+      description="The database is missing, unreachable, or has not been migrated yet. You are still signed in. Apply production migrations, then reload this page."
     />
   );
 }

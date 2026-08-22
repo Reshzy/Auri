@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { FirstVisitStagger } from "@/components/motion/first-visit-stagger";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DatabaseUnavailable } from "@/components/ui/unavailable-state";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { ExportFileRow } from "@/features/exports/export-file-row";
+import { shouldShowDatabaseUnavailable } from "@/lib/auth/handle-page-error";
 import {
   inferCurrentPeriodPreset,
   periodRangeForPreset,
@@ -42,8 +42,9 @@ export default async function AppOverviewPage() {
   let user;
   try {
     user = await requireAuthenticatedUser();
-  } catch {
-    redirect("/sign-in");
+  } catch (error) {
+    shouldShowDatabaseUnavailable(error);
+    return <DatabaseUnavailable />;
   }
 
   const todayYmd = todayYmdManila();

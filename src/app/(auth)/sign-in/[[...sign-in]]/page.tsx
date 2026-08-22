@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { SignIn } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { Alert } from "@/components/ui/alert";
 import { AuthAccountSwitcher } from "@/components/auth/auth-account-switcher";
 import { AuthCard } from "@/components/auth/auth-card";
@@ -24,6 +26,10 @@ export default async function SignInPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+  const { isAuthenticated } = await auth();
+  if (isAuthenticated && !isAuthConfigError(error)) {
+    redirect("/app");
+  }
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -45,12 +51,14 @@ export default async function SignInPage({
           ) : null
         }
       >
-        <SignIn
-          routing="path"
-          path="/sign-in"
-          signUpUrl="/sign-up"
-          fallbackRedirectUrl="/app"
-        />
+        {isAuthenticated ? null : (
+          <SignIn
+            routing="path"
+            path="/sign-in"
+            signUpUrl="/sign-up"
+            fallbackRedirectUrl="/app"
+          />
+        )}
       </AuthCard>
     </div>
   );

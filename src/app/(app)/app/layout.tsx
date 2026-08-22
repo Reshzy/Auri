@@ -3,39 +3,16 @@ import { AppHeader } from "@/components/layout/app-header";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MobileAppNav } from "@/components/layout/mobile-app-nav";
 import { SkipToContent } from "@/components/layout/skip-to-content";
+import { DatabaseUnavailable } from "@/components/ui/unavailable-state";
 import { ensureProfile } from "@/db/dal/profiles";
 import { getAppUser } from "@/db/dal/get-app-user";
-import { isOnboardingComplete } from "@/lib/onboarding/progress";
+import { isAuthRequiredError, isNextControlFlowError } from "@/lib/auth/errors";
 import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { isOnboardingComplete } from "@/lib/onboarding/progress";
 
 export const dynamic = "force-dynamic";
 
-export default async function ApplicationLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  if (hasClerkConfig()) {
-    try {
-      const user = await getAppUser();
-      if (hasDatabaseUrl()) {
-        const profile = await ensureProfile(user.id);
-        if (!isOnboardingComplete(profile.onboardingCompletedAt)) {
-          redirect("/onboarding");
-        }
-      }
-    } catch (error) {
-      const digest =
-        error && typeof error === "object" && "digest" in error
-          ? String((error as { digest?: unknown }).digest)
-          : "";
-      if (digest.includes("NEXT_REDIRECT") || digest.includes("NEXT_NOT_FOUND")) {
-        throw error;
-      }
-      redirect("/sign-in");
-    }
-  }
-
+function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-dvh">
       <SkipToContent />
@@ -54,4 +31,42 @@ export default async function ApplicationLayout({
       <MobileAppNav />
     </div>
   );
+}
+
+export default async function ApplicationLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  if (hasClerkConfig()) {
+    if (!hasDatabaseUrl()) {
+      return (
+        <AppShell>
+          <DatabaseUnavailable />
+        </AppShell>
+      );
+    }
+
+    try {
+      const user = await getAppUser();
+      const profile = await ensureProfile(user.id);
+      if (!isOnboardingComplete(profile.onboardingCompletedAt)) {
+        redirect("/onboarding");
+      }
+    } catch (error) {
+      if (isNextControlFlowError(error)) {
+        throw error;
+      }
+      if (isAuthRequiredError(error)) {
+        redirect("/sign-in");
+      }
+      return (
+        <AppShell>
+          <DatabaseUnavailable />
+        </AppShell>
+      );
+    }
+  }
+
+  return <AppShell>{children}</AppShell>;
 }

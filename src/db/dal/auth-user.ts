@@ -2,6 +2,10 @@ import "server-only";
 
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { ensureProfileForClerkUser } from "@/db/dal/profiles";
+import {
+  AUTH_REQUIRED_ERROR,
+  DATABASE_UNAVAILABLE_ERROR,
+} from "@/lib/auth/errors";
 import { hasDatabaseUrl } from "@/lib/env";
 
 export type AuthenticatedUser = {
@@ -18,11 +22,11 @@ export async function requireAuthenticatedUser(): Promise<AuthenticatedUser> {
   const { isAuthenticated, userId: clerkUserId } = await auth();
 
   if (!isAuthenticated || !clerkUserId) {
-    throw new Error("AUTH_REQUIRED");
+    throw new Error(AUTH_REQUIRED_ERROR);
   }
 
   if (!hasDatabaseUrl()) {
-    throw new Error("AUTH_REQUIRED");
+    throw new Error(DATABASE_UNAVAILABLE_ERROR);
   }
 
   const profile = await ensureProfileForClerkUser(clerkUserId);
