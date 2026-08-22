@@ -12,7 +12,7 @@ export type GeneratedStoragePathParts = {
 
 /**
  * Canonical object path: {internalProfileUuid}/{reportPeriodId}/{exportId}/{fileName}
- * Uses the internal profile UUID, never a Clerk user_… id.
+ * Uses the internal profile UUID, never an Auth provider id.
  */
 export function buildGeneratedStoragePath(parts: GeneratedStoragePathParts): string {
   assertUuid(parts.ownerId, "ownerId");

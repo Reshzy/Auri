@@ -50,7 +50,7 @@ describe.skipIf(!runLive)(
       const db = getDb();
       await db.insert(profiles).values({
         id: userId,
-        clerkUserId: `clerk_test_${userId}`,
+        authUserId: userId,
         employeeName: `Export User ${userId.slice(0, 8)}`,
         employeeTitle: "COS",
         organizationName: "Municipality",

@@ -2,18 +2,18 @@
 
 Last updated: 2026-08-13
 
-## Clerk identity boundary
+## Identity boundary
 
-| Step       | Behavior                                                                                            |
-| ---------- | --------------------------------------------------------------------------------------------------- |
-| Session    | Clerk `auth()` / `currentUser()` on the server                                                      |
-| Mapping    | `ensureProfileForClerkUser(clerkUserId)` → `profiles.id` (UUID) via unique `profiles.clerk_user_id` |
-| Ownership  | All tenant FKs use `profiles.id`. Clerk `user_…` strings are never written into UUID columns        |
-| Client ids | Generation, download, and delete JSON/query ownership fields are rejected                           |
-| Reports    | Loaded with `getOwnReportWithEntries(ownerUuid, reportId)`                                          |
-| Exports    | Loaded/deleted with export ID **and** owner UUID                                                    |
+| Step       | Behavior                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| Session    | Supabase Auth `getClaims()` on the server                                                        |
+| Mapping    | `ensureProfileForAuthUser(authUserId)` → `profiles.id` (UUID) via unique `profiles.auth_user_id` |
+| Ownership  | All tenant FKs use `profiles.id`. Auth user ids are never written into UUID columns              |
+| Client ids | Generation, download, and delete JSON/query ownership fields are rejected                        |
+| Reports    | Loaded with `getOwnReportWithEntries(ownerUuid, reportId)`                                       |
+| Exports    | Loaded/deleted with export ID **and** owner UUID                                                 |
 
-PostgreSQL is accessed through authenticated server-side Drizzle. Explicit DAL authorization is mandatory. Service-role Storage access is trusted server/setup code only and is **not** user authorization. Supabase Auth `auth.uid()` overlays are stale under Clerk.
+PostgreSQL is accessed through authenticated server-side Drizzle. Explicit DAL authorization is mandatory. Service-role Storage access is trusted server/setup code only and is **not** user authorization. `auth.uid()` overlays that assume `profiles.id = auth.users.id` are stale.
 
 ## `report_exports` and ZIP provenance
 
@@ -73,7 +73,7 @@ Bucket: `generated-reports` (never public).
 
 Path: `{internalProfileUuid}/{reportPeriodId}/{exportId}/{fileName}`
 
-- Internal profile UUID, never Clerk ID
+- Internal profile UUID, never Auth user id
 - Server-only upload with `upsert: false`
 - Refuses overwrite of an existing path with different bytes
 - Validates MIME, extension, size, and hash before upload
@@ -134,7 +134,7 @@ Explicit delete: `DELETE /api/exports/{exportId}` → `204`. ZIP delete does not
 | --------------------------- | ------------------------------------------------------------------ |
 | Local Postgres + `0003`     | Applied to local `Auri` on `localhost:5432`                        |
 | Live `generated-reports`    | Pending without `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`       |
-| Clerk Playwright E2E        | Pending without onboarded `E2E_USER_*`                             |
+| Auth Playwright E2E         | Pending without onboarded `E2E_USER_*`                             |
 | LibreOffice / Office visual | Pending — `soffice` unavailable (Phase 6/7 visual gates unchanged) |
 
 ## Phase 9 boundary

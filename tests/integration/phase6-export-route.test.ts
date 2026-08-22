@@ -51,7 +51,7 @@ describe("Phase 6 POST /api/reports/[reportId]/exports (persisted JSON)", () => 
     });
   });
 
-  it("rejects missing Clerk session", async () => {
+  it("rejects missing Auth session", async () => {
     requireAuthenticatedUser.mockRejectedValue(new Error("AUTH_REQUIRED"));
     const res = await POST(
       new Request("http://localhost/api/reports/r1/exports", {
@@ -66,7 +66,7 @@ describe("Phase 6 POST /api/reports/[reportId]/exports (persisted JSON)", () => 
   it("rejects browser-supplied ownership ids", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const res = await POST(
@@ -88,7 +88,7 @@ describe("Phase 6 POST /api/reports/[reportId]/exports (persisted JSON)", () => 
   it("rejects zip without DOCX and XLSX", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const res = await POST(
@@ -106,7 +106,7 @@ describe("Phase 6 POST /api/reports/[reportId]/exports (persisted JSON)", () => 
   it("returns persisted DOCX metadata with private no-store cache", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const res = await POST(

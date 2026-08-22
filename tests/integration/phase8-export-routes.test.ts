@@ -78,7 +78,7 @@ describe("Phase 8 export endpoints", () => {
     generateMock.mockResolvedValue(jsonResult("docx"));
   });
 
-  it("rejects missing Clerk session", async () => {
+  it("rejects missing Auth session", async () => {
     requireAuthenticatedUser.mockRejectedValue(new Error("AUTH_REQUIRED"));
     const res = await POST(
       new Request("http://localhost/api/reports/r1/exports", {
@@ -93,7 +93,7 @@ describe("Phase 8 export endpoints", () => {
   it("rejects browser-supplied owner fields", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const res = await POST(
@@ -115,7 +115,7 @@ describe("Phase 8 export endpoints", () => {
   it("rejects empty, duplicate, unknown, and zip-without-members formats", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const cases = [
@@ -140,7 +140,7 @@ describe("Phase 8 export endpoints", () => {
   it("accepts DOCX-only, XLSX-only, combined, and ZIP-with-members requests", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     for (const formats of [
@@ -173,7 +173,7 @@ describe("Phase 8 export endpoints", () => {
   it("returns partial success without calling it complete", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     generateMock.mockResolvedValue({
@@ -200,7 +200,7 @@ describe("Phase 8 export endpoints", () => {
   it("streams protected downloads with MIME, disposition, and no-store", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     downloadMock.mockResolvedValue({
@@ -224,7 +224,7 @@ describe("Phase 8 export endpoints", () => {
   it("rejects cross-user download and delete", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const { ExportError } = await import("@/lib/exports/errors");
@@ -246,7 +246,7 @@ describe("Phase 8 export endpoints", () => {
   it("returns 204 on successful delete", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     deleteMock.mockResolvedValue(undefined);

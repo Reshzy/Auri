@@ -28,7 +28,7 @@ async function main() {
   try {
     await db.insert(profiles).values({
       id,
-      clerkUserId: `clerk_smoke_${id}`,
+      authUserId: id,
       employeeName: "smoke-test",
     });
     const rows = await db.select().from(profiles).where(eq(profiles.id, id)).limit(1);

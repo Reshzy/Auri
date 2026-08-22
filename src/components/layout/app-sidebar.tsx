@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
 import { FileText, LayoutDashboard, Sparkles } from "lucide-react";
+import { UserMenu } from "@/components/auth/user-menu";
 import { AuriMark } from "@/components/brand/auri-mark";
 import { cn } from "@/lib/utils";
 
@@ -22,9 +22,10 @@ const settingsNav = [
 
 type AppSidebarProps = {
   className?: string;
+  email?: string | null;
 };
 
-export function AppSidebar({ className }: AppSidebarProps) {
+export function AppSidebar({ className, email }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -96,7 +97,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
         </div>
       </nav>
       <div className="border-auri-border mt-auto flex shrink-0 items-center border-t px-3 py-3">
-        <UserButton />
+        <UserMenu email={email} />
       </div>
     </aside>
   );

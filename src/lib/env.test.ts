@@ -1,22 +1,20 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  getClerkSecretKey,
   getDatabaseConnectionOptions,
   getDatabaseUrl,
   getDirectUrl,
   getPublicEnv,
-  hasClerkConfig,
+  hasAuthConfig,
   hasDatabaseUrl,
   hasDirectUrl,
   isLocalDatabaseHost,
   publicEnvSchema,
-  clerkSecretSchema,
 } from "@/lib/env";
 
 const KEYS = [
   "NEXT_PUBLIC_SITE_URL",
-  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-  "CLERK_SECRET_KEY",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "DATABASE_URL",
   "DIRECT_URL",
   "AURI_TEMPLATE_BUCKET",
@@ -55,39 +53,30 @@ describe("env validation", () => {
     restoreEnv();
   });
 
-  it("rejects incomplete Clerk config", () => {
+  it("rejects incomplete Auth config", () => {
     clearEnv();
-    expect(hasClerkConfig()).toBe(false);
+    expect(hasAuthConfig()).toBe(false);
     expect(() => getPublicEnv()).toThrow(/Missing or invalid public/);
   });
 
   it("accepts a complete public config", () => {
     clearEnv();
     process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_example";
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_example";
 
     const env = getPublicEnv();
     expect(env.AURI_TEMPLATE_BUCKET).toBe("templates");
     expect(env.AURI_GENERATED_BUCKET).toBe("generated-reports");
     expect(env.AURI_DEFAULT_TIMEZONE).toBe("Asia/Manila");
+    expect(hasAuthConfig()).toBe(true);
   });
 
-  it("requires both publishable and secret keys for hasClerkConfig", () => {
-    clearEnv();
-    process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_example";
-    expect(hasClerkConfig()).toBe(false);
-
-    process.env.CLERK_SECRET_KEY = "sk_test_example";
-    expect(hasClerkConfig()).toBe(true);
-    expect(getClerkSecretKey()).toBe("sk_test_example");
-  });
-
-  it("keeps the Clerk secret key off the public schema", () => {
+  it("keeps the service role off the public schema", () => {
     const shape = publicEnvSchema.shape;
-    expect("CLERK_SECRET_KEY" in shape).toBe(false);
-    expect("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" in shape).toBe(true);
-    expect(clerkSecretSchema.shape.CLERK_SECRET_KEY).toBeTruthy();
+    expect("SUPABASE_SERVICE_ROLE_KEY" in shape).toBe(false);
+    expect("NEXT_PUBLIC_SUPABASE_URL" in shape).toBe(true);
+    expect("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" in shape).toBe(true);
   });
 
   it("validates database connection URLs", () => {

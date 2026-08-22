@@ -3,14 +3,14 @@ import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { getTemplateAvailability } from "@/db/dal/templates";
 import { TemplatesAvailabilityPanel } from "@/features/settings/templates-panel";
-import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasAuthConfig } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Templates",
 };
 
 export default async function TemplatesSettingsPage() {
-  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+  if (!hasAuthConfig() || !hasDatabaseUrl()) {
     redirect("/sign-in?error=config");
   }
 

@@ -27,7 +27,7 @@ const REQUIRED_INDEXES = [
   "report_exports_user_created_idx",
   "report_exports_period_created_idx",
   "template_versions_one_active_per_key_idx",
-  "profiles_clerk_user_id_unique",
+  "profiles_auth_user_id_unique",
 ] as const;
 
 function assert(condition: boolean, message: string): void {
@@ -99,8 +99,8 @@ async function verifySchema(sql: postgres.Sql): Promise<void> {
     assert(await tableExists(sql, table), `Missing table ${table}`);
   }
   assert(
-    await columnExists(sql, "profiles", "clerk_user_id"),
-    "Missing profiles.clerk_user_id",
+    await columnExists(sql, "profiles", "auth_user_id"),
+    "Missing profiles.auth_user_id",
   );
   assert(
     await columnExists(sql, "report_exports", "bundle_manifest"),
@@ -122,7 +122,7 @@ async function verifySchema(sql: postgres.Sql): Promise<void> {
   `.catch(() => null);
   if (journal) {
     assert(
-      Number(journal[0]?.count ?? 0) >= 4,
+      Number(journal[0]?.count ?? 0) >= 5,
       "Drizzle journal is missing expected migrations",
     );
   }
@@ -203,8 +203,21 @@ async function runIncremental(connectionString: string): Promise<void> {
       "Prior schema unexpectedly already has bundle_manifest",
     );
     await applySqlFile(sql, "0003_mighty_chamber.sql");
+    assert(
+      await columnExists(sql, "report_exports", "bundle_manifest"),
+      "0003 should add bundle_manifest",
+    );
+    assert(
+      !(await columnExists(sql, "profiles", "auth_user_id")),
+      "0003 should not yet have auth_user_id",
+    );
+    const later = files.filter((name) => name > "0003_mighty_chamber.sql");
+    assert(later.length > 0, "Missing drizzle migration after 0003 for auth_user_id");
+    for (const file of later) {
+      await applySqlFile(sql, file);
+    }
     await verifySchema(sql);
-    console.log("Incremental 0003_mighty_chamber: PASS");
+    console.log("Incremental 0003 + later migrations: PASS");
   } finally {
     await sql.end({ timeout: 5 });
   }

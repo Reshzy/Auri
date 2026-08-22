@@ -4,18 +4,18 @@ Last updated: 2026-08-13
 
 ## Layout
 
-| Suite                    | Command                                                            | Database                           | Secrets                            |
-| ------------------------ | ------------------------------------------------------------------ | ---------------------------------- | ---------------------------------- |
-| Unit                     | `pnpm test:unit`                                                   | No                                 | No                                 |
-| Integration              | `pnpm test:integration`                                            | `DATABASE_URL` (skipped if absent) | No                                 |
-| All Vitest               | `pnpm test`                                                        | Integration skipped without DB     | No                                 |
-| Public Playwright        | `pnpm test:e2e:public`                                             | No                                 | Clerk publishable key for app boot |
-| Authenticated Playwright | `pnpm test:e2e:authenticated`                                      | App DB                             | Disposable Clerk `E2E_USER_*`      |
-| Smokes                   | `pnpm db:smoke`, `reports:smoke`, `presets:smoke`, `exports:smoke` | Local/CI Postgres                  | No                                 |
-| Live Storage             | `pnpm exports:storage:smoke`                                       | No                                 | Supabase URL + service role        |
-| Office visual            | `pnpm office:visual`                                               | No                                 | LibreOffice or Microsoft Office    |
+| Suite                    | Command                                                            | Database                           | Secrets                                     |
+| ------------------------ | ------------------------------------------------------------------ | ---------------------------------- | ------------------------------------------- |
+| Unit                     | `pnpm test:unit`                                                   | No                                 | No                                          |
+| Integration              | `pnpm test:integration`                                            | `DATABASE_URL` (skipped if absent) | No                                          |
+| All Vitest               | `pnpm test`                                                        | Integration skipped without DB     | No                                          |
+| Public Playwright        | `pnpm test:e2e:public`                                             | No                                 | Supabase URL + publishable key for app boot |
+| Authenticated Playwright | `pnpm test:e2e:authenticated`                                      | App DB                             | Disposable Auth `E2E_USER_*`                |
+| Smokes                   | `pnpm db:smoke`, `reports:smoke`, `presets:smoke`, `exports:smoke` | Local/CI Postgres                  | No                                          |
+| Live Storage             | `pnpm exports:storage:smoke`                                       | No                                 | Supabase URL + service role                 |
+| Office visual            | `pnpm office:visual`                                               | No                                 | LibreOffice or Microsoft Office             |
 
-Mocked Clerk route tests are **not** authenticated E2E.
+Mocked Auth route tests are **not** authenticated E2E.
 
 ## CI
 
@@ -28,9 +28,7 @@ Mocked Clerk route tests are **not** authenticated E2E.
 
 ## Playwright credentials
 
-Use a disposable onboarded Clerk **test** user (`pk_test` / `sk_test` instance). Never commit passwords or `storageState`. Optional `E2E_USER_B_*` for cross-user checks.
-
-Clerk testing tokens (`CLERK_TESTING_TOKEN`) are optional; see [Clerk Playwright testing](https://clerk.com/docs/guides/development/testing/playwright/overview).
+Use a disposable onboarded Auth **test** user. Never commit passwords or `storageState`. Optional `E2E_USER_B_*` for cross-user checks.
 
 ## Fixtures
 

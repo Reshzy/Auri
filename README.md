@@ -18,7 +18,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Copy `.env.example` to `.env.local` and fill Clerk plus local Postgres. Details: `docs/ENVIRONMENT.md`, `docs/DATABASE.md`.
+Copy `.env.example` to `.env.local` and fill Supabase Auth plus local Postgres. Details: `docs/ENVIRONMENT.md`, `docs/DATABASE.md`.
 
 ## Quality gates
 

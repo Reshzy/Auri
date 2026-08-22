@@ -1,9 +1,10 @@
--- Clerk-safe defense in depth for Supabase Postgres.
+-- Server-auth defense in depth for Supabase Postgres.
 -- Enable RLS on every user-owned table and template_versions.
--- Do not create auth.uid() policies: Clerk session IDs are not auth.users UUIDs.
--- With RLS enabled and no policies, anon/authenticated Data API access is denied.
+-- Do not create auth.uid() policies: tenant FKs use internal profiles.id,
+-- which is not auth.users.id. With RLS enabled and no policies,
+-- anon/authenticated Data API access is denied.
 -- The Auri server uses a privileged Postgres connection and MUST scope by
--- profiles.id after a verified Clerk session (explicit DAL authorization).
+-- profiles.id after a verified Supabase Auth session (explicit DAL authorization).
 -- service_role / postgres bypass RLS and are trusted server/setup access only.
 
 alter table public.profiles enable row level security;

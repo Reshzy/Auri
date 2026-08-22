@@ -5,8 +5,8 @@ config({ path: ".env.local" });
 config();
 
 const hasAuth =
-  Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
-  Boolean(process.env.CLERK_SECRET_KEY) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+  Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) &&
   Boolean(process.env.E2E_USER_EMAIL) &&
   Boolean(process.env.E2E_USER_PASSWORD);
 

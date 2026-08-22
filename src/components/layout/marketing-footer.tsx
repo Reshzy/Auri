@@ -1,14 +1,10 @@
-"use client";
-
-import Link from "next/link";
-import { useAuth } from "@clerk/nextjs";
+import { MarketingAuthLinks } from "@/components/auth/marketing-auth-links";
 import { AuriMark } from "@/components/brand/auri-mark";
-import { Button } from "@/components/ui/button";
+import { getOptionalAuthUser } from "@/lib/auth/session";
 import { AURI_TAGLINE } from "@/lib/brand";
 
-export function MarketingFooter() {
-  const { isLoaded, isSignedIn } = useAuth();
-  const showApp = isLoaded && isSignedIn;
+export async function MarketingFooter() {
+  const { signedIn, email } = await getOptionalAuthUser();
 
   return (
     <footer className="border-auri-border/80 bg-auri-surface/70 border-t pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
@@ -17,15 +13,7 @@ export function MarketingFooter() {
           <AuriMark />
           <p className="text-auri-ink-muted max-w-md text-sm">{AURI_TAGLINE}</p>
         </div>
-        {showApp ? (
-          <Button asChild variant="ghost">
-            <Link href="/app">Open app</Link>
-          </Button>
-        ) : (
-          <Button asChild variant="ghost">
-            <Link href="/sign-in">Sign in</Link>
-          </Button>
-        )}
+        <MarketingAuthLinks signedIn={signedIn} email={email} />
       </div>
     </footer>
   );

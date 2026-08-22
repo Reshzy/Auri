@@ -40,7 +40,7 @@ async function main() {
   try {
     await db.insert(profiles).values({
       id: userId,
-      clerkUserId: `clerk_smoke_presets_${userId}`,
+      authUserId: userId,
       employeeName: "phase5-smoke",
       organizationName: "Municipality",
       officeName: "Office",

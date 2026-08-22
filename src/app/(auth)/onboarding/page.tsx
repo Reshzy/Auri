@@ -14,7 +14,7 @@ import {
   TemplatesAvailabilityPanel,
 } from "@/features/settings/templates-panel";
 import { shouldShowDatabaseUnavailable } from "@/lib/auth/handle-page-error";
-import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasAuthConfig } from "@/lib/env";
 import {
   ONBOARDING_STEPS,
   ONBOARDING_STEP_LABELS,
@@ -34,7 +34,10 @@ export default async function OnboardingPage({
 }: {
   searchParams: Promise<{ step?: string }>;
 }) {
-  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+  if (!hasAuthConfig()) {
+    redirect("/sign-in?error=config");
+  }
+  if (!hasDatabaseUrl()) {
     return (
       <div className="mx-auto w-full max-w-md">
         <DatabaseUnavailable />

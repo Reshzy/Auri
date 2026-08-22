@@ -6,29 +6,29 @@
 | ----------------------- | ---------------------------------------- | --------------------------- |
 | App schema + migrations | Drizzle → PostgreSQL `Auri` on localhost | Drizzle → Supabase Postgres |
 | ORM                     | Drizzle (`src/db`)                       | Drizzle (`src/db`)          |
-| Auth                    | Clerk                                    | Clerk                       |
+| Auth                    | Supabase Auth                            | Supabase Auth               |
 | Storage                 | Optional for Phase 6 template upload     | Private Supabase Storage    |
 | RLS / `auth.uid()`      | Not available on ordinary Postgres       | Stale overlays — see below  |
 | Deployment              | —                                        | Vercel                      |
 
 **Drizzle is the canonical application-schema source of truth** (`src/db/schema/` → `drizzle/`). Do not edit a parallel portable schema under `supabase/migrations/`.
 
-Local PostgreSQL does **not** include Supabase Auth, Storage, `auth.users`, or `auth.uid()`. Clerk is the identity provider. Docker / `supabase start` are optional alternatives for Storage only, not required for Auth.
+Local PostgreSQL does **not** include Supabase Auth, Storage, `auth.users`, or `auth.uid()`. The app still authenticates against hosted Supabase Auth. Docker / `supabase start` are optional alternatives for Storage only, not required for Auth.
 
-Direct PostgreSQL connections (Drizzle) bypass Supabase Data API RLS. The server data-access layer always scopes by the verified internal profile UUID from Clerk. Do not rely on `auth.uid()` RLS for Clerk deployments unless JWT claims and policies are intentionally rewritten.
+Direct PostgreSQL connections (Drizzle) bypass Supabase Data API RLS. The server data-access layer always scopes by the verified internal profile UUID. Do not rely on `auth.uid()` RLS unless policies are rewritten to join `profiles.auth_user_id`.
 
-## Clerk → database ownership
+## Supabase Auth → database ownership
 
-1. Clerk verifies the session (`auth()` / `currentUser()`).
-2. `requireAuthenticatedUser()` calls `ensureProfileForClerkUser(clerkUserId)`.
-3. `profiles.clerk_user_id` (text, unique) stores the Clerk `user_…` id.
+1. Supabase Auth verifies the session (`getClaims()`).
+2. `requireAuthenticatedUser()` calls `ensureProfileForAuthUser(authUserId)`.
+3. `profiles.auth_user_id` (text, unique) stores the `auth.users.id` UUID.
 4. `profiles.id` is an internal UUID used by all tenant foreign keys (`user_id`).
-5. Never write a Clerk string into a UUID ownership column. Never accept browser-supplied owner ids.
+5. Never write an Auth provider id into a UUID ownership column. Never accept browser-supplied owner ids.
 
 ## Environment
 
 1. Copy `.env.example` → `.env.local`.
-2. Fill Clerk keys (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`) and site URL.
+2. Fill `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and site URL.
 3. Set local database URLs (password only in `.env.local`, never commit):
 
 ```dotenv
@@ -73,21 +73,21 @@ Do **not** use destructive reset commands. Do **not** run `drizzle-kit push` aga
 1. Identify the exact Supabase project. Set `AURI_MIGRATE_TARGET=production` and `AURI_ALLOW_PRODUCTION_MIGRATE=1`.
 2. Set production `DATABASE_URL` (pooler) and `DIRECT_URL` (direct/session).
 3. Backup, then apply Drizzle migrations: `pnpm db:migrate`. Verify with `pnpm db:migrate:verify` (schema check only on production).
-4. Apply **Clerk-safe** overlays `supabase/overlays/clerk/001`–`003`. Do **not** apply `001`–`004` Auth FK / `auth.uid()` overlays as-is.
+4. Apply **server-auth** overlays `supabase/overlays/server-auth/001`–`003`. Do **not** apply `001`–`004` Auth FK / `auth.uid()` overlays as-is (those assume `profiles.id = auth.users.id`).
 5. `pnpm storage:setup` then upload runtime templates.
-6. Confirm Clerk redirect URLs for the Vercel site.
+6. Confirm Supabase Auth Site URL and Redirect URLs for the Vercel site.
 
 See `docs/DEPLOYMENT.md` and `docs/OPERATIONS.md`.
 
 ## Profile provisioning
 
-After Clerk session validation, `ensureProfileForClerkUser(clerkUserId)` upserts a profile with a new internal UUID and the Clerk id. Idempotent; never trusts a client-supplied user id. There is no `auth.users` trigger under Clerk.
+After session validation, `ensureProfileForAuthUser(authUserId)` upserts a profile with a new internal UUID and the Auth user id. Idempotent; never trusts a client-supplied user id. There is no `auth.users` insert trigger in the app.
 
 ## Why DAL authorization is mandatory
 
 - Drizzle uses a privileged Postgres connection that can bypass RLS.
 - Every user-owned query/mutation must filter by the session profile UUID in the DAL.
-- Legacy Supabase Auth RLS overlays are not a safe Clerk boundary until rewritten.
+- Legacy `auth.uid() = id` RLS overlays are not a safe boundary until rewritten to use `profiles.auth_user_id`.
 - Do not expose user tables or private files through an unauthenticated Supabase Data API.
 - Service-role keys are for trusted server/setup code only.
 
@@ -105,7 +105,7 @@ No schema or migration-history conflict was observed. No destructive repair was 
 ## Phase 3 data-access notes
 
 - Onboarding and settings mutations live in server-only DAL modules under `src/db/dal/` and server actions under `src/features/settings/actions.ts`.
-- Session owner UUID comes from Clerk → `profiles.id` only. Client-supplied `user_id` / `owner_id` fields are rejected.
+- Session owner UUID comes from Supabase Auth → `profiles.id` only. Client-supplied `user_id` / `owner_id` fields are rejected.
 - `profiles.active_schedule_id` is set only to a `work_schedules` row owned by the same user.
 - Snapshot builders (`src/db/dal/snapshots.ts`) copy current profile, active schedule, and active signatories into JSON for `report_periods` inserts.
 - Template availability checks active `template_versions` rows and falls back to audited Phase 0 `templates/manifests` + `templates/source` for onboarding UX. Real DOCX/XLSX export requires an activated runtime template (Phase 6/7) or documented local runtime fallback.
@@ -142,7 +142,7 @@ No schema or migration-history conflict was observed. No destructive repair was 
 - Export DAL: `src/db/dal/exports.ts`. Services: `ExportOrchestrationService`, `ExportPersistenceService`, `ExportHistoryService`, `ExportDownloadService`, `ExportDeletionService`, `ZipExportService`, `ExportFreshnessService`.
 - Additive migration `drizzle/0003_mighty_chamber.sql`: nullable ZIP `template_version_id`, required `bundle_manifest` for ZIP, one current export per report+format, history indexes.
 - Daily-entry mutations, preset apply, snapshot refresh, and reopen set `is_current = false` in the same transaction. Files are not deleted.
-- Private bucket `generated-reports` path: `{internalProfileUuid}/{reportPeriodId}/{exportId}/{fileName}`. Downloads stream through Clerk-authenticated `GET /api/exports/{exportId}/download`.
+- Downloads stream through an authenticated `GET /api/exports/{exportId}/download`.
 - See `docs/PHASE8_EXPORT_HISTORY.md`.
 
 ## Local verification commands
@@ -155,15 +155,15 @@ pnpm presets:smoke   # disposable preset seed/apply/duplicate smoke
 pnpm phase5:check    # alias of presets:smoke
 pnpm docx:smoke      # Phase 6 DOCX smoke
 pnpm test            # unit + live integration (skips integration if no DATABASE_URL)
-pnpm test:e2e        # Playwright; skipped without Clerk + E2E_USER_* credentials
+pnpm test:e2e        # Playwright; skipped without Auth + E2E_USER_* credentials
 ```
 
 ## Testing Phase 3–6 locally
 
-1. Ensure `DATABASE_URL` / `DIRECT_URL` point at local `Auri` and Clerk env is set.
+1. Ensure `DATABASE_URL` / `DIRECT_URL` point at local `Auri` and Auth env is set.
 2. Sign in → incomplete profiles are redirected to `/onboarding`.
 3. Complete steps; refresh mid-flow to confirm resume.
 4. After completion, create a report under `/app/reports/new` and edit days under `/app/reports/[id]/edit`.
 5. Manage presets at `/app/presets` (starter seed + CRUD) and apply them from the day editor picker.
 6. Prepare/upload DOCX runtime template, then `POST /api/reports/{id}/exports` with `{ "formats": ["docx"] }` (Phase 8 returns persisted JSON + protected download URLs).
-7. Automated coverage: `pnpm test` (unit + disposable Postgres integration). Live Auth browser E2E requires a real onboarded Clerk test account — do not invent credentials.
+7. Automated coverage: `pnpm test` (unit + disposable Postgres integration). Live Auth browser E2E requires a real onboarded test account — do not invent credentials.

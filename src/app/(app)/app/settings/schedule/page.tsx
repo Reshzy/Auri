@@ -9,14 +9,14 @@ import {
   createCompressedWeekdayRules,
 } from "@/lib/onboarding/defaults";
 import type { WeekdayRules } from "@/lib/validation/onboarding";
-import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasAuthConfig } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Work schedule",
 };
 
 export default async function ScheduleSettingsPage() {
-  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+  if (!hasAuthConfig() || !hasDatabaseUrl()) {
     redirect("/sign-in?error=config");
   }
 

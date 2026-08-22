@@ -41,17 +41,18 @@ Keep a copy of runtime files + manifests outside Storage (this git repo is the s
 
 Investigate with service-role list under a **disposable prefix** only. Match `storage_path` in `report_exports`. Do not bulk-delete production prefixes. Delete only objects created by a known disposable test.
 
-## Clerk mapping failures
+## Auth mapping failures
 
-- Missing profile: server upserts `profiles` keyed by `clerk_user_id`.
+- Missing profile: server upserts `profiles` keyed by `auth_user_id`.
 - User stuck on `/onboarding`: complete profile, schedule, signatories, templates.
 - Wrong user sees data: treat as an incident; DAL must filter by session profile UUID. Rotate keys if a secret leaked.
 
 ## Key rotation
 
-1. Clerk: create a new secret in the Dashboard, set `CLERK_SECRET_KEY` on Vercel, redeploy, then revoke the old secret.
+1. Supabase publishable key: rotate in the dashboard, set `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` on Vercel, redeploy.
 2. Supabase service role: rotate in the dashboard, update Vercel **server** env, redeploy. Never put the new key in git.
 3. Database URL: rotate database password, update `DATABASE_URL` / `DIRECT_URL`, redeploy. Run a read-only `db:inspect` equivalent after.
+4. OAuth client secrets: rotate in Google/GitHub/Facebook consoles and paste the new values into the Supabase Auth provider settings.
 
 ## Logging
 
@@ -61,7 +62,7 @@ Unsafe: request bodies with accomplishments, file bytes, `Authorization` headers
 ## Production smoke (after each production deploy)
 
 - `/` loads branded landing copy
-- `/sign-in` reaches Clerk
+- `/sign-in` shows Auri email + Google/GitHub/Facebook buttons
 - Signed-in `/app` loads
 - One disposable generate + download
 - `Cache-Control: private, no-store` on the download response
@@ -72,4 +73,4 @@ Use the Vercel dashboard or CLI to restore a previous **deployment**. Confirm th
 
 ## CSP
 
-Document security headers are set in `next.config.ts`. A strict Content-Security-Policy is **not** enabled automatically because Clerk’s Frontend API host is instance-specific. Add Clerk’s [CSP directives](https://clerk.com/docs/security/clerk-csp) in production after the production FAPI hostname is known, then re-test sign-in.
+Document security headers are set in `next.config.ts`. A strict Content-Security-Policy is **not** enabled automatically. If you add one, allow `https://*.supabase.co` for Auth and Storage, then re-test sign-in.

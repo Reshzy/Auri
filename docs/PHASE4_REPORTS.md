@@ -81,10 +81,10 @@ RLS remains defense in depth for production Supabase; direct Drizzle connections
 
 ## Testing
 
-| Suite              | Command                                    | Notes                                                                            |
-| ------------------ | ------------------------------------------ | -------------------------------------------------------------------------------- |
-| Unit + integration | `pnpm test`                                | Integration uses disposable local Postgres rows when `DATABASE_URL` is set       |
-| Report smoke       | `pnpm reports:smoke` / `pnpm phase4:check` | Aug 1–15 2026 classification fixture                                             |
-| Playwright         | `pnpm test:e2e`                            | **Skipped** unless Clerk keys and `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` are set |
+| Suite              | Command                                    | Notes                                                                           |
+| ------------------ | ------------------------------------------ | ------------------------------------------------------------------------------- |
+| Unit + integration | `pnpm test`                                | Integration uses disposable local Postgres rows when `DATABASE_URL` is set      |
+| Report smoke       | `pnpm reports:smoke` / `pnpm phase4:check` | Aug 1–15 2026 classification fixture                                            |
+| Playwright         | `pnpm test:e2e`                            | **Skipped** unless Auth keys and `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` are set |
 
 Live Auth browser E2E is not claimed when credentials are absent.

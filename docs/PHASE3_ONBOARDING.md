@@ -10,8 +10,8 @@
 ## Operator checklist
 
 1. Local Postgres verified (`pnpm db:inspect` / `migrate` / `smoke`).
-2. Clerk configured (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, site URL, Clerk redirect URLs for `/sign-in`, `/sign-up`, `/onboarding`, `/app`).
-3. Sign in with a real Clerk account → complete onboarding → confirm `/app` access.
+2. Supabase Auth configured (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, site URL, Auth redirect URLs for `/auth/callback`).
+3. Sign in with a real Auth account → complete onboarding → confirm `/app` access.
 4. Confirm settings updates persist and remain user-scoped.
 
 ## Automated vs live tests

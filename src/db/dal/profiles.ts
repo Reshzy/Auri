@@ -18,24 +18,24 @@ function assertUserId(userId: string): void {
   }
 }
 
-function assertClerkUserId(clerkUserId: string): void {
-  if (!clerkUserId.trim()) {
-    throw new Error("Invalid Clerk user id.");
+function assertAuthUserId(authUserId: string): void {
+  if (!UUID_RE.test(authUserId)) {
+    throw new Error("Invalid authenticated user id.");
   }
 }
 
 /**
- * Idempotent profile bootstrap for a verified Clerk user id.
+ * Idempotent profile bootstrap for a verified Supabase Auth user id.
  * Allocates a stable UUID primary key for tenant FKs on first sight.
  */
-export async function ensureProfileForClerkUser(clerkUserId: string) {
-  assertClerkUserId(clerkUserId);
+export async function ensureProfileForAuthUser(authUserId: string) {
+  assertAuthUserId(authUserId);
   const db = getDb();
 
   const existing = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.clerkUserId, clerkUserId))
+    .where(eq(profiles.authUserId, authUserId))
     .limit(1);
 
   if (existing[0]) {
@@ -45,8 +45,8 @@ export async function ensureProfileForClerkUser(clerkUserId: string) {
   const id = randomUUID();
   const inserted = await db
     .insert(profiles)
-    .values({ id, clerkUserId })
-    .onConflictDoNothing({ target: profiles.clerkUserId })
+    .values({ id, authUserId })
+    .onConflictDoNothing({ target: profiles.authUserId })
     .returning();
 
   if (inserted[0]) {
@@ -56,7 +56,7 @@ export async function ensureProfileForClerkUser(clerkUserId: string) {
   const afterConflict = await db
     .select()
     .from(profiles)
-    .where(eq(profiles.clerkUserId, clerkUserId))
+    .where(eq(profiles.authUserId, authUserId))
     .limit(1);
 
   if (!afterConflict[0]) {
@@ -68,7 +68,7 @@ export async function ensureProfileForClerkUser(clerkUserId: string) {
 
 /**
  * Load the caller's profile by UUID. Throws if the row is missing
- * (profile must already exist via ensureProfileForClerkUser).
+ * (profile must already exist via ensureProfileForAuthUser).
  */
 export async function ensureProfile(userId: string) {
   assertUserId(userId);

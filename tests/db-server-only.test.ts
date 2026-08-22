@@ -32,12 +32,15 @@ describe("server-only database boundary", () => {
     }
   });
 
-  it("keeps Clerk auth-user free of client-supplied ownership", () => {
+  it("keeps auth-user free of client-supplied ownership", () => {
     const source = readFileSync(
       path.resolve(__dirname, "../src/db/dal/auth-user.ts"),
       "utf8",
     );
-    expect(source).toMatch(/@clerk\/nextjs\/server/);
-    expect(source).not.toMatch(/supabase/i);
+    expect(source).toMatch(/getClaims/);
+    expect(source).toMatch(/@\/lib\/supabase\/server/);
+    expect(source).not.toMatch(/@clerk\/nextjs/);
+    expect(source).not.toMatch(/searchParams/);
+    expect(source).not.toMatch(/request\.body/);
   });
 });

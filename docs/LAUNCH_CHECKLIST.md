@@ -30,13 +30,13 @@ Every gate is one of: **Passed**, **Failed**, **Blocked**, **Pending manual veri
 | ------------------------------------------------------------- | ---------------------------------------------------------- |
 | Production Supabase project identified                        | Pending manual verification                                |
 | Production migrations applied and journal verified            | Pending manual verification                                |
-| Clerk-safe RLS + revoke anon/authenticated                    | Pending manual verification                                |
+| Server-auth RLS + revoke anon/authenticated                   | Pending manual verification                                |
 | Unauthenticated Data API cannot read private tables           | Pending manual verification                                |
 | Private `templates` and `generated-reports` buckets           | Pending manual verification                                |
 | Trusted runtime templates uploaded; SHA-256 matches manifests | Pending manual verification                                |
 | Cross-user DAL isolation (automated integration)              | Passed (Phase 8 live Postgres integration on local `Auri`) |
 | Cross-user live Storage isolation                             | Pending manual verification                                |
-| Production Clerk origins and redirects                        | Pending manual verification                                |
+| Production Auth Site URL, redirects, and OAuth providers      | Pending manual verification                                |
 | Authenticated critical Playwright                             | Pending manual verification (`E2E_USER_*` absent)          |
 | Second-account isolation Playwright                           | Pending manual verification (`E2E_USER_B_*` absent)        |
 
@@ -54,6 +54,6 @@ Every gate is one of: **Passed**, **Failed**, **Blocked**, **Pending manual veri
 
 ## Classification rule
 
-Auri may be marked **READY FOR LAUNCH** only when all of the following are Passed: clean-clone CI green, production migrations verified, private buckets and templates verified, production Clerk works, cross-user isolation verified, authenticated critical E2E passed, Office open/print review passed, Vercel production smoke passed, and no unresolved high-severity security issue remains.
+Auri may be marked **READY FOR LAUNCH** only when all of the following are Passed: clean-clone CI green, production migrations verified, private buckets and templates verified, production Auth works, cross-user isolation verified, authenticated critical E2E passed, Office open/print review passed, Vercel production smoke passed, and no unresolved high-severity security issue remains.
 
 Until those remote/manual gates run, the honest classification is **READY AFTER LISTED MANUAL GATES**.
