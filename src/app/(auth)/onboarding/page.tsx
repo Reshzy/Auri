@@ -17,7 +17,7 @@ import {
   ONBOARDING_STEP_LABELS,
   type OnboardingStepId,
 } from "@/lib/onboarding/progress";
-import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasAuthConfig } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +32,7 @@ export default async function OnboardingPage({
 }: {
   searchParams: Promise<{ step?: string }>;
 }) {
-  if (!hasClerkConfig()) {
+  if (!hasAuthConfig()) {
     redirect("/sign-in?error=config");
   }
   if (!hasDatabaseUrl()) {

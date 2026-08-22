@@ -6,7 +6,7 @@ import { SkipToContent } from "@/components/layout/skip-to-content";
 import { ensureProfile } from "@/db/dal/profiles";
 import { getAppUser } from "@/db/dal/get-app-user";
 import { isOnboardingComplete } from "@/lib/onboarding/progress";
-import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasAuthConfig } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +15,11 @@ export default async function ApplicationLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  if (hasClerkConfig()) {
+  let email: string | null = null;
+  if (hasAuthConfig()) {
     try {
       const user = await getAppUser();
+      email = user.email;
       if (hasDatabaseUrl()) {
         const profile = await ensureProfile(user.id);
         if (!isOnboardingComplete(profile.onboardingCompletedAt)) {
@@ -40,9 +42,9 @@ export default async function ApplicationLayout({
     <div className="relative min-h-dvh">
       <SkipToContent />
       <div className="md:flex md:min-h-dvh">
-        <AppSidebar className="hidden md:flex" />
+        <AppSidebar className="hidden md:flex" email={email} />
         <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-          <AppHeader />
+          <AppHeader email={email} />
           <main
             id="main-content"
             className="flex-1 px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:px-8 md:pb-8"

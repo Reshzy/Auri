@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { config } from "dotenv";
-import { hasClerkConfig } from "../src/lib/env";
+import { hasAuthConfig } from "../src/lib/env";
 
 config({ path: ".env.local" });
 config();
@@ -30,11 +30,13 @@ function main() {
   assert(existsSync(proxyPath), "Missing src/proxy.ts (required when using src/app)");
 
   const proxySource = readFileSync(proxyPath, "utf8");
-  assert(proxySource.includes("clerkMiddleware"), "proxy.ts must use clerkMiddleware()");
+  assert(proxySource.includes("@supabase/ssr"), "proxy.ts must use @supabase/ssr");
+  assert(proxySource.includes("getClaims"), "proxy.ts must authorize with getClaims()");
   assert(
-    proxySource.includes("/__clerk/:path*"),
-    "proxy matcher must include /__clerk/:path*",
+    !proxySource.includes("clerkMiddleware"),
+    "proxy.ts must not use clerkMiddleware",
   );
+  assert(!proxySource.includes("/__clerk"), "proxy matcher must not include /__clerk");
 
   const drizzleSql = readSqlDir(drizzleDir);
   for (const table of [
@@ -55,8 +57,8 @@ function main() {
   }
 
   assert(
-    drizzleSql.includes("clerk_user_id"),
-    "Missing profiles.clerk_user_id column in Drizzle migrations",
+    drizzleSql.includes("auth_user_id"),
+    "Missing profiles.auth_user_id column in Drizzle migrations",
   );
 
   assert(
@@ -68,41 +70,40 @@ function main() {
     "Missing auth-user DAL",
   );
   assert(
-    existsSync(
-      path.join(root, "src", "app", "(auth)", "sign-in", "[[...sign-in]]", "page.tsx"),
-    ),
-    "Missing Clerk sign-in page",
+    existsSync(path.join(root, "src", "app", "(auth)", "sign-in", "page.tsx")),
+    "Missing sign-in page",
   );
   assert(
-    existsSync(
-      path.join(root, "src", "app", "(auth)", "sign-up", "[[...sign-up]]", "page.tsx"),
-    ),
-    "Missing Clerk sign-up page",
+    existsSync(path.join(root, "src", "app", "(auth)", "sign-up", "page.tsx")),
+    "Missing sign-up page",
+  );
+  assert(
+    existsSync(path.join(root, "src", "app", "auth", "callback", "route.ts")),
+    "Missing auth callback route",
   );
 
-  // Historical overlays remain as reference; Clerk-safe overlays live in overlays/clerk/.
   if (existsSync(overlaysDir)) {
     console.log(
-      "Note: supabase/overlays 001–004 assume auth.uid() and must not be applied as-is. Use supabase/overlays/clerk/.",
+      "Note: supabase/overlays 001–004 assume auth.uid() = profiles.id and must not be applied as-is. Use supabase/overlays/server-auth/.",
     );
   }
   assert(
-    existsSync(path.join(overlaysDir, "clerk", "001_rls_enable_deny_default.sql")),
-    "Missing Clerk-safe RLS overlay",
+    existsSync(path.join(overlaysDir, "server-auth", "001_rls_enable_deny_default.sql")),
+    "Missing server-auth RLS overlay",
   );
 
-  const clerkConfigured = hasClerkConfig();
+  const authConfigured = hasAuthConfig();
 
   console.log("Auth static checks: PASS");
   console.log(
-    clerkConfigured
-      ? "Clerk env: configured"
-      : "Clerk env: missing (add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY to .env.local)",
+    authConfigured
+      ? "Auth env: configured"
+      : "Auth env: missing (add NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to .env.local)",
   );
 
-  if (!clerkConfigured) {
+  if (!authConfigured) {
     console.log(
-      "Manual setup still required: copy .env.example → .env.local, add Clerk keys, and set DATABASE_URL for Drizzle.",
+      "Manual setup still required: copy .env.example → .env.local, add Supabase Auth keys, and set DATABASE_URL for Drizzle.",
     );
   }
 }

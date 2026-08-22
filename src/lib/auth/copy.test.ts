@@ -18,7 +18,7 @@ describe("auth copy", () => {
   });
 
   it("names the missing systems and the next step", () => {
-    expect(AUTH_CONFIG_ERROR_BODY).toContain("Clerk");
+    expect(AUTH_CONFIG_ERROR_BODY).toContain("Supabase Auth");
     expect(AUTH_CONFIG_ERROR_BODY).toContain("database");
     expect(AUTH_CONFIG_ERROR_BODY.toLowerCase()).not.toContain("error occurred");
   });

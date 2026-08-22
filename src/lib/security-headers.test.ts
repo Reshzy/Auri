@@ -17,7 +17,7 @@ describe("security headers", () => {
     });
   });
 
-  it("does not ship a guessed Clerk CSP", () => {
+  it("does not ship a guessed CSP", () => {
     expect(
       documentSecurityHeaders.some((header) => header.key === "Content-Security-Policy"),
     ).toBe(false);

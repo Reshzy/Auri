@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { SignUp } from "@clerk/nextjs";
 import { AuthAccountSwitcher } from "@/components/auth/auth-account-switcher";
 import { AuthCard } from "@/components/auth/auth-card";
+import { AuthForm } from "@/components/auth/auth-form";
 import {
   AUTH_SIGN_UP_DESCRIPTION,
   AUTH_SIGN_UP_SWITCHER_ACTION,
@@ -28,12 +28,7 @@ export default function SignUpPage() {
           />
         }
       >
-        <SignUp
-          routing="path"
-          path="/sign-up"
-          signInUrl="/sign-in"
-          fallbackRedirectUrl="/onboarding"
-        />
+        <AuthForm mode="sign-up" nextPath="/onboarding" />
       </AuthCard>
     </div>
   );

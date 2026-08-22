@@ -98,11 +98,11 @@ Manual (when a browser is available): landing, sign-in/up, onboarding, dashboard
 - GSAP is not imported from root or app layouts
 - Aurora pauses when off-screen
 - No CSS-hidden animated content, so failed JS still shows the landing
-- Remaining risk: first-load Clerk widgets on auth routes; document binaries stay server-only
+- Remaining risk: first-load Auth forms on auth routes; document binaries stay server-only
 
 ## Dark-mode decision
 
-**Deferred.** Light tokens are now consistent (`--auri-bg` aliased to paper), but Clerk still uses a dedicated appearance overlay, previews must stay paper-white, and there is no complete `.dark` token set. Shipping a second theme would compromise Phase 9 quality gates.
+**Deferred.** Light tokens are now consistent (`--auri-bg` aliased to paper), but Auth screens, previews must stay paper-white, and there is no complete `.dark` token set. Shipping a second theme would compromise Phase 9 quality gates.
 
 ## Test results
 
@@ -111,14 +111,14 @@ Automated:
 - `pnpm format:check`, `lint`, `typecheck`, `test` (202), `build` — pass
 - `pnpm db:check`, `db:smoke`, `reports:smoke`, `presets:smoke`, `exports:smoke` — pass
 - `pnpm templates:audit`, `docx:audit`, `xlsx:audit` — pass
-- `pnpm test:e2e` — 7 public Phase 9 tests pass (landing, reduced motion, mobile nav, 404, title, OG image, manifest). 4 Clerk-authenticated tests skipped (`E2E_USER_*` not configured).
+- `pnpm test:e2e` — 7 public Phase 9 tests pass (landing, reduced motion, mobile nav, 404, title, OG image, manifest). Authenticated tests skipped (`E2E_USER_*` not configured).
 
-Manual browser review of authenticated app routes was not completed in this environment (no Clerk E2E user). Playwright covered the public landing at 390×844 and default desktop viewport.
+Manual browser review of authenticated app routes was not completed in this environment (no Auth E2E user). Playwright covered the public landing at 390×844 and default desktop viewport.
 
 ## Remaining external gates
 
 - Live Supabase Storage
-- Clerk-authenticated Playwright E2E (`E2E_USER_*`)
+- Auth-authenticated Playwright E2E (`E2E_USER_*`)
 - LibreOffice / Microsoft Office visual and repair-warning checks
 
 ## Phase 10 boundary

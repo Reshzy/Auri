@@ -14,8 +14,8 @@ permissions:
 
 env:
   NEXT_PUBLIC_SITE_URL: http://localhost:3000
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_ci_placeholder_not_a_real_key
-  CLERK_SECRET_KEY: sk_test_ci_placeholder_not_a_real_key
+  NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
   AURI_TEMPLATE_BUCKET: templates
   AURI_GENERATED_BUCKET: generated-reports
   AURI_DEFAULT_TIMEZONE: Asia/Manila
@@ -112,8 +112,8 @@ jobs:
     timeout-minutes: 30
     if: ${{ github.event.pull_request.head.repo.fork != true && secrets.E2E_USER_EMAIL != '' }}
     env:
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
       E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
       E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
       E2E_USER_B_EMAIL: ${{ secrets.E2E_USER_B_EMAIL }}

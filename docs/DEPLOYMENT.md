@@ -11,7 +11,7 @@ Do not deploy, migrate, or mutate a remote environment until the exact target is
 | Git              | `https://github.com/Reshzy/Auri.git` branch `feature/phase-continue` | Local clone                                             |
 | Node             | Local v26.5.0; CI and Vercel **24.x**                                | `engines.node` is `>=20.9.0` (Vercel maps this to 24.x) |
 | PostgreSQL       | Local `localhost` database `Auri`                                    | Credentials present in `.env.local` (not printed)       |
-| Clerk            | Local/dev keys present in `.env.local`                               | Production instance **not** confirmed                   |
+| Supabase Auth    | Hosted project `jtammsjluototaykaxbd`                                | Enable Google/GitHub/Facebook + email in the Dashboard  |
 | Supabase Storage | Absent                                                               | `SUPABASE_URL` / service role not set                   |
 | Vercel           | Absent                                                               | No `.vercel` link, no CLI token                         |
 | GitHub Actions   | Workflow committed; no run in this session                           | First green run requires a push                         |
@@ -29,9 +29,9 @@ If a row is absent, prepare code/docs and leave the action **Pending**. Do not i
 
 See `docs/ENVIRONMENT.md` and `.env.example`.
 
-Preview and production on Vercel must use **separate** values for Clerk, `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_*`, and `NEXT_PUBLIC_SITE_URL`.
+Preview and production on Vercel must use **separate** values for `NEXT_PUBLIC_SUPABASE_*`, `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_*` (service role), and `NEXT_PUBLIC_SITE_URL`.
 
-Never prefix secrets with `NEXT_PUBLIC_`. Never put service-role keys, Clerk secrets, database URLs, signed URLs, or private Storage paths in the client bundle, git, CI logs, or application logs.
+Never prefix secrets with `NEXT_PUBLIC_`. Never put service-role keys, OAuth client secrets, database URLs, signed URLs, or private Storage paths in the client bundle, git, CI logs, or application logs.
 
 ## Database migrations (forward-only)
 
@@ -41,6 +41,7 @@ Committed files:
 2. `drizzle/0001_worried_sunset_bain.sql` — `snapshots_refreshed_at`
 3. `drizzle/0002_groovy_starhawk.sql` — `profiles.clerk_user_id`
 4. `drizzle/0003_mighty_chamber.sql` — ZIP `bundle_manifest`, one-current-export index
+5. `drizzle/0004_auth_user_id.sql` — rename `clerk_user_id` → `auth_user_id`
 
 Migrations are **not** fully reversible. There is no automatic down migration. Rollback is restore-from-backup plus a forward repair if needed. Never rewrite `__drizzle_migrations`. Never `drizzle-kit push` or reset production.
 
@@ -51,7 +52,7 @@ Migrations are **not** fully reversible. There is no automatic down migration. R
 3. `AURI_MIGRATE_TARGET=production` and `AURI_ALLOW_PRODUCTION_MIGRATE=1`
 4. `pnpm db:migrate`
 5. `pnpm db:migrate:verify` (schema check only; do not point incremental replay at production)
-6. Apply `supabase/overlays/clerk/001`–`003` in the SQL editor
+6. Apply `supabase/overlays/server-auth/001`–`003` in the SQL editor
 7. `pnpm storage:setup` then upload templates
 
 ### Rollback notes
@@ -60,23 +61,34 @@ Migrations are **not** fully reversible. There is no automatic down migration. R
 | --------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | 0000      | Creates all core tables                                              | Restore backup taken before 0000. Do not drop tables that contain user data.                      |
 | 0001      | Adds nullable `snapshots_refreshed_at`                               | Column may be left in place. Removing it is optional and unused by older app versions.            |
-| 0002      | Adds required `clerk_user_id`                                        | Cannot drop if rows exist and the running app requires it. Restore backup if this must be undone. |
+| 0002      | Adds required `clerk_user_id`                                        | Superseded by 0004 rename. Restore backup if this must be undone.                                 |
 | 0003      | Provenance check, `bundle_manifest`, current-per-format unique index | Restore backup. Manually dropping the check/index without restoring files can strand ZIP rows.    |
+| 0004      | Renames `clerk_user_id` → `auth_user_id`                             | Cannot drop if rows exist and the running app requires it. Restore backup if this must be undone. |
 
 Vercel rollback to a previous deployment does **not** roll back the database. Only roll back the app to a SHA that understands the current schema.
 
-## Clerk production
+## Supabase Auth production
 
-Configure in the Clerk Dashboard (production instance, not development):
+Configure in the [Supabase Dashboard](https://supabase.com/dashboard/project/jtammsjluototaykaxbd/auth/providers) (hosted project, no custom domain required):
 
-- Allowed origins: production site URL and `https://*.vercel.app` preview origins if previews use the same instance (prefer a **separate** Clerk development instance for preview)
-- Sign-in `/sign-in`, sign-up `/sign-up`, after sign-in `/app`, after sign-up `/onboarding`, after sign-out `/`
-- Publishable key → `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- Secret key → `CLERK_SECRET_KEY` (server only)
-- Webhooks: **not used** by Auri v1 — do not configure unless a later phase adds them
-- Users without a profile: `ensureProfileForClerkUser` creates an internal UUID; incomplete profiles stay on `/onboarding`
+- **URL Configuration**: Site URL = production `NEXT_PUBLIC_SITE_URL`. Redirect allowlist:
+  - `http://localhost:3000/auth/callback`
+  - `https://<vercel-host>/auth/callback`
+  - optional preview wildcard `https://*-<team>.vercel.app/auth/callback`
+- Enable **Email** (password), **Google**, **GitHub**, and **Facebook**. Paste OAuth client IDs/secrets in the Dashboard only.
+- Each provider’s authorized redirect URI in Google Cloud / GitHub / Facebook must be:
 
-Auri does not use Clerk↔Supabase JWT integration. Storage and SQL access after login go through trusted server code.
+  `https://jtammsjluototaykaxbd.supabase.co/auth/v1/callback`
+
+  not the Vercel URL. Google JavaScript origins can include `http://localhost:3000` and the Vercel origin.
+
+- Publishable key → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- Project URL → `NEXT_PUBLIC_SUPABASE_URL`
+- Users without a profile: `ensureProfileForAuthUser` creates an internal UUID; incomplete profiles stay on `/onboarding`
+
+Auri does not use `auth.uid()` RLS for tenant tables. Storage and SQL access after login go through trusted server code.
+
+Facebook may require a privacy-policy URL and Live-mode review for non-test users. Google, GitHub, and email still ship if Facebook is blocked.
 
 ## Vercel
 
@@ -108,7 +120,7 @@ pnpm exports:storage:smoke
 
 ## Post-deployment smoke
 
-1. Create a disposable Clerk user (or use the dedicated E2E account).
+1. Create a disposable Auth user (or use the dedicated E2E account).
 2. Complete onboarding.
 3. Create a short report fixture.
 4. Generate DOCX, XLSX, and ZIP.

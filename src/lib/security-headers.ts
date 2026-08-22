@@ -5,8 +5,8 @@ export type SecurityHeader = {
 
 /**
  * Headers applied to every HTML/document response.
- * CSP is omitted here: Clerk's Frontend API host is instance-specific.
- * See docs/DEPLOYMENT.md for the Clerk-compatible CSP checklist.
+ * CSP is omitted here: keep document headers portable across hosts.
+ * See docs/DEPLOYMENT.md if a production CSP allowlist is added later.
  */
 export const documentSecurityHeaders: SecurityHeader[] = [
   { key: "X-Content-Type-Options", value: "nosniff" },

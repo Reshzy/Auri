@@ -51,7 +51,7 @@ describe("Phase 7 POST /api/reports/[reportId]/exports (persisted JSON)", () => 
     });
   });
 
-  it("rejects missing Clerk session", async () => {
+  it("rejects missing Auth session", async () => {
     requireAuthenticatedUser.mockRejectedValue(new Error("AUTH_REQUIRED"));
     const res = await POST(
       new Request("http://localhost/api/reports/r1/exports", {
@@ -66,7 +66,7 @@ describe("Phase 7 POST /api/reports/[reportId]/exports (persisted JSON)", () => 
   it("rejects zip without member formats", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const res = await POST(
@@ -84,7 +84,7 @@ describe("Phase 7 POST /api/reports/[reportId]/exports (persisted JSON)", () => 
   it("returns persisted XLSX metadata", async () => {
     requireAuthenticatedUser.mockResolvedValue({
       id: "owner-uuid",
-      clerkUserId: "user_abc",
+      authUserId: "user_abc",
       email: null,
     });
     const res = await POST(

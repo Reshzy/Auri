@@ -1,5 +1,5 @@
--- Private Storage buckets for Clerk-backed Auri.
--- Access is trusted server code (service role) AFTER Clerk session + DAL ownership checks.
+-- Private Storage buckets for Supabase Auth-backed Auri.
+-- Access is trusted server code (service role) AFTER session + DAL ownership checks.
 -- Do not add auth.uid() path policies. Do not make these buckets public.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

@@ -56,15 +56,15 @@ Plus targeted Playwright when a critical user flow changes.
 
 ---
 
-## Phase 2 — Clerk authentication and Drizzle data layer
+## Phase 2 — Authentication and Drizzle data layer
 
 **Spec:** §8, §6.4, §11.1, §12.2  
-**Status:** Complete — Clerk is the identity provider; Drizzle owns portable schema; Supabase Postgres + private Storage
+**Status:** Complete — Supabase Auth is the identity provider; Drizzle owns portable schema; Supabase Postgres + private Storage
 
-- Clerk Auth + `clerkMiddleware` Proxy / protected `/app` + `/onboarding`
-- Drizzle schema + `drizzle/` migrations for all §8.1 tables including `profiles.clerk_user_id`
-- Storage overlays under `supabase/overlays/` (Auth FK/`auth.uid()` RLS overlays are stale for Clerk — do not apply as-is)
-- Server DAL + idempotent `ensureProfileForClerkUser` mapping Clerk `user_…` → internal UUID
+- Supabase Auth + Proxy session refresh / protected `/app` + `/onboarding`
+- Drizzle schema + `drizzle/` migrations for all §8.1 tables including `profiles.auth_user_id`
+- Storage overlays under `supabase/overlays/` (`auth.uid()` RLS overlays that assume `profiles.id = auth.users.id` are stale — do not apply as-is)
+- Server DAL + idempotent `ensureProfileForAuthUser` mapping Auth UUID → internal UUID
 - See `docs/DATABASE.md`
 
 **Exit:** Multi-user isolation tests pass; no service key in client; DAL scopes by session profile UUID.
@@ -129,10 +129,10 @@ Plus targeted Playwright when a critical user flow changes.
 - `pnpm docx:prepare` → one-page 16-row tagged DOCX + manifest
 - Manifest hash activation via `pnpm templates:upload:docx`
 - `ReportMappingService` / `TemplateService` / `DocxExportService` + structural validators
-- Clerk-protected `POST /api/reports/{reportId}/exports` (docx-only; no generated-report persistence)
+- Auth-protected `POST /api/reports/{reportId}/exports` (docx-only; no generated-report persistence)
 - Visual fixture gate blocked/pending without LibreOffice
 
-**Exit:** No unresolved tags; one report copy; structural validation green; Clerk ownership preserved.
+**Exit:** No unresolved tags; one report copy; structural validation green; Auth ownership preserved.
 
 ---
 
@@ -159,7 +159,7 @@ Plus targeted Playwright when a critical user flow changes.
 - ZIP package, private Storage upload, protected download
 - Current vs outdated export states; ZIP `bundle_manifest` provenance
 
-**Exit:** Partial failures accurate; cross-user download blocked. Live Storage / Clerk E2E / LibreOffice remain pending when credentials/tools are absent.
+**Exit:** Partial failures accurate; cross-user download blocked. Live Storage / Auth E2E / LibreOffice remain pending when credentials/tools are absent.
 
 ---
 
@@ -173,7 +173,7 @@ Plus targeted Playwright when a critical user flow changes.
 - Empty/error/skeleton polish; metadata/icons/OG image
 - Dark mode deferred (light theme complete; second theme would be incomplete)
 
-**Exit:** No animation-hidden content; branded non-generic UI — met. Live Storage / Clerk E2E / LibreOffice remain pending when credentials/tools are absent.
+**Exit:** No animation-hidden content; branded non-generic UI — met. Live Storage / Auth E2E / LibreOffice remain pending when credentials/tools are absent.
 
 ---
 
@@ -183,7 +183,7 @@ Plus targeted Playwright when a critical user flow changes.
 **Status:** Implemented in-repo — remote production/Office/authenticated E2E gates remain manual. See `docs/PHASE10_HARDENING_DEPLOYMENT.md`.
 
 - GitHub Actions CI (clean clone, disposable Postgres, public Playwright; authenticated/Storage jobs gated)
-- Clerk-safe RLS/Storage overlays; migration verify + rollback notes
+- Server-auth RLS/Storage overlays; migration verify + rollback notes
 - Security headers, secret scan, dependency audit
 - Deployment, operations, environment, testing, and launch-checklist docs
 

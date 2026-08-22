@@ -23,7 +23,7 @@ describe("Drizzle schema", () => {
 
   it("keeps profiles.id as a portable uuid primary key", () => {
     expect(schema.profiles.id.name).toBe("id");
-    expect(schema.profiles.clerkUserId.name).toBe("clerk_user_id");
+    expect(schema.profiles.authUserId.name).toBe("auth_user_id");
     expect(schema.profiles.employeeName.name).toBe("employee_name");
     expect(schema.profiles.timezone.name).toBe("timezone");
   });
@@ -76,7 +76,8 @@ describe("Drizzle migrations", () => {
     expect(schema.reportExports.bundleManifest.name).toBe("bundle_manifest");
   });
 
-  it("adds clerk_user_id for Clerk identity mapping", () => {
+  it("adds auth_user_id for Supabase Auth identity mapping", () => {
+    expect(sql).toContain("auth_user_id");
     expect(sql).toContain("clerk_user_id");
   });
 });

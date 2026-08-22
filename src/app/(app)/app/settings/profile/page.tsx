@@ -4,14 +4,14 @@ import { requireAuthenticatedUser } from "@/db/dal/auth-user";
 import { ensureProfile, getOwnProfile } from "@/db/dal/profiles";
 import { ProfileForm } from "@/features/settings/profile-form";
 import { SAMPLE_PROFILE_DEFAULTS } from "@/lib/onboarding/defaults";
-import { hasDatabaseUrl, hasClerkConfig } from "@/lib/env";
+import { hasDatabaseUrl, hasAuthConfig } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Profile & office",
 };
 
 export default async function ProfileSettingsPage() {
-  if (!hasClerkConfig() || !hasDatabaseUrl()) {
+  if (!hasAuthConfig() || !hasDatabaseUrl()) {
     redirect("/sign-in?error=config");
   }
 

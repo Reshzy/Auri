@@ -17,8 +17,6 @@ const SECRET_PATTERNS: Array<{ name: string; pattern: RegExp }> = [
 ];
 
 const FORBIDDEN_PUBLIC_PREFIXES = [
-  "NEXT_PUBLIC_CLERK_SECRET_KEY",
-  "NEXT_PUBLIC_CLERK_SECRET",
   "NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY",
   "NEXT_PUBLIC_DATABASE_URL",
   "NEXT_PUBLIC_DIRECT_URL",
@@ -97,12 +95,16 @@ function main(): void {
     assert(!example.includes(`${name}=`), `.env.example must not define ${name}`);
   }
   assert(
-    example.includes("CLERK_SECRET_KEY="),
-    ".env.example should document CLERK_SECRET_KEY as server-only",
+    example.includes("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="),
+    ".env.example should document NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   );
   assert(
     example.includes("# SUPABASE_SERVICE_ROLE_KEY="),
     ".env.example should keep the service role commented",
+  );
+  assert(
+    !example.includes("CLERK_SECRET_KEY="),
+    ".env.example must not document Clerk secrets",
   );
   assert(
     !/sk_(live|test)_[A-Za-z0-9]{20,}/.test(example),
@@ -111,12 +113,16 @@ function main(): void {
 
   const envSource = readFileSync(path.join(ROOT, "src/lib/env.ts"), "utf8");
   assert(
-    envSource.includes("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"),
-    "Public Clerk key must be the only Clerk value on the public schema",
+    envSource.includes("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+    "Public schema must include the Supabase publishable key",
   );
   assert(
-    !envSource.includes("NEXT_PUBLIC_CLERK_SECRET"),
-    "Clerk secret must never use NEXT_PUBLIC_",
+    !envSource.includes("NEXT_PUBLIC_SUPABASE_SERVICE_ROLE"),
+    "Service role must never use NEXT_PUBLIC_",
+  );
+  assert(
+    !envSource.includes("CLERK_SECRET_KEY"),
+    "Clerk secrets must not remain in env helpers",
   );
 
   const files = trackedFiles();

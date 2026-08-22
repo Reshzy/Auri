@@ -34,7 +34,7 @@ Timezone and date conventions: `Asia/Manila`, locale `en-PH`. UI language: Engli
 
 App routes: Overview, Reports, Presets, Settings (profile, schedule, signatories, templates).
 
-Auth is Clerk; data is isolated per personal account. Hosting and storage assumptions in-repo: Vercel + Supabase Postgres/Storage.
+Auth is Supabase Auth; data is isolated per personal account. Hosting and storage assumptions in-repo: Vercel + Supabase Postgres/Storage.
 
 First-workplace defaults (editable, not hard-coded identity):
 
@@ -49,7 +49,7 @@ Preview copy that must stay true: the web preview verifies content; the download
 
 ## Capabilities and Constraints
 
-Shipped v1 capabilities: Clerk auth; resumable onboarding; profile, schedule, signatories, and template settings; half-month report periods; daily editor with presets, copy-previous-workday, auto time/undertime, finalize/reopen, visible save/validation/export states; semantic DOCX/XLSX preview; paired generation plus ZIP; versioned per-user private Storage for generated files.
+Shipped v1 capabilities: Supabase Auth; resumable onboarding; profile, schedule, signatories, and template settings; half-month report periods; daily editor with presets, copy-previous-workday, auto time/undertime, finalize/reopen, visible save/validation/export states; semantic DOCX/XLSX preview; paired generation plus ZIP; versioned per-user private Storage for generated files.
 
 v1 constraints that still hold:
 
@@ -62,7 +62,7 @@ v1 constraints that still hold:
 
 Explicit non-goals: biometric capture, location tracking, payroll, leave credits, organization-wide employee management, arbitrary user-uploaded template mapping, server-side LibreOffice conversion on Vercel.
 
-Undecided: remote production launch (Clerk, Supabase Storage, Vercel, Office visual gates) is still a manual operations checklist, not a product-scope change. Public launch timing, pricing, and any later expansion beyond these office templates remain open.
+Undecided: remote production launch (Supabase Auth, Supabase Storage, Vercel, Office visual gates) is still a manual operations checklist, not a product-scope change. Public launch timing, pricing, and any later expansion beyond these office templates remain open.
 
 ## Brand Commitments
 

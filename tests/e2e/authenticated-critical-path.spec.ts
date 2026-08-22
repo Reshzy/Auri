@@ -3,11 +3,11 @@ import { hasLiveAuth, hasSecondLiveAuth } from "./helpers/live-auth";
 
 /**
  * Authenticated critical path. This is not a substitute for mocked route tests.
- * Skipped unless a disposable onboarded Clerk account is configured.
+ * Skipped unless a disposable onboarded Auth account is configured.
  * Do not persist storageState. Do not upload traces or generated reports.
  */
 test.describe("Authenticated critical path", () => {
-  test.skip(!hasLiveAuth(), "Live Clerk Auth E2E credentials are not configured.");
+  test.skip(!hasLiveAuth(), "Live Auth E2E credentials are not configured.");
 
   test("sign in, report, preview, generate, history, isolation", async ({
     page,

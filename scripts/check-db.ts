@@ -76,20 +76,22 @@ function main() {
   assert(overlays.includes("generated-reports"), "Overlay missing storage buckets");
   assert(overlays.includes("auth.users"), "Overlay missing auth.users FK");
 
-  const clerkOverlayDir = path.join(root, "supabase", "overlays", "clerk");
-  assert(existsSync(clerkOverlayDir), "Missing Clerk-safe overlay directory");
-  const clerkSql = readDirSql(clerkOverlayDir);
+  const serverAuthOverlayDir = path.join(root, "supabase", "overlays", "server-auth");
+  assert(existsSync(serverAuthOverlayDir), "Missing server-auth overlay directory");
+  const serverAuthSql = readDirSql(serverAuthOverlayDir);
   assert(
-    clerkSql.includes("enable row level security"),
-    "Clerk overlay must enable RLS as defense in depth",
+    serverAuthSql.includes("enable row level security"),
+    "Server-auth overlay must enable RLS as defense in depth",
   );
   assert(
-    clerkSql.includes("revoke all on table public.profiles from anon, authenticated"),
-    "Clerk overlay must revoke anon/authenticated table privileges",
+    serverAuthSql.includes(
+      "revoke all on table public.profiles from anon, authenticated",
+    ),
+    "Server-auth overlay must revoke anon/authenticated table privileges",
   );
   assert(
-    !/create policy[\s\S]{0,80}auth\.uid\(\)/i.test(clerkSql),
-    "Clerk overlay must not create auth.uid() policies",
+    !/create policy[\s\S]{0,80}auth\.uid\(\)/i.test(serverAuthSql),
+    "Server-auth overlay must not create auth.uid() policies",
   );
 
   const archivedCore = path.join(

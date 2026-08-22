@@ -2,17 +2,17 @@
 
 Last updated: 2026-08-11
 
-## Clerk identity boundary
+## Identity boundary
 
-| Step       | Behavior                                                                                            |
-| ---------- | --------------------------------------------------------------------------------------------------- |
-| Session    | Clerk `auth()` / `currentUser()` on the server                                                      |
-| Mapping    | `ensureProfileForClerkUser(clerkUserId)` → `profiles.id` (UUID) via unique `profiles.clerk_user_id` |
-| Ownership  | All tenant FKs use `profiles.id`. Clerk `user_…` strings are never written into UUID columns        |
-| Client ids | Export JSON ownership fields are rejected                                                           |
-| Reports    | Loaded with `getOwnReportWithEntries(ownerUuid, reportId)`                                          |
+| Step       | Behavior                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| Session    | Supabase Auth `getClaims()` on the server                                                        |
+| Mapping    | `ensureProfileForAuthUser(authUserId)` → `profiles.id` (UUID) via unique `profiles.auth_user_id` |
+| Ownership  | All tenant FKs use `profiles.id`. Auth user ids are never written into UUID columns              |
+| Client ids | Export JSON ownership fields are rejected                                                        |
+| Reports    | Loaded with `getOwnReportWithEntries(ownerUuid, reportId)`                                       |
 
-PostgreSQL is accessed through authenticated server-side Drizzle. Explicit DAL authorization is mandatory. Supabase Auth `auth.uid()` overlays are stale under Clerk and must not be treated as the primary boundary. Supabase remains Postgres + private Storage.
+PostgreSQL is accessed through authenticated server-side Drizzle. Explicit DAL authorization is mandatory. Supabase Auth `auth.uid()` overlays that assume `profiles.id = auth.users.id` must not be treated as the primary boundary.
 
 ## Runtime template preparation
 
@@ -64,7 +64,7 @@ Content-Type: application/json
 { "formats": ["docx"], "acknowledgedWarnings": [] }
 ```
 
-- Clerk session → internal owner UUID
+- Auth session → internal owner UUID
 - Rejects `zip` / mixed formats in Phase 6/7; Phase 7 adds exclusive `xlsx`
 - Fresh `validateReport`; blocking errors stop generation; warnings require acknowledgement
 - Phase 6/7 returned a binary attachment. **Phase 8 returns JSON export metadata** and protected download URLs (`Cache-Control: private, no-store`)
@@ -96,15 +96,15 @@ pnpm docx:audit
 pnpm docx:smoke
 pnpm templates:upload:docx
 pnpm test
-pnpm test:e2e   # skipped unless Clerk + E2E_USER_* configured
+pnpm test:e2e   # skipped unless Auth + E2E_USER_* configured
 ```
 
-## Remaining Clerk E2E setup
+## Remaining Auth E2E setup
 
 Authenticated Playwright export E2E requires:
 
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- `CLERK_SECRET_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` for a real onboarded disposable account
 
-Do not invent credentials. Skip messages must cite missing Clerk configuration, not Supabase Auth.
+Do not invent credentials. Skip messages must cite missing Auth configuration.
