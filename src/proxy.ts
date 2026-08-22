@@ -1,18 +1,24 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 import { requiresAuthentication } from "@/lib/auth/paths";
 
-export default clerkMiddleware(async (auth, req) => {
-  // Early signed-out redirect only. Pages, layouts, API routes, and
-  // Server Actions still enforce auth with requireAuthenticatedUser().
-  if (!requiresAuthentication(req.nextUrl.pathname)) {
-    return;
-  }
+export default clerkMiddleware(
+  async (auth, req) => {
+    // Early signed-out redirect only. Pages, layouts, API routes, and
+    // Server Actions still enforce auth with requireAuthenticatedUser().
+    if (!requiresAuthentication(req.nextUrl.pathname)) {
+      return;
+    }
 
-  const { isAuthenticated, redirectToSignIn } = await auth();
-  if (!isAuthenticated) {
-    return redirectToSignIn();
-  }
-});
+    const { isAuthenticated, redirectToSignIn } = await auth();
+    if (!isAuthenticated) {
+      return redirectToSignIn();
+    }
+  },
+  {
+    // *.vercel.app cannot host clerk.<app>.vercel.app DNS. Proxy FAPI through this origin.
+    frontendApiProxy: { enabled: true },
+  },
+);
 
 export const config = {
   matcher: [

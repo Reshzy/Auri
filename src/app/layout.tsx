@@ -58,6 +58,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClerkProvider
           afterSignOutUrl="/"
+          proxyUrl="/__clerk"
           appearance={clerkAppearance}
           localization={clerkLocalization}
         >

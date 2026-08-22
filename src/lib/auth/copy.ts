@@ -17,7 +17,7 @@ export const AUTH_CONFIG_ERROR_BODY =
 
 export const AUTH_CLERK_LOAD_TITLE = "Sign-in is not connected";
 export const AUTH_CLERK_LOAD_BODY =
-  "Clerk never loaded in this browser. Recreating the Vercel project does not change Clerk. In the Clerk Dashboard, Production instance, add this exact site origin under allowed origins, then copy API keys whose Frontend API is a *.clerk.accounts.dev host — not clerk.*.vercel.app. Put those keys on Vercel and redeploy.";
+  "Clerk never loaded because this live publishable key’s Frontend API is clerk.<your-app>.vercel.app, and you cannot create that DNS name on vercel.app. Switching auri-rosy to auri-azure does not fix it. Either (1) Clerk Dashboard → Development → copy pk_test_ / sk_test_ keys (Frontend API ends in clerk.accounts.dev), add https://auri-azure.vercel.app as an allowed origin, re-import on Vercel, and redeploy; or (2) attach a domain you own and finish Clerk Production DNS.";
 
 export function isAuthConfigError(error: string | string[] | undefined): boolean {
   const value = Array.isArray(error) ? error[0] : error;

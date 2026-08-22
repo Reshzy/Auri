@@ -28,7 +28,7 @@ describe("auth copy", () => {
   it("explains a Clerk frontend that never loads", () => {
     expect(AUTH_CLERK_LOAD_TITLE).toContain("not connected");
     expect(AUTH_CLERK_LOAD_BODY).toContain("clerk.accounts.dev");
-    expect(AUTH_CLERK_LOAD_BODY).toContain("vercel.app");
+    expect(AUTH_CLERK_LOAD_BODY).toContain("pk_test_");
   });
 
   it("expands DTR on sign-up instead of using the acronym alone", () => {
