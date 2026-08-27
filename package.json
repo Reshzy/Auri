@@ -97,7 +97,7 @@
     "supabase": "^2.113.0",
     "tailwindcss": "^4",
     "tsx": "^4.20.5",
-    "typescript": "^5",
+    "typescript": "^6",
     "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@11.22.0"
