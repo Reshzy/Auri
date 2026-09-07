@@ -23,9 +23,11 @@ const settingsNav = [
 type AppSidebarProps = {
   className?: string;
   email?: string | null;
+  userId?: string | null;
+  employeeName?: string | null;
 };
 
-export function AppSidebar({ className, email }: AppSidebarProps) {
+export function AppSidebar({ className, email, userId, employeeName }: AppSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -97,7 +99,7 @@ export function AppSidebar({ className, email }: AppSidebarProps) {
         </div>
       </nav>
       <div className="border-auri-border mt-auto flex shrink-0 items-center border-t px-3 py-3">
-        <UserMenu email={email} />
+        <UserMenu email={email} userId={userId} employeeName={employeeName} />
       </div>
     </aside>
   );

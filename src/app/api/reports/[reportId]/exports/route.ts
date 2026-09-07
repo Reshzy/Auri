@@ -77,6 +77,8 @@ export async function POST(
       reportId,
       formats: formats.formats,
       acknowledgedWarnings: parsed.data.acknowledgedWarnings,
+      hoursOnly: parsed.data.hoursOnly,
+      capitalizeAccomplishments: parsed.data.capitalizeAccomplishments,
     });
 
     return Response.json(result, {

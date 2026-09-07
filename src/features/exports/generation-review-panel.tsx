@@ -23,9 +23,13 @@ import type {
   ExportGenerationResponse,
   GenerationReviewSummary,
 } from "@/lib/exports/types";
+import { formatTotalHoursLabel } from "@/lib/reports/totals";
 
 type FormatKey = "docx" | "xlsx" | "zip";
 type FormatUiStatus = "idle" | "pending" | "generating" | "created" | "reused" | "failed";
+
+const checkboxClass =
+  "h-4 w-4 shrink-0 rounded border-auri-border accent-auri-orange-600 disabled:cursor-not-allowed disabled:opacity-40";
 
 export function GenerationReviewPanel({
   reportId,
@@ -65,6 +69,8 @@ function GenerationReviewBody({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState({ docx: true, xlsx: true, zip: false });
+  const [hoursOnly, setHoursOnly] = useState(false);
+  const [capitalizeAccomplishments, setCapitalizeAccomplishments] = useState(false);
   const [ack, setAck] = useState<WarningAckState>({
     warningCodes: [],
     acknowledged: [],
@@ -79,6 +85,8 @@ function GenerationReviewBody({
   const [result, setResult] = useState<ExportGenerationResponse | null>(null);
   const [generating, setGenerating] = useState(false);
   const generateLock = useRef(false);
+  const hoursHelpId = useId();
+  const capsHelpId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -115,6 +123,9 @@ function GenerationReviewBody({
 
   const blocking = (review?.validation.errors.length ?? 0) > 0;
   const warningsComplete = acknowledgementsAreComplete(ack);
+  const wordSelected = selected.docx || selected.zip;
+  const effectiveHoursOnly = wordSelected && hoursOnly;
+  const effectiveCapitalize = wordSelected && capitalizeAccomplishments;
   const canGenerate =
     !blocking &&
     warningsComplete &&
@@ -146,6 +157,8 @@ function GenerationReviewBody({
         body: JSON.stringify({
           formats,
           acknowledgedWarnings: ack.acknowledged,
+          hoursOnly: effectiveHoursOnly,
+          capitalizeAccomplishments: effectiveCapitalize,
         }),
       });
       const json = (await res.json()) as ExportGenerationResponse | { code?: string };
@@ -208,7 +221,11 @@ function GenerationReviewBody({
             </div>
             <div>
               <dt className="text-auri-ink-muted">Total worked</dt>
-              <dd className="font-medium">{review.totalWorkedLabel}</dd>
+              <dd className="font-medium tabular-nums">
+                {formatTotalHoursLabel(review.totalWorkedMinutes, {
+                  hoursOnly: effectiveHoursOnly,
+                })}
+              </dd>
             </div>
             <div>
               <dt className="text-auri-ink-muted">Workdays</dt>
@@ -249,11 +266,14 @@ function GenerationReviewBody({
             <fieldset>
               <legend className="font-medium">Acknowledge warnings</legend>
               <div className="mt-2 space-y-2">
-                {review.validation.warnings.map((issue) => (
-                  <label key={issue.code} className="flex items-start gap-2">
+                {review.validation.warnings.map((issue, index) => (
+                  <label
+                    key={`${issue.code}-${issue.workDate ?? "none"}-${issue.entryId ?? index}`}
+                    className="flex items-start gap-2"
+                  >
                     <input
                       type="checkbox"
-                      className="mt-1 h-4 w-4"
+                      className={`${checkboxClass} mt-1`}
                       checked={ack.acknowledged.includes(issue.code)}
                       onChange={(event) =>
                         setAck((prev) =>
@@ -274,6 +294,7 @@ function GenerationReviewBody({
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
+                  className={checkboxClass}
                   checked={selected.docx}
                   onChange={(event) => updateSelected({ docx: event.target.checked })}
                 />
@@ -282,6 +303,7 @@ function GenerationReviewBody({
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
+                  className={checkboxClass}
                   checked={selected.xlsx}
                   onChange={(event) => updateSelected({ xlsx: event.target.checked })}
                 />
@@ -290,6 +312,7 @@ function GenerationReviewBody({
               <label className="flex items-center gap-2">
                 <input
                   type="checkbox"
+                  className={checkboxClass}
                   checked={selected.zip}
                   onChange={(event) =>
                     updateSelected({
@@ -301,6 +324,53 @@ function GenerationReviewBody({
                 />
                 ZIP report package (includes Word and Excel)
               </label>
+            </div>
+          </fieldset>
+
+          <fieldset disabled={!wordSelected} className="disabled:opacity-60">
+            <legend className="font-medium">Word options</legend>
+            <div className="mt-2 space-y-3">
+              <div>
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    className={`${checkboxClass} mt-1`}
+                    checked={effectiveHoursOnly}
+                    disabled={!wordSelected}
+                    aria-describedby={hoursHelpId}
+                    onChange={(event) => setHoursOnly(event.target.checked)}
+                  />
+                  <span>Shorten time to hours only</span>
+                </label>
+                <p
+                  id={hoursHelpId}
+                  className="text-auri-ink-muted mt-1.5 pl-6 text-xs leading-relaxed"
+                >
+                  10 hrs 18 mins becomes 10 hrs. Table total becomes 80 HRS.
+                </p>
+              </div>
+              <div>
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    className={`${checkboxClass} mt-1`}
+                    checked={effectiveCapitalize}
+                    disabled={!wordSelected}
+                    aria-describedby={capsHelpId}
+                    onChange={(event) =>
+                      setCapitalizeAccomplishments(event.target.checked)
+                    }
+                  />
+                  <span>Capitalize accomplishments</span>
+                </label>
+                <p
+                  id={capsHelpId}
+                  className="text-auri-ink-muted mt-1.5 pl-6 text-xs leading-relaxed"
+                >
+                  Prepared docs / Assisted visitors becomes PREPARED DOCS / ASSISTED
+                  VISITORS.
+                </p>
+              </div>
             </div>
           </fieldset>
 

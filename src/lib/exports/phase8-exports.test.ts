@@ -36,7 +36,7 @@ import {
   isUnsafeFlatZipEntryName,
   validateFlatZipEntryNames,
 } from "@/lib/exports/zip-safety";
-import { normalizeRequestedFormats } from "@/lib/validation/exports";
+import { exportRequestSchema, normalizeRequestedFormats } from "@/lib/validation/exports";
 import { PREVIEW_DISCLAIMER } from "@/lib/exports/preview-copy";
 
 const payload = {
@@ -75,6 +75,36 @@ describe("format-specific source revisions", () => {
     expect(new Set([docx, xlsx, zip]).size).toBe(3);
   });
 
+  it("changes DOCX and ZIP revisions when hoursOnly changes, not XLSX", () => {
+    const hash = "aa".repeat(32);
+    const docx = computeDocxSourceRevision(payload, hash);
+    const docxHours = computeDocxSourceRevision(payload, hash, { hoursOnly: true });
+    const xlsx = computeXlsxSourceRevision(payload, hash);
+    const zip = computeZipSourceRevision(payload, hash, "bb".repeat(32));
+    const zipHours = computeZipSourceRevision(payload, hash, "bb".repeat(32), {
+      hoursOnly: true,
+    });
+    expect(docxHours).not.toBe(docx);
+    expect(zipHours).not.toBe(zip);
+    expect(computeXlsxSourceRevision(payload, hash)).toBe(xlsx);
+  });
+
+  it("changes DOCX and ZIP revisions when capitalizeAccomplishments changes, not XLSX", () => {
+    const hash = "aa".repeat(32);
+    const docx = computeDocxSourceRevision(payload, hash);
+    const docxCaps = computeDocxSourceRevision(payload, hash, {
+      capitalizeAccomplishments: true,
+    });
+    const xlsx = computeXlsxSourceRevision(payload, hash);
+    const zip = computeZipSourceRevision(payload, hash, "bb".repeat(32));
+    const zipCaps = computeZipSourceRevision(payload, hash, "bb".repeat(32), {
+      capitalizeAccomplishments: true,
+    });
+    expect(docxCaps).not.toBe(docx);
+    expect(zipCaps).not.toBe(zip);
+    expect(computeXlsxSourceRevision(payload, hash)).toBe(xlsx);
+  });
+
   it("uses stable canonical JSON key order", () => {
     expect(stableCanonicalJson({ b: 1, a: 2 })).toBe('{"a":2,"b":1}');
   });
@@ -91,6 +121,12 @@ describe("current/outdated derivation", () => {
     };
     expect(derivePresentationStatus(base)).toBe("current");
     expect(derivePresentationStatus({ ...base, isCurrentFlag: false })).toBe("outdated");
+    expect(
+      derivePresentationStatus({ ...base, expectedSourceRevision: ["rev", "hours"] }),
+    ).toBe("current");
+    expect(
+      derivePresentationStatus({ ...base, expectedSourceRevision: ["other", "hours"] }),
+    ).toBe("outdated");
     expect(derivePresentationStatus({ ...base, expectedSourceRevision: "other" })).toBe(
       "outdated",
     );
@@ -170,6 +206,19 @@ describe("MIME and ZIP contract", () => {
     expect(normalizeRequestedFormats(["zip"]).ok).toBe(false);
     expect(normalizeRequestedFormats(["docx", "zip"]).ok).toBe(false);
     expect(normalizeRequestedFormats(["docx", "xlsx", "zip"]).ok).toBe(true);
+  });
+
+  it("defaults hoursOnly and capitalizeAccomplishments to false and accepts explicit flags", () => {
+    const omitted = exportRequestSchema.parse({ formats: ["docx"] });
+    expect(omitted.hoursOnly).toBe(false);
+    expect(omitted.capitalizeAccomplishments).toBe(false);
+    const flagged = exportRequestSchema.parse({
+      formats: ["docx"],
+      hoursOnly: true,
+      capitalizeAccomplishments: true,
+    });
+    expect(flagged.hoursOnly).toBe(true);
+    expect(flagged.capitalizeAccomplishments).toBe(true);
   });
 
   it("rejects unsafe or duplicate flat ZIP entries", () => {

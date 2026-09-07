@@ -163,9 +163,9 @@ export class ExportHistoryService {
     const payload = ReportMappingService.buildPayload(mappingInputFromLoaded(loaded));
     const hashes = options?.hashes ?? (await this.activeTemplateHashes());
     const expected = {
-      docx: ExportFreshnessService.expectedRevision("docx", payload, hashes),
-      xlsx: ExportFreshnessService.expectedRevision("xlsx", payload, hashes),
-      zip: ExportFreshnessService.expectedRevision("zip", payload, hashes),
+      docx: ExportFreshnessService.expectedRevisions("docx", payload, hashes),
+      xlsx: ExportFreshnessService.expectedRevisions("xlsx", payload, hashes),
+      zip: ExportFreshnessService.expectedRevisions("zip", payload, hashes),
     };
     const profile = loaded.report.profileSnapshot as ProfileSnapshot;
     const timezone = profile.timezone || "Asia/Manila";

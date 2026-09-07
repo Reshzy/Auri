@@ -2,9 +2,14 @@ import { createHash } from "node:crypto";
 
 export const SOURCE_REVISION_VERSION = "auri-src-rev-v1";
 /** Bump when DOCX clock/display formatting changes so stale exports are not reused. */
-export const DOCX_DISPLAY_CLOCK_VERSION = "12h-v1";
+export const DOCX_DISPLAY_CLOCK_VERSION = "12h-namecaps-v2";
 
 export type ExportFormat = "docx" | "xlsx" | "zip";
+
+export type DocxRevisionOptions = {
+  hoursOnly?: boolean;
+  capitalizeAccomplishments?: boolean;
+};
 
 /**
  * Stable canonical JSON: object keys sorted recursively so revision hashes
@@ -36,6 +41,8 @@ function revisionMaterial(parts: {
   payloadJson: string;
   accomplishmentHash?: string;
   dtrHash?: string;
+  hoursOnly?: boolean;
+  capitalizeAccomplishments?: boolean;
 }): string {
   const lines = [
     SOURCE_REVISION_VERSION,
@@ -45,12 +52,20 @@ function revisionMaterial(parts: {
   if (parts.format === "docx") {
     lines.push(`template.accomplishment=${parts.accomplishmentHash ?? ""}`);
     lines.push(`docx.clock=${DOCX_DISPLAY_CLOCK_VERSION}`);
+    lines.push(`docx.hoursOnly=${parts.hoursOnly ? "1" : "0"}`);
+    lines.push(
+      `docx.capitalizeAccomplishments=${parts.capitalizeAccomplishments ? "1" : "0"}`,
+    );
   } else if (parts.format === "xlsx") {
     lines.push(`template.dtr=${parts.dtrHash ?? ""}`);
   } else {
     lines.push(`template.accomplishment=${parts.accomplishmentHash ?? ""}`);
     lines.push(`template.dtr=${parts.dtrHash ?? ""}`);
     lines.push(`docx.clock=${DOCX_DISPLAY_CLOCK_VERSION}`);
+    lines.push(`docx.hoursOnly=${parts.hoursOnly ? "1" : "0"}`);
+    lines.push(
+      `docx.capitalizeAccomplishments=${parts.capitalizeAccomplishments ? "1" : "0"}`,
+    );
   }
   return lines.join("\n");
 }
@@ -58,12 +73,15 @@ function revisionMaterial(parts: {
 export function computeDocxSourceRevision(
   payload: unknown,
   accomplishmentTemplateSha256: string,
+  options?: DocxRevisionOptions,
 ): string {
   return sha256Utf8(
     revisionMaterial({
       format: "docx",
       payloadJson: stableCanonicalJson(payload),
       accomplishmentHash: accomplishmentTemplateSha256,
+      hoursOnly: options?.hoursOnly,
+      capitalizeAccomplishments: options?.capitalizeAccomplishments,
     }),
   );
 }
@@ -85,6 +103,7 @@ export function computeZipSourceRevision(
   payload: unknown,
   accomplishmentTemplateSha256: string,
   dtrTemplateSha256: string,
+  options?: DocxRevisionOptions,
 ): string {
   return sha256Utf8(
     revisionMaterial({
@@ -92,6 +111,8 @@ export function computeZipSourceRevision(
       payloadJson: stableCanonicalJson(payload),
       accomplishmentHash: accomplishmentTemplateSha256,
       dtrHash: dtrTemplateSha256,
+      hoursOnly: options?.hoursOnly,
+      capitalizeAccomplishments: options?.capitalizeAccomplishments,
     }),
   );
 }
@@ -100,12 +121,18 @@ export function computeFormatSourceRevision(
   format: ExportFormat,
   payload: unknown,
   hashes: { accomplishmentSha256: string; dtrSha256: string },
+  options?: DocxRevisionOptions,
 ): string {
   if (format === "docx") {
-    return computeDocxSourceRevision(payload, hashes.accomplishmentSha256);
+    return computeDocxSourceRevision(payload, hashes.accomplishmentSha256, options);
   }
   if (format === "xlsx") {
     return computeXlsxSourceRevision(payload, hashes.dtrSha256);
   }
-  return computeZipSourceRevision(payload, hashes.accomplishmentSha256, hashes.dtrSha256);
+  return computeZipSourceRevision(
+    payload,
+    hashes.accomplishmentSha256,
+    hashes.dtrSha256,
+    options,
+  );
 }

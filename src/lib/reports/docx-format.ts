@@ -2,7 +2,10 @@
 
 import { parseYmd } from "@/lib/dates/period";
 import { formatDtrClock } from "@/lib/reports/dtr-format";
-import { formatTotalHoursLabel } from "@/lib/reports/totals";
+import {
+  formatTotalHoursLabel,
+  type TimeLabelFormatOptions,
+} from "@/lib/reports/totals";
 
 const MONTHS = [
   "January",
@@ -60,18 +63,38 @@ export function formatDocxTimeRange(
 /**
  * Daily time-spent cell. Non-work uses `-`.
  * Whole hours: `10 hrs`; with minutes: `9 hrs 30 mins` (audited lowercase style).
+ * `hoursOnly` floors leftover minutes (`10 hrs 18 mins` → `10 hrs`).
  */
-export function formatDocxTimeSpent(workedMinutes: number): string {
+export function formatDocxTimeSpent(
+  workedMinutes: number,
+  options?: TimeLabelFormatOptions,
+): string {
   if (!Number.isFinite(workedMinutes) || workedMinutes <= 0) {
     return "0 hrs";
   }
   const whole = Math.floor(workedMinutes);
   const hours = Math.floor(whole / 60);
-  const minutes = whole % 60;
+  const minutes = options?.hoursOnly ? 0 : whole % 60;
   if (minutes === 0) {
     return `${hours} hrs`;
   }
   return `${hours} hrs ${minutes} mins`;
 }
 
+/**
+ * Workday accomplishment cell. Canonical payload keeps stored casing;
+ * uppercase is a generate-time Word option only.
+ */
+export function formatDocxAccomplishmentText(
+  joined: string,
+  options?: { capitalizeAccomplishments?: boolean },
+): string {
+  const text = joined.trim();
+  if (!options?.capitalizeAccomplishments) {
+    return text;
+  }
+  return text.normalize("NFKC").toUpperCase();
+}
+
 export { formatTotalHoursLabel };
+export type { TimeLabelFormatOptions };

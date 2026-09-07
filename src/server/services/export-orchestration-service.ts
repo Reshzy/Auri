@@ -113,6 +113,8 @@ export class ExportOrchestrationService {
     reportId: string;
     formats: ExportFormat[];
     acknowledgedWarnings: string[];
+    hoursOnly?: boolean;
+    capitalizeAccomplishments?: boolean;
     storage?: GeneratedStorage;
   }): Promise<ExportGenerationResponse> {
     const loaded = await getOwnReportWithEntries(input.ownerId, input.reportId);
@@ -198,10 +200,13 @@ export class ExportOrchestrationService {
       accomplishmentSha256: accomplishment?.sha256 ?? "",
       dtrSha256: dtr?.sha256 ?? "",
     };
+    const hoursOnly = input.hoursOnly ?? false;
+    const capitalizeAccomplishments = input.capitalizeAccomplishments ?? false;
+    const docxRevisionOptions = { hoursOnly, capitalizeAccomplishments };
     const revisions = {
-      docx: computeFormatSourceRevision("docx", payload, hashes),
+      docx: computeFormatSourceRevision("docx", payload, hashes, docxRevisionOptions),
       xlsx: computeFormatSourceRevision("xlsx", payload, hashes),
-      zip: computeFormatSourceRevision("zip", payload, hashes),
+      zip: computeFormatSourceRevision("zip", payload, hashes, docxRevisionOptions),
     };
 
     const results: ExportResultItem[] = [];
@@ -223,6 +228,8 @@ export class ExportOrchestrationService {
           templateVersionId: format === "docx" ? accomplishment!.id : dtr!.id,
           templateSha256:
             format === "docx" ? hashes.accomplishmentSha256 : hashes.dtrSha256,
+          hoursOnly,
+          capitalizeAccomplishments,
           storage: input.storage,
         });
         members[format] = ensured;
@@ -279,6 +286,8 @@ export class ExportOrchestrationService {
     sourceRevision: string;
     templateVersionId: string;
     templateSha256: string;
+    hoursOnly?: boolean;
+    capitalizeAccomplishments?: boolean;
     storage?: GeneratedStorage;
   }): Promise<{
     row: ReportExportRow;
@@ -311,7 +320,10 @@ export class ExportOrchestrationService {
 
     const generated =
       input.format === "docx"
-        ? await DocxExportService.generateAccomplishmentDocx(input.mappingInput)
+        ? await DocxExportService.generateAccomplishmentDocx(input.mappingInput, {
+            hoursOnly: input.hoursOnly,
+            capitalizeAccomplishments: input.capitalizeAccomplishments,
+          })
         : await XlsxExportService.generateDtrXlsx(input.mappingInput);
 
     if (generated.sourceRevision !== input.sourceRevision) {

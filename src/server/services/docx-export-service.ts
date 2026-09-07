@@ -57,18 +57,30 @@ function renderDocx(templateBuffer: Buffer, tokens: FlatTokenRecord): Buffer {
 
 export async function generateAccomplishmentDocx(
   input: MappingReportInput,
-  options?: { allowLocalTemplateFallback?: boolean },
+  options?: {
+    allowLocalTemplateFallback?: boolean;
+    hoursOnly?: boolean;
+    capitalizeAccomplishments?: boolean;
+  },
 ): Promise<DocxExportResult> {
   const correlationBase = crypto.randomUUID();
+  const hoursOnly = options?.hoursOnly ?? false;
+  const capitalizeAccomplishments = options?.capitalizeAccomplishments ?? false;
   try {
     const payload = ReportMappingService.buildPayload(input);
-    const tokens = ReportMappingService.toFlatTokens(payload);
+    const tokens = ReportMappingService.toFlatTokens(payload, {
+      hoursOnly,
+      capitalizeAccomplishments,
+    });
 
     const loaded = await TemplateService.loadAccomplishmentTemplateBytes({
       allowLocalFallback: options?.allowLocalTemplateFallback ?? true,
     });
 
-    const sourceRevision = computeDocxSourceRevision(payload, loaded.sha256);
+    const sourceRevision = computeDocxSourceRevision(payload, loaded.sha256, {
+      hoursOnly,
+      capitalizeAccomplishments,
+    });
 
     const buffer = renderDocx(loaded.buffer, tokens);
     const issues = validateGeneratedAccomplishmentDocx(buffer, tokens, {

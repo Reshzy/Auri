@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 export function MarketingAuthLinks({
   signedIn,
   email,
+  userId,
 }: {
   signedIn: boolean;
   email?: string | null;
+  userId?: string | null;
 }) {
   if (signedIn) {
     return (
@@ -17,7 +19,7 @@ export function MarketingAuthLinks({
         <Button asChild variant="ghost">
           <Link href="/app">Open app</Link>
         </Button>
-        <UserMenu email={email} />
+        <UserMenu variant="marketing" email={email} userId={userId} />
       </div>
     );
   }

@@ -2,12 +2,21 @@ import type { DayClassification } from "@/lib/reports/classify";
 import { isNonWorkClassification } from "@/lib/reports/classify";
 import {
   formatAccomplishmentPeriodLabel,
+  formatDocxAccomplishmentText,
   formatDocxDate,
   formatDocxTimeRange,
   formatDocxTimeSpent,
 } from "@/lib/reports/docx-format";
-import { formatDtrPeriodLabel, calendarDayFromYmd } from "@/lib/reports/dtr-format";
-import { formatTotalHoursLabel, sumWorkedMinutes } from "@/lib/reports/totals";
+import {
+  formatDtrEmployeeName,
+  formatDtrPeriodLabel,
+  calendarDayFromYmd,
+} from "@/lib/reports/dtr-format";
+import {
+  formatTotalHoursLabel,
+  sumWorkedMinutes,
+  type TimeLabelFormatOptions,
+} from "@/lib/reports/totals";
 import {
   ACCOMPLISHMENT_MAX_ROWS,
   allRequiredTokens,
@@ -158,7 +167,15 @@ export function buildExportPayload(input: MappingReportInput): ExportPayload {
   };
 }
 
-function mapRowTokens(entry: ExportEntry | undefined, rowIndex: number): FlatTokenRecord {
+export type FlatTokenOptions = TimeLabelFormatOptions & {
+  capitalizeAccomplishments?: boolean;
+};
+
+function mapRowTokens(
+  entry: ExportEntry | undefined,
+  rowIndex: number,
+  options?: FlatTokenOptions,
+): FlatTokenRecord {
   const out: FlatTokenRecord = {};
   if (!entry) {
     for (const field of [
@@ -184,10 +201,10 @@ function mapRowTokens(entry: ExportEntry | undefined, rowIndex: number): FlatTok
     : formatDocxTimeRange(entry.pmArrival, entry.pmDeparture);
   out[rowToken(rowIndex, "time_spent")] = nonWork
     ? "-"
-    : formatDocxTimeSpent(entry.workedMinutes);
+    : formatDocxTimeSpent(entry.workedMinutes, options);
   out[rowToken(rowIndex, "accomplishment")] = nonWork
     ? (entry.classificationLabel?.trim() || entry.classification).toUpperCase()
-    : joinAccomplishments(entry.accomplishments);
+    : formatDocxAccomplishmentText(joinAccomplishments(entry.accomplishments), options);
   out[rowToken(rowIndex, "remarks")] = entry.remarks?.trim() ?? "";
   return out;
 }
@@ -200,7 +217,10 @@ function signatoryBySlot(
   return { name: found?.name ?? "", title: found?.title ?? "" };
 }
 
-export function mapPayloadToFlatTokens(payload: ExportPayload): FlatTokenRecord {
+export function mapPayloadToFlatTokens(
+  payload: ExportPayload,
+  options?: FlatTokenOptions,
+): FlatTokenRecord {
   const employee = signatoryBySlot(payload.signatories, 0);
   const s1 = signatoryBySlot(payload.signatories, 1);
   const s2 = signatoryBySlot(payload.signatories, 2);
@@ -211,11 +231,13 @@ export function mapPayloadToFlatTokens(payload: ExportPayload): FlatTokenRecord 
     office_name: payload.organization.office,
     department_name: payload.organization.department,
     report_title: payload.reportTitle,
-    employee_name: payload.employee.name,
+    employee_name: formatDtrEmployeeName(payload.employee.name),
     period_label: payload.period.accomplishmentLabel,
-    total_hours_label: formatTotalHoursLabel(payload.totalWorkedMinutes),
+    total_hours_label: formatTotalHoursLabel(payload.totalWorkedMinutes, options),
     certification_text: payload.certificationText,
-    signatory_employee_name: employee.name || payload.employee.name,
+    signatory_employee_name: formatDtrEmployeeName(
+      employee.name || payload.employee.name,
+    ),
     signatory_employee_title: employee.title || payload.employee.title || "",
     signatory_1_name: s1.name,
     signatory_1_title: s1.title,
@@ -227,7 +249,7 @@ export function mapPayloadToFlatTokens(payload: ExportPayload): FlatTokenRecord 
 
   const tokens: FlatTokenRecord = { ...header };
   for (let i = 1; i <= ACCOMPLISHMENT_MAX_ROWS; i += 1) {
-    Object.assign(tokens, mapRowTokens(payload.entries[i - 1], i));
+    Object.assign(tokens, mapRowTokens(payload.entries[i - 1], i, options));
   }
 
   const required = allRequiredTokens();

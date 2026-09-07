@@ -38,6 +38,8 @@ async function activateTemplateVersions(input: {
   runtimeHash: string;
   version: number;
   manifest: ManifestShape;
+  /** Local-only activation may refresh the same version after xlsx:prepare. */
+  allowSha256Update?: boolean;
 }): Promise<void> {
   const Module = require("module") as {
     _load: (request: string, parent: unknown, isMain: boolean) => unknown;
@@ -64,7 +66,7 @@ async function activateTemplateVersions(input: {
     .limit(1);
 
   const row = existingRows[0];
-  if (row && row.sha256 !== input.runtimeHash) {
+  if (row && row.sha256 !== input.runtimeHash && !input.allowSha256Update) {
     throw new Error(
       `Refusing to activate version ${input.version}: DB sha256 ${row.sha256} != ${input.runtimeHash}`,
     );
@@ -156,6 +158,7 @@ async function main() {
       runtimeHash,
       version,
       manifest,
+      allowSha256Update: true,
     });
     console.log("templates:upload:xlsx OK (local DB activation; Storage upload skipped)");
     console.log(`storagePath=${storagePath}`);

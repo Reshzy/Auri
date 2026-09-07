@@ -6,6 +6,7 @@ import {
 } from "@/lib/templates/accomplishment-tokens";
 import {
   formatAccomplishmentPeriodLabel,
+  formatDocxAccomplishmentText,
   formatDocxDate,
   formatDocxTimeRange,
   formatDocxTimeSpent,
@@ -132,9 +133,27 @@ describe("docx formatters continued", () => {
   it("formats daily time spent and totals", () => {
     expect(formatDocxTimeSpent(600)).toBe("10 hrs");
     expect(formatDocxTimeSpent(570)).toBe("9 hrs 30 mins");
+    expect(formatDocxTimeSpent(618, { hoursOnly: true })).toBe("10 hrs");
     expect(formatTotalHoursLabel(4800)).toBe("80 HRS");
     expect(formatTotalHoursLabel(4770)).toBe("79 HRS 30 MINS");
+    expect(formatTotalHoursLabel(4818, { hoursOnly: true })).toBe("80 HRS");
     expect(formatTotalHoursLabel(0)).toBe("0 HRS");
+  });
+
+  it("uppercases joined accomplishment text only when requested", () => {
+    expect(formatDocxAccomplishmentText("Prepared docs / Assisted visitors")).toBe(
+      "Prepared docs / Assisted visitors",
+    );
+    expect(
+      formatDocxAccomplishmentText("Prepared docs / Assisted visitors", {
+        capitalizeAccomplishments: true,
+      }),
+    ).toBe("PREPARED DOCS / ASSISTED VISITORS");
+    expect(
+      formatDocxAccomplishmentText("Niño Aquino <briefing> & review", {
+        capitalizeAccomplishments: true,
+      }),
+    ).toBe("NIÑO AQUINO <BRIEFING> & REVIEW");
   });
 });
 
@@ -210,12 +229,106 @@ describe("ReportMappingService", () => {
     const tokens = ReportMappingService.toFlatTokens(
       ReportMappingService.buildPayload(input),
     );
-    expect(tokens.employee_name).toBe("Maria Clara & José");
+    expect(tokens.employee_name).toBe("MARIA CLARA & JOSÉ");
     expect(tokens.r01_accomplishment).toContain("<briefing>");
     expect(tokens.r01_accomplishment).toContain("Niño");
-    expect(tokens.signatory_employee_name).toBe("Maria Clara & José");
+    expect(tokens.signatory_employee_name).toBe("MARIA CLARA & JOSÉ");
     expect(tokens.signatory_1_title).toBe("Secretary");
     expect(tokens.signatory_3_name).toBe("Verifier Three");
+  });
+
+  it("floors leftover minutes when hoursOnly is set", () => {
+    const input = baseInput([
+      {
+        workDate: "2026-08-01",
+        classification: "workday",
+        classificationLabel: null,
+        amArrival: "07:00",
+        amDeparture: "12:00",
+        pmArrival: "13:00",
+        pmDeparture: "18:00",
+        workedMinutes: 618,
+        calculatedUndertimeMinutes: 0,
+        undertimeOverrideMinutes: null,
+        accomplishments: ["Task"],
+        remarks: null,
+      },
+    ]);
+    const payload = ReportMappingService.buildPayload(input);
+    const detailed = ReportMappingService.toFlatTokens(payload);
+    expect(detailed.r01_time_spent).toBe("10 hrs 18 mins");
+    expect(detailed.total_hours_label).toBe("10 HRS 18 MINS");
+
+    const shortened = ReportMappingService.toFlatTokens(payload, { hoursOnly: true });
+    expect(shortened.r01_time_spent).toBe("10 hrs");
+    expect(shortened.total_hours_label).toBe("10 HRS");
+  });
+
+  it("uppercases workday accomplishments when capitalizeAccomplishments is set", () => {
+    const input = baseInput([
+      {
+        workDate: "2026-08-01",
+        classification: "workday",
+        classificationLabel: null,
+        amArrival: "07:00",
+        amDeparture: "12:00",
+        pmArrival: "13:00",
+        pmDeparture: "18:00",
+        workedMinutes: 600,
+        calculatedUndertimeMinutes: 0,
+        undertimeOverrideMinutes: null,
+        accomplishments: ["Prepared docs", "Assisted visitors"],
+        remarks: "ok",
+      },
+      {
+        workDate: "2026-08-02",
+        classification: "scheduled_off",
+        classificationLabel: "Sunday",
+        amArrival: null,
+        amDeparture: null,
+        pmArrival: null,
+        pmDeparture: null,
+        workedMinutes: 0,
+        calculatedUndertimeMinutes: 0,
+        undertimeOverrideMinutes: null,
+        accomplishments: [],
+        remarks: null,
+      },
+    ]);
+    const payload = ReportMappingService.buildPayload(input);
+    const unchanged = ReportMappingService.toFlatTokens(payload);
+    expect(unchanged.r01_accomplishment).toBe("Prepared docs / Assisted visitors");
+    expect(unchanged.r02_accomplishment).toBe("SUNDAY");
+
+    const capped = ReportMappingService.toFlatTokens(payload, {
+      capitalizeAccomplishments: true,
+    });
+    expect(capped.r01_accomplishment).toBe("PREPARED DOCS / ASSISTED VISITORS");
+    expect(capped.r02_accomplishment).toBe("SUNDAY");
+  });
+
+  it("uppercases unicode workday accomplishments when capitalizeAccomplishments is set", () => {
+    const input = baseInput([
+      {
+        workDate: "2026-08-01",
+        classification: "workday",
+        classificationLabel: null,
+        amArrival: "07:00",
+        amDeparture: "12:00",
+        pmArrival: "13:00",
+        pmDeparture: "18:00",
+        workedMinutes: 600,
+        calculatedUndertimeMinutes: 0,
+        undertimeOverrideMinutes: null,
+        accomplishments: ["Niño Aquino <briefing> & review"],
+        remarks: null,
+      },
+    ]);
+    const capped = ReportMappingService.toFlatTokens(
+      ReportMappingService.buildPayload(input),
+      { capitalizeAccomplishments: true },
+    );
+    expect(capped.r01_accomplishment).toBe("NIÑO AQUINO <BRIEFING> & REVIEW");
   });
 
   it("joins accomplishments in UI order", () => {

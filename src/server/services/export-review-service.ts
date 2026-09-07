@@ -24,6 +24,7 @@ export type GenerationReviewSummary = {
   periodStart: string;
   periodEnd: string;
   totalWorkedLabel: string;
+  totalWorkedMinutes: number;
   workdayCount: number;
   offDayCount: number;
   incompleteCount: number;
@@ -89,6 +90,7 @@ export class ExportReviewService {
       periodStart: loaded.report.startDate,
       periodEnd: loaded.report.endDate,
       totalWorkedLabel: formatTotalHoursLabel(payload.totalWorkedMinutes),
+      totalWorkedMinutes: payload.totalWorkedMinutes,
       workdayCount,
       offDayCount,
       incompleteCount: validation.incompleteCount,

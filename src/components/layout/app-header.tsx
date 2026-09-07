@@ -18,7 +18,15 @@ function titleForPath(pathname: string): string {
   return "Auri";
 }
 
-export function AppHeader({ email }: { email?: string | null }) {
+export function AppHeader({
+  email,
+  userId,
+  employeeName,
+}: {
+  email?: string | null;
+  userId?: string | null;
+  employeeName?: string | null;
+}) {
   const pathname = usePathname();
   const title = titleForPath(pathname);
 
@@ -29,7 +37,7 @@ export function AppHeader({ email }: { email?: string | null }) {
         <h1 className="text-auri-ink text-lg font-semibold">{title}</h1>
       </div>
       <div className="flex min-h-11 min-w-11 items-center justify-center md:hidden">
-        <UserMenu email={email} />
+        <UserMenu compact email={email} userId={userId} employeeName={employeeName} />
       </div>
     </header>
   );

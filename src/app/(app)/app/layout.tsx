@@ -15,17 +15,26 @@ export const dynamic = "force-dynamic";
 function AppShell({
   children,
   email,
+  userId,
+  employeeName,
 }: {
   children: React.ReactNode;
   email?: string | null;
+  userId?: string | null;
+  employeeName?: string | null;
 }) {
   return (
     <div className="relative min-h-dvh">
       <SkipToContent />
       <div className="md:flex md:min-h-dvh">
-        <AppSidebar className="hidden md:flex" email={email} />
+        <AppSidebar
+          className="hidden md:flex"
+          email={email}
+          userId={userId}
+          employeeName={employeeName}
+        />
         <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-          <AppHeader email={email} />
+          <AppHeader email={email} userId={userId} employeeName={employeeName} />
           <main
             id="main-content"
             className="flex-1 px-4 py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:px-8 md:pb-8"
@@ -62,7 +71,11 @@ export default async function ApplicationLayout({
     if (!isOnboardingComplete(profile.onboardingCompletedAt)) {
       redirect("/onboarding");
     }
-    return <AppShell email={user.email}>{children}</AppShell>;
+    return (
+      <AppShell email={user.email} userId={user.id} employeeName={profile.employeeName}>
+        {children}
+      </AppShell>
+    );
   } catch (error) {
     if (isNextControlFlowError(error)) {
       throw error;

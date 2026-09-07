@@ -145,4 +145,10 @@ describe("formatTotalHoursLabel", () => {
     expect(formatTotalHoursLabel(4770)).toBe("79 HRS 30 MINS");
     expect(formatTotalHoursLabel(0)).toBe("0 HRS");
   });
+
+  it("floors leftover minutes when hoursOnly is set", () => {
+    expect(formatTotalHoursLabel(4818, { hoursOnly: true })).toBe("80 HRS");
+    expect(formatTotalHoursLabel(618, { hoursOnly: true })).toBe("10 HRS");
+    expect(formatTotalHoursLabel(0, { hoursOnly: true })).toBe("0 HRS");
+  });
 });

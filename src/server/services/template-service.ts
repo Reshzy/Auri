@@ -164,7 +164,7 @@ async function loadTrustedTemplateBytes(input: {
   if (!buffer && input.allowLocalFallback && localMeta) {
     buffer = readLocalRuntimeBytes(localMeta.runtimeFile || input.defaultRuntimeFile);
     source = "local";
-    if (!expectedHash) expectedHash = localMeta.runtimeSha256;
+    expectedHash = localMeta.runtimeSha256;
   }
 
   if (!buffer) {
@@ -181,17 +181,22 @@ async function loadTrustedTemplateBytes(input: {
   }
 
   const hash = sha256Hex(buffer);
-  if (expectedHash && hash !== expectedHash) {
-    throw new ExportError(
-      "TEMPLATE_HASH_MISMATCH",
-      "Template hash does not match the trusted record.",
-    );
-  }
-
-  if (localMeta && hash !== localMeta.runtimeSha256) {
+  if (source === "storage") {
+    if (expectedHash && hash !== expectedHash) {
+      throw new ExportError(
+        "TEMPLATE_HASH_MISMATCH",
+        "Template hash does not match the trusted record.",
+      );
+    }
+  } else if (localMeta && hash !== localMeta.runtimeSha256) {
     throw new ExportError(
       "TEMPLATE_HASH_MISMATCH",
       "Template hash does not match the local manifest.",
+    );
+  } else if (active?.sha256 && hash !== active.sha256) {
+    throw new ExportError(
+      "TEMPLATE_HASH_MISMATCH",
+      "Template hash does not match the trusted record.",
     );
   }
 

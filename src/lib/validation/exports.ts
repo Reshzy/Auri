@@ -30,6 +30,8 @@ export const exportRequestSchema = z
   .object({
     formats: z.array(exportFormatSchema).min(1),
     acknowledgedWarnings: z.array(z.string()).default([]),
+    hoursOnly: z.boolean().default(false),
+    capitalizeAccomplishments: z.boolean().default(false),
     userId: z.unknown().optional(),
     user_id: z.unknown().optional(),
     ownerId: z.unknown().optional(),

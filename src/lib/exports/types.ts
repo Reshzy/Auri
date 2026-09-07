@@ -38,6 +38,7 @@ export type GenerationReviewSummary = {
   periodStart: string;
   periodEnd: string;
   totalWorkedLabel: string;
+  totalWorkedMinutes: number;
   workdayCount: number;
   offDayCount: number;
   incompleteCount: number;
