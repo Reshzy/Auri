@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useRef } from "react";
+import { type ReactNode, type RefObject, useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { prefersReducedMotion } from "@/lib/motion";
@@ -11,9 +11,11 @@ gsap.registerPlugin(useGSAP);
 export function AvatarShine({
   children,
   className,
+  triggerRef,
 }: {
   children: ReactNode;
   className?: string;
+  triggerRef?: RefObject<HTMLElement | null>;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const shineRef = useRef<HTMLSpanElement>(null);
@@ -23,6 +25,8 @@ export function AvatarShine({
       const root = rootRef.current;
       const shine = shineRef.current;
       if (!root || !shine || !contextSafe) return;
+
+      const hoverTarget = triggerRef?.current ?? root.closest("button") ?? root;
 
       gsap.set(shine, { xPercent: -120, autoAlpha: 0 });
       let tween: gsap.core.Tween | null = null;
@@ -50,16 +54,16 @@ export function AvatarShine({
         gsap.set(shine, { xPercent: -120, autoAlpha: 0 });
       });
 
-      root.addEventListener("pointerenter", play);
-      root.addEventListener("pointerleave", stop);
+      hoverTarget.addEventListener("pointerenter", play);
+      hoverTarget.addEventListener("pointerleave", stop);
 
       return () => {
-        root.removeEventListener("pointerenter", play);
-        root.removeEventListener("pointerleave", stop);
+        hoverTarget.removeEventListener("pointerenter", play);
+        hoverTarget.removeEventListener("pointerleave", stop);
         tween?.kill();
       };
     },
-    { scope: rootRef },
+    { scope: rootRef, dependencies: [triggerRef] },
   );
 
   return (
@@ -68,7 +72,7 @@ export function AvatarShine({
       <span
         ref={shineRef}
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 w-1/2 origin-center -skew-x-12 bg-gradient-to-r from-transparent via-white/75 to-transparent opacity-0"
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-1/2 origin-center -skew-x-12 bg-gradient-to-r from-transparent via-white/80 to-transparent mix-blend-overlay opacity-0"
       />
     </div>
   );

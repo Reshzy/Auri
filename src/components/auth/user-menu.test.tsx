@@ -70,6 +70,7 @@ describe("UserMenu", () => {
     );
     expect(html).toContain("ada@example.com");
     expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).toContain("mix-blend-overlay");
   });
 
   it("falls back to initials when no user id is provided", () => {

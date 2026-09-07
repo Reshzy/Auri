@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useId, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Clock, Files, PenLine, User, X } from "lucide-react";
@@ -30,15 +30,18 @@ function ProfileAvatarFace({
   initial,
   className,
   onError,
+  triggerRef,
 }: {
   avatarSrc: string | null;
   avatarFailed: boolean;
   initial: string;
   className: string;
   onError: () => void;
+  triggerRef?: RefObject<HTMLElement | null>;
 }) {
   return (
     <AvatarShine
+      triggerRef={triggerRef}
       className={cn("bg-auri-surface ring-auri-border shrink-0 ring-1", className)}
     >
       {avatarSrc && !avatarFailed ? (
@@ -79,6 +82,8 @@ export function UserMenu({
 }) {
   const router = useRouter();
   const emailId = useId();
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const dialogHeaderRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
 
@@ -98,6 +103,7 @@ export function UserMenu({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <button
+        ref={menuTriggerRef}
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -116,6 +122,7 @@ export function UserMenu({
           initial={initial}
           className="h-11 w-11 text-sm"
           onError={() => setAvatarFailed(true)}
+          triggerRef={menuTriggerRef}
         />
         {compact ? null : (
           <span className="min-w-0 flex-1">
@@ -140,13 +147,17 @@ export function UserMenu({
           <X className="h-4 w-4" aria-hidden="true" />
         </DialogClose>
 
-        <div className="bg-auri-orange-50 px-5 pt-8 pb-5 text-center">
+        <div
+          ref={dialogHeaderRef}
+          className="bg-auri-orange-50 px-5 pt-8 pb-5 text-center"
+        >
           <ProfileAvatarFace
             avatarSrc={avatarSrc}
             avatarFailed={avatarFailed}
             initial={initial}
             className="mx-auto h-20 w-20 text-xl"
             onError={() => setAvatarFailed(true)}
+            triggerRef={dialogHeaderRef}
           />
           <DialogTitle className="mt-3 text-base">{displayName}</DialogTitle>
           <DialogDescription id={emailId} className="mt-0.5 truncate">
